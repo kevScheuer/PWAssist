@@ -1,0 +1,25 @@
+[project]
+name = "pwassist"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "matplotlib>=3.10.9",
+    "numpy>=2.4.4",
+    "pandas>=3.0.2",
+    "scipy>=1.17.1",
+    "seaborn>=0.13.2",
+    "uncertainties>=3.2.3",
+]
+
+[dependency-groups]
+dev = [
+    "pydata-sphinx-theme>=0.17.1",
+    "pytest>=9.0.3",
+    "sphinx>=9.1.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.12,<0.12"]
+build-backend = "uv_build"
