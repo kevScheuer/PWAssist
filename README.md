@@ -26,3 +26,4 @@ Then add the other plotters, some of their methods, make a test, and so on. Make
 Build sphinx documentation
 
 ### Link documentation to github repo
+Also try out formatting (python black) checks in github actions

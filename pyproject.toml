@@ -16,7 +16,9 @@ dependencies = [
 [dependency-groups]
 dev = [
     "black>=26.3.1",
+    "ipykernel>=7.2.0",
     "isort>=8.0.1",
+    "jupyter>=1.1.1",
     "pydata-sphinx-theme>=0.17.1",
     "pytest>=9.0.3",
     "sphinx>=9.1.0",
