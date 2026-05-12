@@ -94,7 +94,7 @@ class CorrelationFile(ResultsFile):
             return False
 
         # then use small sample of data to check that numeric columns are in [-1, 1]
-        df_sample = pd.read_csv(path, skiprows=1, nrows=2)
+        df_sample = pd.read_csv(path, nrows=2)
         numeric_cols = df_sample.select_dtypes(include=[np.number]).columns
 
         if len(numeric_cols) == 0:
