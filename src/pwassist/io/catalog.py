@@ -1,6 +1,5 @@
 import pathlib
 from dataclasses import dataclass
-from email import header
 from typing import ClassVar, Self
 
 import numpy as np
@@ -16,7 +15,7 @@ class ResultsFile:
         frame (pd.DataFrame): The contents of the CSV file as a DataFrame.
 
     Returns:
-        _type_: _description_
+        _type_: The type of the ResultsFile.
     """
 
     path: pathlib.Path
@@ -81,7 +80,8 @@ class DataFile(ResultsFile):
 class CorrelationFile(ResultsFile):
     """Correlation matrix between fit parameters.
 
-    Identified by 'file' and 'parameter' columns with numeric values bounded in [-1, 1].
+    Identified by 'file' and 'parameter' columns, and if the diagonal elements of the
+    numeric columns are equivalent to 1.0.
     """
 
     required_columns: ClassVar[frozenset[str]] = frozenset({"file", "parameter"})
@@ -93,19 +93,17 @@ class CorrelationFile(ResultsFile):
         if not cls.matches(header.columns):
             return False
 
-        # then use small sample of data to check that numeric columns are in [-1, 1]
-        df_sample = pd.read_csv(path, nrows=2)
+        # then use small sample of data to check that diagonal elements are 1.0
+        df_sample = pd.read_csv(path, nrows=5)
         numeric_cols = df_sample.select_dtypes(include=[np.number]).columns
 
         if len(numeric_cols) == 0:
             return False
 
-        numeric_data = df_sample[numeric_cols].values.flatten()
-        numeric_data = numeric_data[~np.isnan(numeric_data)]
+        diagonal_elements = df_sample[numeric_cols].to_numpy().diagonal()
 
         return bool(
-            len(numeric_data) > 0
-            and np.all((numeric_data >= -1.0) & (numeric_data <= 1.0))
+            len(diagonal_elements) > 0 and np.all(np.isclose(diagonal_elements, 1.0))
         )
 
 
@@ -268,7 +266,7 @@ class Catalog:
                 records.append(
                     {
                         "bin_id": bin_id,
-                        "file_path": csv_file.resolve(),
+                        "file_path": str(csv_file.resolve()),
                         "file_type": file_type.__name__,
                         "size_bytes": size_bytes,
                     }
