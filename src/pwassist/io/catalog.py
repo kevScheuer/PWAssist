@@ -1,3 +1,5 @@
+"""Classes for identifying and cataloging PWA result files in a directory structure."""
+
 import pathlib
 from dataclasses import dataclass
 from typing import ClassVar, Self
@@ -38,6 +40,11 @@ class ResultsFile:
 
     @classmethod
     def from_path(cls, path: pathlib.Path) -> Self:
+        """Create an instance of the ResultsFile from a path.
+
+        Note that this method reads the entire CSV file into memory, which may be
+        inefficient for large files. Use with caution.
+        """
         frame = pd.read_csv(path)
         return cls(path=path, frame=frame)
 
