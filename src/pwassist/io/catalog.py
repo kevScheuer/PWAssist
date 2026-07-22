@@ -300,5 +300,7 @@ class Catalog:
                 'file_type' describing the catalog of PWA result files.
         """
         if self._manifest is None:
-            raise ValueError("Manifest not available. Call scan() first.")
+            self.scan()
+        if self._manifest is None:
+            raise RuntimeError("Manifest is not available after scanning.")
         return self._manifest
