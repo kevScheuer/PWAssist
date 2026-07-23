@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from pwassist.io.binning import MassBin
+from pwassist.plotting.factory import FactoryPlotter
 from pwassist.preprocessing.preprocessor import PreprocessReport, ProcessedBin
 
 
@@ -28,9 +29,12 @@ class Results:
     reports: list[PreprocessReport] = field(default_factory=list)
     is_acc_corrected: bool = field(init=False)
 
+    _factory_plotter: FactoryPlotter | None = field(default=None, init=False)
+
     def __post_init__(self) -> None:
         # TODO: find the coherent sums, phase differences, etc. and store them
         is_acc_corrected = self._is_fit_acc_corrected()
+        _factory_plotter = FactoryPlotter(self)
         return
 
     # ----------------------------------------------------------------------------------
@@ -217,3 +221,14 @@ class Results:
             UserWarning,
         )
         return False
+
+    # ----------------------------------------------------------------------------------
+    # Analysis
+    # ----------------------------------------------------------------------------------
+    @property
+    def plot(self) -> FactoryPlotter:
+        """Return a FactoryPlotter instance for plotting the results."""
+        if self._factory_plotter is None:
+            self._factory_plotter = FactoryPlotter(self)
+
+        return self._factory_plotter
