@@ -1,4 +1,5 @@
 import importlib.resources
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -102,4 +103,6 @@ class BasePWAPlotter:
         return np.rad2deg(scipy.stats.circstd(angles_rad, low=0, high=np.pi))
 
     def _style(self):
+        # TODO: consider a way to allow users to specify their own style file, or use
+        # another one from directory of default styles.
         return plt.style.context(self._STYLE_PATH)
