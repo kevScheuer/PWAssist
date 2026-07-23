@@ -89,7 +89,12 @@ def wrap_phase_columns(bundle: BinBundle) -> None:
     phase_cols = [
         c
         for c in fit.frame.columns
-        if "_" in c and len(c.split("_")[0]) == 4 and len(c.split("_")[1]) == 4
+        if (
+            "_" in c and len(c.split("_")[0]) == 4 and len(c.split("_")[1]) == 4
+        )  # JLme
+        or (
+            "_" in c and len(c.split("_")[0]) == 5 and len(c.split("_")[1]) == 5
+        )  # eJPmL
     ]
     phase_err_cols = [
         f"{c}_err" for c in phase_cols if f"{c}_err" in fit.frame.columns
@@ -149,8 +154,7 @@ def check_covariance_matrix(bundle: BinBundle) -> None:
     eigenvalues = np.linalg.eigvalsh(matrix.values)
     if np.any(eigenvalues < 0):
         warnings.warn(
-            f"[{bundle.bin_id}] Covariance matrix is not positive semi-definite."
-            f" Eigenvalues: {eigenvalues}",
+            f"[{bundle.bin_id}] Covariance matrix is not positive semi-definite.",
             UserWarning,
         )
 
