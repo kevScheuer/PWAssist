@@ -1,4 +1,3 @@
-from pwassist.core.result import Results
 from pwassist.plotting.base import BasePWAPlotter
 
 

@@ -1,12 +1,13 @@
 import importlib.resources
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy.stats
 
-from pwassist.core.result import Results
+if TYPE_CHECKING:
+    from pwassist.core.result import Results
 
 
 class BasePWAPlotter:
@@ -19,7 +20,7 @@ class BasePWAPlotter:
         / "default.mplstyle"
     )
 
-    def __init__(self, results: Results, channel: str = r"\pi^0\pi^-"):
+    def __init__(self, results: "Results", channel: str = r"\pi^0\pi^-"):
         self.results = results
         self.channel = channel
 

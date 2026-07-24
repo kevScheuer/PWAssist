@@ -1,7 +1,11 @@
-from pwassist.core.result import Results
+from typing import TYPE_CHECKING
+
 from pwassist.plotting.base import BasePWAPlotter
 from pwassist.plotting.bin import BinPlotter
 from pwassist.plotting.scan import ScanPlotter
+
+if TYPE_CHECKING:
+    from pwassist.core.result import Results
 
 
 class FactoryPlotter:
@@ -11,7 +15,7 @@ class FactoryPlotter:
     access to shared data.
     """
 
-    def __init__(self, results: Results) -> None:
+    def __init__(self, results: "Results") -> None:
         self.results = results
         self._cache: dict[str, BasePWAPlotter] = {}
 
