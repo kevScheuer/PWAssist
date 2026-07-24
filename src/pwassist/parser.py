@@ -1,13 +1,330 @@
-# TODO: build something like a dataclass for the various naming schemes
-# Should handle
-# - JLme
-# - eJPmL
-# - Lme
+import itertools
+import warnings
+from dataclasses import dataclass
+from enum import Enum
+from typing import Callable
 
-# Option to set the naming scheme
 
-# TODO: based off a given (or automatically determined) naming scheme, this will
-# provide tools to convert quantum number-based label strings into interpretable
-# representations and groups
-# This will include get_coherent_sums, get_phase_differences, etc. for the given naming
-# scheme
+class NamingScheme(Enum):
+    AUTO = "auto"
+    JLME = "JLme"  # e.g. 1P-1p
+    EJPML = "eJPmL"  # e.g. p1p0S
+    LME = "Lme"  # e.g. S0+
+
+
+@dataclass(frozen=True, slots=True)
+class ParsedAmplitude:
+    """Quantum numbers extracted from the amplitude name"""
+
+    amp_name: str
+    e: str = ""
+    J: str = ""
+    P: str = ""
+    m: str = ""
+    L: str = ""
+
+    def get(self, quantum_number: str) -> str:
+        """Get the value of a quantum number by name"""
+        return getattr(self, quantum_number)
+
+
+@dataclass(frozen=True)
+class SchemeDef:
+    infer: Callable[[str], bool]  # Determine if an amplitude matches this naming scheme
+    parse: Callable[[str], ParsedAmplitude]  # index-based parser for the amplitude name
+    sum_groups: tuple[tuple[str, ...], ...]  # possible quantum number groupings
+    single_amplitudes: tuple[str, ...]  # base individual amplitude quantum numbers
+    example: str
+
+
+# --------------------------------------------------------------------------------------
+# Scheme Implementations
+# --------------------------------------------------------------------------------------
+# NOTE: The following functions are used to infer the naming scheme of an amplitude
+# based on its name. If you wish to add a new naming scheme, be very careful that its
+# inference function does not overlap with any of the existing ones.
+
+# TODO: need some sort of way for the AmplitudeParser to be initialized with a "final
+# state parity", so that the parsed amplitudes can automatically calculate "P" via
+# P = (final_state_parity) * (-1)^L. This is important for the non-eJPmL schemes that
+# do not explicitly encode parity in the amplitude name.
+
+
+def _infer_jlme(amp: str) -> bool:
+    # Examples: 1P+0p, 2D-1n, 3F+2p
+    return amp[0].isdigit()
+
+
+def _parse_jlme(amp: str) -> ParsedAmplitude:
+    return ParsedAmplitude(amp_name=amp, J=amp[0], L=amp[1], m=amp[2:-1], e=amp[-1])
+
+
+def _infer_lme(amp: str) -> bool:
+    # Examples: S0+, P+1-, D-2+, F+3-
+    return amp[0].isupper() and amp[-1] in ["+", "-"]
+
+
+def _parse_lme(amp: str) -> ParsedAmplitude:
+    return ParsedAmplitude(
+        amp_name=amp,
+        L=amp[0],
+        J=amp[0],  # this scheme is for two-ps, where L=J
+        m=amp[1:-1],
+        e=amp[2],
+    )
+
+
+def _infer_ejpml(amp: str) -> bool:
+    # Examples: p1p0S, m1mmP, p3mqF
+    return amp[0] in ["p", "m"] and amp[-1].isupper()
+
+
+def _parse_ejpml(amp: str) -> ParsedAmplitude:
+    return ParsedAmplitude(
+        amp_name=amp, e=amp[0], J=amp[1], P=amp[2], m=amp[2:-1], L=amp[-1]
+    )
+
+
+# The idea behind the coherent sum groupings is that any quantum number excluded has
+# been summed over in the amplitude. For example, if the sum group is ("J", "L"),
+# then the amplitude has been summed over all possible values of "e" and "m".
+SCHEMES: dict[NamingScheme, SchemeDef] = {
+    NamingScheme.JLME: SchemeDef(
+        infer=_infer_jlme,
+        parse=_parse_jlme,
+        example="1P+0p",
+        sum_groups=(
+            ("e",),
+            ("J",),
+            ("J", "e"),
+            ("J", "L"),
+            ("J", "L", "e"),
+            ("J", "L", "m"),
+        ),
+        single_amplitudes=("J", "L", "m", "e"),
+    ),
+    NamingScheme.LME: SchemeDef(
+        infer=_infer_lme,
+        parse=_parse_lme,
+        example="S0+",
+        sum_groups=(
+            ("e",),
+            ("L",),
+            ("L", "e"),
+            ("L", "m"),
+        ),
+        single_amplitudes=("L", "m", "e"),
+    ),
+    NamingScheme.EJPML: SchemeDef(
+        infer=_infer_ejpml,
+        parse=_parse_ejpml,
+        example="p1p0S",
+        sum_groups=(
+            ("e",),
+            ("J", "P"),
+            ("e", "J", "P"),
+            ("J", "P", "L"),
+            ("e", "J", "P", "L"),
+        ),
+        single_amplitudes=("e", "J", "P", "m", "L"),
+    ),
+}
+
+
+class AmplitudeParser:
+    """Parses amplitudes and groups according to naming scheme and quantum numbers.
+
+    Can be initialized with a specific naming scheme, or allow the parser to attempt
+    to infer the scheme from the amplitude name.
+
+    Todo:
+        - add some way to produce LaTeX label based off naming scheme. A little
+            tough because we want to accept coherent sum labels, which are not
+            just the amplitude. Also want to convert phase differences too.
+    """
+
+    def __init__(self, scheme: str | NamingScheme = NamingScheme.AUTO) -> None:
+        if isinstance(scheme, str):
+            try:
+                self.requested_scheme = NamingScheme(scheme)
+            except ValueError:
+                self.requested_scheme = NamingScheme.AUTO
+        else:
+            self.requested_scheme = scheme
+
+    @staticmethod
+    def infer_naming_scheme(label: str) -> NamingScheme:
+        if not label:
+            raise ValueError("Amplitude name cannot be empty")
+        for scheme, scheme_def in SCHEMES.items():
+            if scheme_def.infer(label):
+                return scheme
+        return NamingScheme.AUTO
+
+    def _filter_by_scheme(self, labels: list[str], scheme: NamingScheme) -> list[str]:
+        """Returns labels that match a particular naming scheme
+
+        Note that if NamingScheme is set to "Auto", the function will attempt to infer
+        a common scheme from the provided labels. If multiple schemes are found,
+        a ValueError will be raised.
+
+        Args:
+            labels (list[str]): strings to be filtered by naming scheme
+            scheme (NamingScheme): an amplitude naming scheme based on quantum numbers
+                to filter on.
+
+        Returns:
+            list[str]: a list of labels that match the specified naming scheme
+
+        Raises:
+            ValueError: if no labels are provided, an invalid naming scheme is
+                specified, or if multiple schemes are found when using AUTO.
+        """
+        if not labels:
+            raise ValueError("No labels provided to filter_by_scheme")
+        filtered = []
+
+        # try to infer a common naming scheme from the given labels if scheme is AUTO
+        if scheme == NamingScheme.AUTO:
+            scheme = self._find_common_scheme(labels)
+
+        # filter the labels by the specified scheme
+        for label in labels:
+            if self.infer_naming_scheme(label) == scheme:
+                filtered.append(label)
+
+        return filtered
+
+    def _find_common_scheme(self, labels: list[str]) -> NamingScheme:
+        """Find a common naming scheme from a list of labels.
+
+        Args:
+            labels (list[str]): strings to be checked for a common naming scheme
+        Returns:
+            NamingScheme: the common naming scheme found in the labels
+        Raises:
+            ValueError: if multiple schemes are found
+        """
+        found_schemes = {self.infer_naming_scheme(l) for l in labels}
+
+        # non-amplitude labels will still be marked "AUTO", so filter those out
+        found_schemes.discard(NamingScheme.AUTO)
+        if not found_schemes:
+            raise ValueError("No valid amplitude labels found")
+
+        if len(found_schemes) > 1:
+            raise ValueError(
+                f"Multiple naming schemes found: {found_schemes}."
+                "Please ensure all amplitudes use the same naming scheme, or"
+                " specify a scheme explicitly."
+            )
+
+        return found_schemes.pop()
+
+    def _build_sum_groups(
+        self, amps: list[str], scheme: NamingScheme
+    ) -> dict[str, list[str]]:
+
+        if not amps:
+            warnings.warn("No amplitudes provided to build_sum_groups")
+            return {}
+
+        # ensure that we have a common scheme to work with across all labels
+        if scheme == NamingScheme.AUTO:
+            scheme = self._find_common_scheme(amps)
+
+        # get the base amplitude names that match the specified scheme
+        filtered_labels = self._filter_by_scheme(amps, scheme)
+
+        scheme_def = SCHEMES[scheme]
+        groups: dict[str, set[str]] = {}  # e.g. "JL" -> {"1P", "2D", "3F"}
+
+        for label in filtered_labels:
+            # parse amplitude name into its quantum numbers
+            parsed = scheme_def.parse(label)
+            for group in scheme_def.sum_groups:
+                sum_label = "".join(group)
+                amp_sum = "".join(parsed.get(qn) for qn in group)
+                if amp_sum:
+                    groups.setdefault(sum_label, set()).add(amp_sum)
+
+        return {sum_label: sorted(list(sums)) for sum_label, sums in groups.items()}
+
+    def get_coherent_sums(self, columns: list[str]) -> dict[str, list[str]]:
+        """Return a dictionary of coherent sum labels and coherent sums found
+
+        The function will first attempt to find all possible coherent sums from the
+        "base" amplitudes in the provided columns. Then, it returns only those coherent
+        sums that are actually present in the columns.
+
+        Example:
+            If the columns contain the following labels:
+                ["1P+0p", "1P+1p", "1S-1n", "1P", "p"]
+            The function determines that the possible coherent sums are (based off the
+            JLme naming scheme):
+                "J" -> ["1"]
+                "e" -> ["p", "n"]
+                "Je" -> ["1p", "1n"]
+                "JL" -> ["1P", "1S"]
+                "JLe" -> ["1Pp", "1Sn"]
+                "JLm" -> ["1P0", "1P1", "1S-1"]
+            Then, it returns only those sums that are actually present in the columns:
+                {"JL": ["1P"], "e": ["p"]}
+
+        Args:
+            columns: list of column names from a results dataframe.
+        Returns:
+            dict[str, list[str]]: a dictionary of coherent sum labels and coherent sums
+                The keys are the sum labels (e.g. "JL", "e", etc.) and the values are
+                lists of coherent sums found in the columns.
+        """
+
+        base_amplitudes = self.get_amplitudes(columns)
+
+        # These are all possible sums that could be present in the columns, based on
+        # the naming scheme from the "base" amplitudes
+        expected_sum_groups = self._build_sum_groups(
+            base_amplitudes, self.requested_scheme
+        )
+
+        # Of the possible sums, only keep those that are actually present in the
+        # columns
+        found_sums = {}
+        for sum_label, sums in expected_sum_groups.items():
+            found_sums[sum_label] = [s for s in sums if s in columns]
+
+        return found_sums
+
+    def get_amplitudes(self, columns: list[str]) -> list[str]:
+        """Return a list of base amplitude labels found in the provided columns.
+
+        Amplitudes are identified by those strings who always have a "_re" and "_im"
+        part attached to them. Of course, other parameters may be written like this,
+        but should most likely not get confused with an amplitude naming scheme. The
+        reason we have to filter our amplitudes is because our columns also have
+        coherent sums, and these formats can be easily confused for a different
+        naming scheme.
+
+        Args:
+            columns: list of column names from a results dataframe.
+        Returns:
+            list[str]: a list of base amplitude labels found in the provided columns.
+        """
+        amplitudes = [c[:-3] for c in columns if c.endswith("_re") or c.endswith("_im")]
+
+        return self._filter_by_scheme(amplitudes, self.requested_scheme)
+
+    def get_phase_differences(self, columns: list[str]) -> list[str]:
+        """Return a list of phase difference labels found in the provided columns.
+
+        Args:
+            columns: list of column names from a results dataframe.
+        Returns:
+            list[str]: a list of phase difference labels found in the provided columns.
+        """
+        base_amplitudes = self.get_amplitudes(columns)
+        all_possible_pairs = list(itertools.combinations(base_amplitudes, 2))
+        all_possible_phase_diffs = [f"{a1}_{a2}" for a1, a2 in all_possible_pairs] + [
+            f"{a2}_{a1}" for a1, a2 in all_possible_pairs
+        ]
+        return [p for p in all_possible_phase_diffs if p in columns]

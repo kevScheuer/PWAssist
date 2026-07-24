@@ -3,10 +3,10 @@ import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 from pwassist.io.binning import MassBin
+from pwassist.parser import AmplitudeParser
 from pwassist.plotting.factory import FactoryPlotter
 from pwassist.preprocessing.preprocessor import PreprocessReport, ProcessedBin
 
@@ -19,22 +19,54 @@ class Results:
         - Add examples and lots of documentation, as this is the main user-facing class
     """
 
+    # Result dataframes
     fit: pd.DataFrame
     data: pd.DataFrame
     correlation: pd.DataFrame | None = None
     covariance: pd.DataFrame | None = None
     norm_int: pd.DataFrame | None = None
 
+    # Result metadata
     mass_bins: list[MassBin] = field(default_factory=list)
     reports: list[PreprocessReport] = field(default_factory=list)
     is_acc_corrected: bool = field(init=False)
 
-    _factory_plotter: FactoryPlotter | None = field(default=None, init=False)
+    # Amplitude-based attributes
+    coherent_sums: dict[str, list[str]] = field(default_factory=dict, init=False)
+    amplitudes: list[str] = field(default_factory=list, init=False)
+    phase_differences: list[str] = field(default_factory=list, init=False)
+    _phase_difference_dict: dict[tuple[str, str], str] = field(
+        default_factory=dict, init=False
+    )
+
+    _factory_plotter: FactoryPlotter | None = field(
+        default=None, init=False, repr=False
+    )
+    _naming_scheme: str | None = field(default=None)
+    _parser: AmplitudeParser | None = field(default=None, init=False)
 
     def __post_init__(self) -> None:
-        # TODO: find the coherent sums, phase differences, etc. and store them
-        is_acc_corrected = self._is_fit_acc_corrected()
-        _factory_plotter = FactoryPlotter(self)
+        self.is_acc_corrected = self._is_fit_acc_corrected()
+        self._factory_plotter = FactoryPlotter(self)
+
+        if self._naming_scheme is None:
+            self._naming_scheme = "auto"
+        self._parser = AmplitudeParser(self._naming_scheme)
+
+        self.amplitudes = self._parser.get_amplitudes(self.fit.columns.to_list())
+        if self.amplitudes is None or len(self.amplitudes) == 0:
+            warnings.warn(
+                f"No amplitudes found in fit dataframe using naming scheme"
+                f" '{self._naming_scheme}'. This will affect plotting scripts.",
+                UserWarning,
+            )
+
+        self.coherent_sums = self._parser.get_coherent_sums(self.fit.columns.to_list())
+        self.phase_differences = self._parser.get_phase_differences(
+            self.fit.columns.to_list()
+        )
+        self._phase_difference_dict = self._build_phase_difference_dict()
+
         return
 
     # ----------------------------------------------------------------------------------
@@ -42,7 +74,9 @@ class Results:
     # ----------------------------------------------------------------------------------
 
     @classmethod
-    def from_processed_bins(cls, processed_bins: list[ProcessedBin]) -> "Results":
+    def from_processed_bins(
+        cls, processed_bins: list[ProcessedBin], naming_scheme: str | None = None
+    ) -> "Results":
         """Construct a Results instance from a list of ProcessedBin objects."""
         # sort the processed bins by mass bin low edge to ensure consistent ordering
         processed_bins = sorted(processed_bins, key=lambda pb: pb.mass_bin.low)
@@ -83,6 +117,7 @@ class Results:
             norm_int=norm_ints,
             mass_bins=[pb.mass_bin for pb in processed_bins],
             reports=[pb.report for pb in processed_bins],
+            _naming_scheme=naming_scheme,
         )
 
     @classmethod
@@ -103,6 +138,7 @@ class Results:
             "norm_int": self.norm_int,
             "mass_bins": self.mass_bins,
             "reports": self.reports,
+            "_naming_scheme": self._naming_scheme,
         }
         with open(filepath, "wb") as f:
             pickle.dump(data, f)
@@ -223,6 +259,21 @@ class Results:
         return False
 
     # ----------------------------------------------------------------------------------
+    # Amplitude-based Queries
+    # ----------------------------------------------------------------------------------
+    def find_phase(self, amp1: str, amp2: str) -> str | None:
+        """Find the phase difference column name for a given pair of amplitudes.
+
+        Args:
+            amp1 (str): Name of the first amplitude.
+            amp2 (str): Name of the second amplitude.
+
+        Returns:
+            str | None: The name of the phase difference column, or None if not found.
+        """
+        return self._phase_difference_dict.get((amp1, amp2), None)
+
+    # ----------------------------------------------------------------------------------
     # Analysis
     # ----------------------------------------------------------------------------------
     @property
@@ -232,3 +283,31 @@ class Results:
             self._factory_plotter = FactoryPlotter(self)
 
         return self._factory_plotter
+
+    # ----------------------------------------------------------------------------------
+    # Helpers
+    # ----------------------------------------------------------------------------------
+    def _build_phase_difference_dict(self) -> dict[tuple[str, str], str]:
+        """Build dictionary of all pairs of amplitudes and corresponding phases
+
+        Since the phase_difference orderings are not known a priori, it's unclear how
+        to request a phase difference column from a dataframe. This dictionary will
+        allow for easy lookup of the phase difference for a pair of amplitudes,
+        regardless of their order in the dataframe.
+        """
+
+        if self._parser is None:
+            raise ValueError("AmplitudeParser is not initialized.")
+
+        possible_pairs_to_phases = {}
+        for phase in self.phase_differences:
+            amps = phase.split("_")
+            if len(amps) != 2:
+                raise ValueError(
+                    f"Phase difference '{phase}' does not correspond to a pair of"
+                    " amplitudes."
+                )
+            possible_pairs_to_phases[tuple(amps)] = phase
+            possible_pairs_to_phases[tuple(amps[::-1])] = phase
+
+        return possible_pairs_to_phases
