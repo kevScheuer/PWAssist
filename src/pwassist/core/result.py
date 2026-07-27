@@ -240,20 +240,30 @@ class Results:
     def _is_fit_acc_corrected(self) -> bool:
         """Determine if the fit is acceptance-corrected
 
-        Todo: Implement so that it checks if the sum of total reflectivities is greater
-            than the number of detected events. Even if these interfere, acceptance
-            correction should still recognize this.
+        This is done by checking if the sum of the reflectivities exceeds the number of
+        detected events.
 
-            To do this, we will need defined amplitude naming schemes to recognize
-            the reflectivity quantum number.
-
-            The problem is that this will fail for non-reflectivity based fits, so
-            we may just have to warn the user in this scenario
+        Warning:
+            If the fit does not contain reflectivity-based amplitudes, or if the naming
+            scheme is not recognized, this method will return False and issue a warning.
         """
 
+        refl_sums = self.coherent_sums.get("e")
+        total_reflectivity = (
+            [e.sum() for e in self.fit[refl_sums].to_numpy()] if refl_sums else None
+        )
+        if total_reflectivity is not None:
+            detected_events = self.fit["detected_events"].to_numpy()
+            if (total_reflectivity > detected_events).any():
+                return True
+            else:
+                return False
+
         warnings.warn(
-            "The method _is_fit_acc_corrected is not yet implemented."
-            " Returning False by default.",
+            "Could not determine if fit is acceptance-corrected. This may be due to"
+            " the naming scheme not being recognized or the fit not containing"
+            " reflectivity-based amplitudes. Please check the fit data and naming"
+            " scheme to ensure that the results are interpreted correctly.",
             UserWarning,
         )
         return False
