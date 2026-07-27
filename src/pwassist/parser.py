@@ -1,6 +1,6 @@
 import itertools
 import warnings
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 from typing import Callable
 
@@ -43,11 +43,6 @@ class SchemeDef:
 # NOTE: The following functions are used to infer the naming scheme of an amplitude
 # based on its name. If you wish to add a new naming scheme, be very careful that its
 # inference function does not overlap with any of the existing ones.
-
-# TODO: need some sort of way for the AmplitudeParser to be initialized with a "final
-# state parity", so that the parsed amplitudes can automatically calculate "P" via
-# P = (final_state_parity) * (-1)^L. This is important for the non-eJPmL schemes that
-# do not explicitly encode parity in the amplitude name.
 
 
 def _infer_jlme(amp: str) -> bool:
@@ -130,6 +125,19 @@ SCHEMES: dict[NamingScheme, SchemeDef] = {
     ),
 }
 
+# --------------------------------------------------------------------------------------
+# Orbital angular momentum letter <-> integer (standard spectroscopic notation, skips J)
+# --------------------------------------------------------------------------------------
+_L_LETTERS = "SPDFGHIKLM"
+_L_TO_INT = {letter: i for i, letter in enumerate(_L_LETTERS)}
+
+
+def _l_letter_to_int(letter: str) -> int:
+    try:
+        return _L_TO_INT[letter]
+    except KeyError:
+        raise ValueError(f"Unrecognized orbital angular momentum letter: '{letter}'")
+
 
 class AmplitudeParser:
     """Parses amplitudes and groups according to naming scheme and quantum numbers.
@@ -143,7 +151,11 @@ class AmplitudeParser:
             just the amplitude. Also want to convert phase differences too.
     """
 
-    def __init__(self, scheme: str | NamingScheme = NamingScheme.AUTO) -> None:
+    def __init__(
+        self,
+        scheme: str | NamingScheme = NamingScheme.AUTO,
+        final_state_parity: int | None = None,
+    ) -> None:
         if isinstance(scheme, str):
             try:
                 self.requested_scheme = NamingScheme(scheme)
@@ -151,6 +163,9 @@ class AmplitudeParser:
                 self.requested_scheme = NamingScheme.AUTO
         else:
             self.requested_scheme = scheme
+        if final_state_parity is not None and final_state_parity not in [-1, 1]:
+            raise ValueError("final_state_parity must be either -1 or 1")
+        self.final_state_parity = final_state_parity
 
     @staticmethod
     def infer_naming_scheme(label: str) -> NamingScheme:
@@ -160,6 +175,51 @@ class AmplitudeParser:
             if scheme_def.infer(label):
                 return scheme
         return NamingScheme.AUTO
+
+    def parse_amplitude(self, label: str) -> ParsedAmplitude:
+        """Parse an amplitude name into its quantum numbers
+
+        Args:
+            label (str): the amplitude name to parse
+
+        Returns:
+            ParsedAmplitude: a dataclass containing the parsed quantum numbers
+        Raises:
+            ValueError: if the naming scheme cannot be inferred or is invalid
+        """
+        scheme = self.requested_scheme
+        if scheme == NamingScheme.AUTO:
+            scheme = self.infer_naming_scheme(label)
+        if scheme == NamingScheme.AUTO:
+            raise ValueError(f"Could not infer naming scheme for amplitude: {label}")
+        scheme_def = SCHEMES[scheme]
+        parsed = scheme_def.parse(label)
+        return self._apply_final_state_parity(parsed, scheme_def)
+
+    def _apply_final_state_parity(
+        self, parsed: ParsedAmplitude, scheme_def: SchemeDef
+    ) -> ParsedAmplitude:
+        """Fill in P= final_state_parity * (-1)^L for non-parity explicit schemes
+
+        Schemes like JLme and Lme do not explicitly contain the parity quantum number.
+        For these schemes, we can calculate the parity from the final state parity and
+        the orbital angular momentum L.
+
+        Args:
+            parsed (ParsedAmplitude): The parsed amplitude object
+            scheme_def (SchemeDef): The scheme definition for the current naming scheme
+
+        Returns:
+            ParsedAmplitude: A new ParsedAmplitude object with the P quantum number
+                filled in if applicable.
+        """
+        if "P" in scheme_def.single_amplitudes:
+            return parsed  # P is already explicitly defined in the amplitude name
+        if self.final_state_parity is None:
+            return parsed  # No final state parity provided, cannot calculate P
+        L = _l_letter_to_int(parsed.L)
+        total_parity = self.final_state_parity * (-1) ** L
+        return replace(parsed, P="p" if total_parity == 1 else "m")
 
     def _filter_by_scheme(self, labels: list[str], scheme: NamingScheme) -> list[str]:
         """Returns labels that match a particular naming scheme
@@ -242,6 +302,7 @@ class AmplitudeParser:
         for label in filtered_labels:
             # parse amplitude name into its quantum numbers
             parsed = scheme_def.parse(label)
+            parsed = self._apply_final_state_parity(parsed, scheme_def)
             for group in scheme_def.sum_groups:
                 sum_label = "".join(group)
                 amp_sum = "".join(parsed.get(qn) for qn in group)
