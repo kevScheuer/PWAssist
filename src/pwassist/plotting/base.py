@@ -58,12 +58,6 @@ class BasePWAPlotter:
     # ----------------------------------------------------------------------------------
     # Shared Helpers
     # ----------------------------------------------------------------------------------
-    def _get_pretty_label(self, label: str) -> str:
-        # TODO: based off naming scheme, this will convert quantum number-based label
-        # string into LaTeX style string for plotting. For example
-        # "1S+0p" -> "1^{+}S_{0}^{+}"
-        raise NotImplementedError("_get_pretty_label not yet implemented")
-
     def get_bootstrap_error(self, label: str) -> pd.Series:
         """Get the bootstrap error for a given label from the fit dataframe."""
         raise NotImplementedError("get_bootstrap_error not yet implemented")
