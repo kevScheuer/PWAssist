@@ -1,4 +1,5 @@
 import itertools
+import re
 import warnings
 from dataclasses import dataclass, replace
 from enum import Enum
@@ -76,7 +77,7 @@ def _infer_ejpml(amp: str) -> bool:
 
 def _parse_ejpml(amp: str) -> ParsedAmplitude:
     return ParsedAmplitude(
-        amp_name=amp, e=amp[0], J=amp[1], P=amp[2], m=amp[2:-1], L=amp[-1]
+        amp_name=amp, e=amp[0], J=amp[1], P=amp[2], m=amp[3:-1], L=amp[-1]
     )
 
 
@@ -434,13 +435,52 @@ class AmplitudeParser:
 
         return {sum_label: sorted(list(sums)) for sum_label, sums in groups.items()}
 
+    def _interpret_spin_projection(self, label: str) -> str:
+        """Convert spin-projection to signed format for LaTeX rendering.
+
+        Args:
+            label (str): spin-projection 'm' in the signed integer ("-1", "+0", etc.) or
+                character format ("p2", "m1", "m", "p", etc.)
+
+        Returns:
+            str: spin-projection in signed integer format for LaTeX rendering,
+                e.g. "m1" -> "-1", "+0 -> "0", etc. Returns original label if
+                it cannot be interpreted.
+        """
+        _CHAR_TO_SIGN = {"p": "+", "m": "-", "n": "-"}
+
+        find_digit = re.search(r"\d+", label)
+        if find_digit:
+            # split string on sign characters and digits
+            sign_chars = label[: find_digit.start()]
+            digits = label[find_digit.start() :]
+
+            if digits == "0":
+                # sometimes the zero spin-projection is given an unnecessary
+                # sign character, e.g. "p0" or "-0". In this case, we forcibly
+                # drop the sign character and just render "0" in LaTeX.
+                return "0"
+            elif sign_chars in _CHAR_TO_SIGN:
+                # converts "p", "m", or "n" to "+", "-", or "-" respectively
+                return f"{_CHAR_TO_SIGN[sign_chars]}{digits}"
+            else:
+                # label is already in signed format, e.g. "-1", "+2", etc.
+                return label
+        elif label in _CHAR_TO_SIGN:
+            # label is a single character, e.g. "p", "m", or "n"
+            return f"{_CHAR_TO_SIGN[label]}1"
+        else:
+            # label is not a recognized spin-projection format
+            return label
+
     def _render(self, values: dict[str, str]) -> str:
         """Bare LaTeX (no $$) string for a given set of quantum numbers."""
 
-        _CHAR_TO_SIGN = {"p": 1, "m": -1}
+        _CHAR_TO_SIGNED_INT = {"p": "+1", "m": "-1", "n": "-1"}
+        _CHAR_TO_SIGN = {"p": "+", "m": "-", "n": "-"}
 
         if set(values) == {"e"}:
-            return rf"\varepsilon = {_CHAR_TO_SIGN.get(values['e'], values['e'])}"
+            return rf"\varepsilon = {_CHAR_TO_SIGNED_INT.get(values['e'], values['e'])}"
 
         latex = ""
 
@@ -452,11 +492,13 @@ class AmplitudeParser:
         if "L" in values:
             latex += f" {values['L']}" if latex else values["L"]
             if "m" in values:
-                latex += f"_{{{values['m']}}}"
+                latex += f"_{{{self._interpret_spin_projection(values['m'])}}}"
             if "e" in values:
                 latex += f"^{{({_CHAR_TO_SIGN.get(values['e'], values['e'])})}}"
         elif "e" in values:
-            latex += rf" \varepsilon={_CHAR_TO_SIGN.get(values['e'], values['e'])}"
+            latex += (
+                rf" (\varepsilon={_CHAR_TO_SIGNED_INT.get(values['e'], values['e'])})"
+            )
 
         return latex
 
