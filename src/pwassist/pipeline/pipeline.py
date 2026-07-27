@@ -1,19 +1,38 @@
+import pandas as pd
+
 from pwassist.io.binning import BinCollection
-from pwassist.preprocessing.preprocessor import Preprocessor, PreprocessReport
+from pwassist.preprocessing.preprocessor import (
+    Preprocessor,
+    PreprocessReport,
+    ProcessedBin,
+)
 
 
-def run_pipeline(collection: BinCollection, preprocessor: Preprocessor):
-    reports: list[PreprocessReport] = []
+class Pipeline:
+    """Pipeline for processing PWA results in a bin collection"""
 
-    for mass_bin, bundle in collection:
-        processed = preprocessor.run(bundle)
-        reports.append(processed.report)
-        yield mass_bin, processed
+    def __init__(self, preprocessor: Preprocessor | None = None):
+        """Initialize the pipeline with a preprocessor (or default steps if None)"""
+        if preprocessor is None:
+            preprocessor = Preprocessor()
+        self.preprocessor = preprocessor
 
-    total_warnings = sum(len(report.warnings) for report in reports)
-    total_time_ms = sum(report.total_time_ms for report in reports)
+    # this has some of the basic idea, but not the full picture. Pipeline needs to
+    # combine every aspect (fit ID'ing, preprocessing, assembly, basic plotting, etc.)
+    # into a single interface. The pipeline should be the main entry point for the user
+    # to run the analysis, and it should handle all the steps in a coherent manner.
+    def run(self, collection: BinCollection):
+        reports: list[PreprocessReport] = []
 
-    print(
-        f"Preprocessed {len(reports)} bins with a total of {total_warnings} warnings"
-        f" in {total_time_ms:.2f} ms."
-    )
+        for mass_bin, bundle in collection:
+            processed = self.preprocessor.run(bundle)
+            reports.append(processed.report)
+            yield mass_bin, processed
+
+        total_warnings = sum(len(report.warnings) for report in reports)
+        total_time_ms = sum(report.total_time_ms for report in reports)
+
+        print(
+            f"Preprocessed {len(reports)} bins with a total of {total_warnings} warnings"
+            f" in {total_time_ms:.2f} ms."
+        )
