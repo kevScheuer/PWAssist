@@ -30,6 +30,7 @@ class Results:
     mass_bins: list[MassBin] = field(default_factory=list)
     reports: list[PreprocessReport] = field(default_factory=list)
     is_acc_corrected: bool = field(init=False)
+    final_state_parity: int | None = field(default=None)
 
     # Amplitude-based attributes
     coherent_sums: dict[str, list[str]] = field(default_factory=dict, init=False)
@@ -38,12 +39,12 @@ class Results:
     _phase_difference_dict: dict[tuple[str, str], str] = field(
         default_factory=dict, init=False
     )
+    _naming_scheme: str | None = field(default=None)
+    parser: AmplitudeParser | None = field(default=None, init=False)
 
     _factory_plotter: FactoryPlotter | None = field(
         default=None, init=False, repr=False
     )
-    _naming_scheme: str | None = field(default=None)
-    _parser: AmplitudeParser | None = field(default=None, init=False)
 
     def __post_init__(self) -> None:
         self.is_acc_corrected = self._is_fit_acc_corrected()
@@ -51,9 +52,9 @@ class Results:
 
         if self._naming_scheme is None:
             self._naming_scheme = "auto"
-        self._parser = AmplitudeParser(self._naming_scheme)
+        self.parser = AmplitudeParser(self._naming_scheme)
 
-        self.amplitudes = self._parser.get_amplitudes(self.fit.columns.to_list())
+        self.amplitudes = self.parser.get_amplitudes(self.fit.columns.to_list())
         if self.amplitudes is None or len(self.amplitudes) == 0:
             warnings.warn(
                 f"No amplitudes found in fit dataframe using naming scheme"
@@ -61,8 +62,8 @@ class Results:
                 UserWarning,
             )
 
-        self.coherent_sums = self._parser.get_coherent_sums(self.fit.columns.to_list())
-        self.phase_differences = self._parser.get_phase_differences(
+        self.coherent_sums = self.parser.get_coherent_sums(self.fit.columns.to_list())
+        self.phase_differences = self.parser.get_phase_differences(
             self.fit.columns.to_list()
         )
         self._phase_difference_dict = self._build_phase_difference_dict()
@@ -75,7 +76,10 @@ class Results:
 
     @classmethod
     def from_processed_bins(
-        cls, processed_bins: list[ProcessedBin], naming_scheme: str | None = None
+        cls,
+        processed_bins: list[ProcessedBin],
+        naming_scheme: str | None = None,
+        final_state_parity: int | None = None,
     ) -> "Results":
         """Construct a Results instance from a list of ProcessedBin objects."""
         # sort the processed bins by mass bin low edge to ensure consistent ordering
@@ -118,6 +122,7 @@ class Results:
             mass_bins=[pb.mass_bin for pb in processed_bins],
             reports=[pb.report for pb in processed_bins],
             _naming_scheme=naming_scheme,
+            final_state_parity=final_state_parity,
         )
 
     @classmethod
@@ -138,6 +143,7 @@ class Results:
             "norm_int": self.norm_int,
             "mass_bins": self.mass_bins,
             "reports": self.reports,
+            "final_state_parity": self.final_state_parity,
             "_naming_scheme": self._naming_scheme,
         }
         with open(filepath, "wb") as f:
@@ -306,7 +312,7 @@ class Results:
         regardless of their order in the dataframe.
         """
 
-        if self._parser is None:
+        if self.parser is None:
             raise ValueError("AmplitudeParser is not initialized.")
 
         possible_pairs_to_phases = {}
