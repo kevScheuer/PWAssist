@@ -26,6 +26,7 @@ class Results:
     covariance: pd.DataFrame | None = None
     norm_int: pd.DataFrame | None = None
     bootstrap: pd.DataFrame | None = None  # TODO: implement bootstrap dataframe support
+    randomized: pd.DataFrame | None = None  # TODO: implement randomized df support
 
     # Result metadata
     mass_bins: list[MassBin] = field(default_factory=list)

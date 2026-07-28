@@ -1,5 +1,5 @@
 import itertools
-from typing import Any
+from typing import Any, Literal
 
 import matplotlib.axes
 import matplotlib.pyplot as plt
@@ -165,3 +165,254 @@ class ScanPlotter(BasePWAPlotter):
         data_df["bin_width"] = data_df["m_high"] - data_df["m_low"]
 
         return fit_df, data_df
+
+    def amplitudes(
+        self,
+        fractional: bool = False,
+        sharey: bool = False,
+        reflectivity: Literal["positive", "negative", "all"] = "all",
+        indices: list[int] | None = None,
+        axs: np.ndarray | None = None,
+        kwargs: dict[str, Any] | None = None,
+    ) -> np.ndarray:
+        """Plot a grid of amplitudes, organized by spin (rows) and projection (columns)
+
+        This plot will create a grid of all amplitudes plotted as a function of mass,
+        with the rows corresponding to the spin+parity+angular momenta combo (J^P L) and
+        the columns corresponding to the spin projection m. Any quantum numbers for the
+        label not available due to the naming scheme are simply dropped. Reflectivities
+        are plotted together in the same plot, with the option to select only positive
+        or negative reflectivities.
+
+        Args:
+            fractional (bool, optional): Plot as fit fractions of the total intensity.
+                Defaults to False.
+            sharey (bool, optional): Share the y-axis across all subplots. Defaults to
+                False. Note that specifying custom axes will override this option.
+            reflectivity (Literal['positive', 'negative', 'all'], optional): The type of
+                reflectivity to plot. Defaults to "all".
+            indices (list[int] | None, optional): Optional list of indices to select
+                specific mass bins. If None, all bins will be plotted. Defaults to None.
+            axs (np.ndarray | None, optional): The array of axes to plot on. If None, a
+                new figure and axes will be created. Note that one must be careful that
+                the shape of axes matches the expected shape based on the number of
+                amplitudes. Defaults to None.
+            kwargs (dict[str, Any] | None, optional): Optional dictionary of keyword
+                arguments to customize the plot appearance. Defaults to None.
+
+        Returns:
+            np.ndarray: The array of axes objects containing the amplitude plots.
+        Raises:
+            ValueError: If the reflectivity argument is not one of "positive",
+                "negative", or "all".
+            IndexError: If the provided axes shape does not match the expected shape
+                based on the number of amplitudes.
+        """
+
+        if reflectivity not in ["positive", "negative", "all"]:
+            raise ValueError(
+                f"Invalid reflectivity value: {reflectivity}. Must be one of "
+                "'positive', 'negative', or 'all'."
+            )
+
+        if axs is None:
+
+            # TODO: parse through individual amplitudes, and determine max value of 'm'
+            # Do the same for max "JPL", "JL", or "L" combos. This depends on naming
+            # scheme though. Then build grid.
+            nrows = 2
+            ncols = 2
+
+            fig, axs = plt.subplots(
+                nrows=nrows,
+                ncols=ncols,
+                sharey=sharey,
+                figsize=(4 * ncols, 3 * nrows),
+                layout="constrained",
+            )
+
+        return axs  # type: ignore
+
+    def interference(
+        self,
+        amp1: str,
+        amp2: str,
+        indices: list[int] | None = None,
+        amp1_kwargs: dict[str, Any] | None = None,
+        amp2_kwargs: dict[str, Any] | None = None,
+        amp_ax: matplotlib.axes.Axes | None = None,
+        phase_ax: matplotlib.axes.Axes | None = None,
+    ) -> np.ndarray:
+        """Plot two amplitudes and their interference phase as a function of mass.
+
+        Args:
+            amp1 (str): The label of the first amplitude to plot.
+            amp2 (str): The label of the second amplitude to plot.
+            indices (list[int] | None): Optional list of indices to select specific mass
+                bins. If None, all bins will be plotted.
+            amp1_kwargs (dict[str, Any] | None): Optional dictionary of keyword
+                arguments to customize the appearance of the first amplitude plot.
+            amp2_kwargs (dict[str, Any] | None): Optional dictionary of keyword
+                arguments to customize the appearance of the second amplitude plot.
+            amp_ax (matplotlib.axes.Axes | None): Optional axes to plot the amplitudes
+                on. If None, a new figure and axes will be created.
+            phase_ax (matplotlib.axes.Axes | None): Optional axes to plot the phase
+                difference on. If None, a new figure and axes will be created.
+        Returns:
+            np.ndarray: The array of axes objects containing the amplitude and phase
+                difference plots.
+        Raises:
+            KeyError: If either phase is not in the fit results.
+            ValueError: If only one of amp_ax or phase_ax is provided, but not both
+        """
+
+        if amp1 not in self.results.fit.columns:
+            raise KeyError(
+                f"Amplitude '{amp1}' not found in fit results. "
+                f"Available amplitudes: {list(self.results.fit.columns)}"
+            )
+        if amp2 not in self.results.fit.columns:
+            raise KeyError(
+                f"Amplitude '{amp2}' not found in fit results. "
+                f"Available amplitudes: {list(self.results.fit.columns)}"
+            )
+
+        if amp_ax is None and phase_ax is None:
+            fig, axs = plt.subplots(
+                nrows=2,
+                ncols=1,
+                sharex=True,
+                gridspec_kw={"wspace": 0.0, "hspace": 0.07},
+                height_ratios=[3, 1],
+                layout="constrained",
+            )
+        elif amp_ax is None or phase_ax is None:
+            raise ValueError(
+                "Both amp_ax and phase_ax must be provided if one is specified."
+            )
+        else:
+            axs = np.array([amp_ax, phase_ax])
+
+        # TODO: obtain the relevant dataframes, and plot their amplitude and phase
+        # differences on the appropriate axes. Use the provided kwargs for
+        # customization.
+
+        return axs
+
+    def model_matrix(
+        self,
+        indices: list[int] | None = None,
+        axs: np.ndarray | None = None,
+    ) -> np.ndarray:
+        """Plot the entire model behavior as a function of mass in a matrix of plots
+
+        The matrix is organized where the amplitudes are plotted on the diagonal,
+        grouped by reflectivity (similar to the amplitudes() method), and the
+        off-diagonal plots show the interference between the amplitudes. The upper
+        triangle is for the positive reflectivity amplitude interferences, and the
+        lower triangle for the negative reflectivity amplitude interferences.
+
+        Args:
+            indices (list[int] | None): Optional list of indices to select specific mass
+                bins. If None, all bins will be plotted.
+            axs (np.ndarray | None): Optional array of axes to plot on. If None, a new
+                figure and axes will be created. Note that one must be careful that the
+                axes shape matches the expected shape.
+        Returns:
+            np.ndarray: The array of axes objects containing the amplitudes and
+                interference plots.
+        Raises:
+            IndexError: If the provided axes shape does not match the expected shape
+                based on the number of amplitudes and reflectivities.
+        """
+
+        if axs is None:
+            # TODO: determine shape, reference amplitudes() method for guidance.
+            nrows = 0
+            ncols = 0
+            fig, axs = plt.subplots(
+                nrows,
+                ncols,
+                sharey=True,
+                figsize=(4 * ncols, 3 * nrows),
+                layout="constrained",
+            )
+
+        # TODO: make sure to plot errorbars as smooth fill_between due to small plots
+
+        return axs  # type: ignore
+
+    def convergence_rate(
+        self,
+        indices: list[int] | None = None,
+        ax: matplotlib.axes.Axes | None = None,
+        kwargs: dict[str, Any] | None = None,
+    ) -> matplotlib.axes.Axes:
+        """Plot the convergence rate of the fit across the mass bins.
+
+        Requires randomized fits to be in the results. Plots the percentage of
+        successful, failed, and converged-with-bad-error-matrix fits across the mass
+        bins. This can be useful for diagnosing issues with the fit and understanding
+        the stability of the fit across the mass range.
+
+        Args:
+            indices (list[int] | None): Optional list of indices to select specific mass
+                bins. If None, all bins will be plotted.
+            ax (matplotlib.axes.Axes | None): Optional axes to plot on. If None, a new
+                figure and axes will be created.
+            kwargs (dict[str, Any] | None): Optional dictionary of keyword arguments
+                to customize the plot appearance.
+        Returns:
+            matplotlib.axes.Axes: The axes object containing the convergence rate plot.
+        Raises:
+            KeyError: If randomized fits are not available in the results.
+        """
+
+        if self.results.randomized is None:
+            raise KeyError("Randomized fits are required to plot convergence rate.")
+
+        if ax is None:
+            fig, ax = plt.subplots(
+                layout="constrained",
+            )
+
+        # TODO: determine each rate as percentage of total fits, and plot as stacked
+        # bar chart with appropriate labels and legend.
+
+        return ax
+
+    def ridgeline(
+        self,
+        columns: list[str],
+        indices: list[int] | None = None,
+    ) -> np.ndarray:
+        """Create a ridgeline plot of the columns from the bootstrap distributions
+
+        Args:
+            columns (list[str]): _description_
+            indices (list[int] | None, optional): _description_. Defaults to None.
+
+        Returns:
+            np.ndarray: _description_
+
+        Raises:
+            KeyError: If the specified columns are not found in the bootstrap dataframe,
+                or if the bootstrap dataframe is not available in the results.
+        """
+
+        if self.results.bootstrap is None:
+            raise KeyError(
+                "Bootstrap distributions are required to create a ridgeline plot."
+            )
+
+        for col in columns:
+            if col not in self.results.bootstrap.columns:
+                raise KeyError(
+                    f"Column '{col}' not found in bootstrap distributions. "
+                    f"Available columns: {list(self.results.bootstrap.columns)}"
+                )
+
+        # TODO: replace with joypy.joyplot, ridgeplot, seaborn, or similar library
+        fig, axs = plt.subplots(2, 2)
+
+        return axs
