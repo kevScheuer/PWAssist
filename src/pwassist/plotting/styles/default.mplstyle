@@ -1,15 +1,28 @@
+# figure settings
 figure.figsize : 10, 8
 figure.dpi : 100
+
+# legend settings
+legend.fontsize : 16
+
+# tick settings
 xtick.labelsize : 14
 ytick.labelsize : 14
 axes.labelsize : 16
-legend.fontsize : 16
 xtick.major.width : 2.0
 ytick.major.width : 2.0
 xtick.minor.width : 1.8
 ytick.minor.width : 1.8
-lines.markersize : 10
-grid.alpha : 0.8
-axes.grid : True
+
+# axes labels
+axes.formatter.limits : -3, 3 # use scientific notation for numbers smaller than 1e-3 or larger than 1e3
 xaxis.labellocation: right
 yaxis.labellocation: top
+
+# point settings
+lines.markersize : 10
+
+# grid settings
+grid.alpha : 0.8
+axes.grid : True
+
