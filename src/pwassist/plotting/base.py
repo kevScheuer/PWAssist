@@ -20,9 +20,8 @@ class BasePWAPlotter:
         / "default.mplstyle"
     )
 
-    def __init__(self, results: "Results", channel: str = r"\pi^0\pi^-"):
+    def __init__(self, results: "Results"):
         self.results = results
-        self.channel = channel
 
     # ----------------------------------------------------------------------------------
     # Pass throughs
