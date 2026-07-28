@@ -25,6 +25,7 @@ class Results:
     correlation: pd.DataFrame | None = None
     covariance: pd.DataFrame | None = None
     norm_int: pd.DataFrame | None = None
+    bootstrap: pd.DataFrame | None = None  # TODO: implement bootstrap dataframe support
 
     # Result metadata
     mass_bins: list[MassBin] = field(default_factory=list)
@@ -40,7 +41,7 @@ class Results:
         default_factory=dict, init=False
     )
     _naming_scheme: str | None = field(default=None)
-    parser: AmplitudeParser | None = field(default=None, init=False)
+    parser: AmplitudeParser = field(init=False)
 
     _factory_plotter: FactoryPlotter | None = field(
         default=None, init=False, repr=False
@@ -233,6 +234,23 @@ class Results:
             values, which may be undesired.
         """
         return float(self.data["t_avg"].mean())
+
+    def get_mass_indices(self, low: float, high: float) -> list[int]:
+        """Return list of indices for mass bins that fall within the specified range.
+
+        Args:
+            low (float): Lower bound of the mass range.
+            high (float): Upper bound of the mass range.
+        Returns:
+            list[int]: List of indices corresponding to mass bins within the range.
+        Todo:
+            - Right now this assumes that the data dataframe consists of only mass bins,
+                and so the fit df corresponds to the same indices. For t-binning or
+                other bins, we will need to devise some way of linking these together.
+        """
+        return self.data.index[
+            (self.data["m_center"] >= low) & (self.data["m_center"] <= high)
+        ].tolist()
 
     def get_t_rms(self) -> float:
         """Return RMS of t_avg values across all bins in the results.
