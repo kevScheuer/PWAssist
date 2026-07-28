@@ -34,9 +34,9 @@ class Results:
     final_state_parity: int | None = field(default=None)
 
     # Amplitude-based attributes
-    coherent_sums: dict[str, list[str]] = field(default_factory=dict, init=False)
+    coherent_sums: dict[str, tuple[str, ...]] = field(default_factory=dict, init=False)
     amplitudes: list[str] = field(default_factory=list, init=False)
-    phase_differences: list[str] = field(default_factory=list, init=False)
+    phase_differences: tuple[str, ...] = field(default_factory=tuple, init=False)
     _phase_difference_dict: dict[tuple[str, str], str] = field(
         default_factory=dict, init=False
     )
@@ -48,7 +48,6 @@ class Results:
     )
 
     def __post_init__(self) -> None:
-        self.is_acc_corrected = self._is_fit_acc_corrected()
         self._factory_plotter = FactoryPlotter(self)
 
         if self._naming_scheme is None:
@@ -63,11 +62,17 @@ class Results:
                 UserWarning,
             )
 
-        self.coherent_sums = self.parser.get_coherent_sums(self.fit.columns.to_list())
-        self.phase_differences = self.parser.get_phase_differences(
-            self.fit.columns.to_list()
+        # ensure that the coherent sums and phase differences are immutable
+        coh_sums = self.parser.get_coherent_sums(self.fit.columns.to_list())
+        self.coherent_sums = {
+            sum_label: tuple(coh_sum) for sum_label, coh_sum in coh_sums.items()
+        }
+        self.phase_differences = tuple(
+            self.parser.get_phase_differences(self.fit.columns.to_list())
         )
         self._phase_difference_dict = self._build_phase_difference_dict()
+
+        self.is_acc_corrected = self._is_fit_acc_corrected()
 
         return
 
@@ -261,37 +266,6 @@ class Results:
         """
         return float(self.data["t_rms"].mean())
 
-    def _is_fit_acc_corrected(self) -> bool:
-        """Determine if the fit is acceptance-corrected
-
-        This is done by checking if the sum of the reflectivities exceeds the number of
-        detected events.
-
-        Warning:
-            If the fit does not contain reflectivity-based amplitudes, or if the naming
-            scheme is not recognized, this method will return False and issue a warning.
-        """
-
-        refl_sums = self.coherent_sums.get("e")
-        total_reflectivity = (
-            [e.sum() for e in self.fit[refl_sums].to_numpy()] if refl_sums else None
-        )
-        if total_reflectivity is not None:
-            detected_events = self.fit["detected_events"].to_numpy()
-            if (total_reflectivity > detected_events).any():
-                return True
-            else:
-                return False
-
-        warnings.warn(
-            "Could not determine if fit is acceptance-corrected. This may be due to"
-            " the naming scheme not being recognized or the fit not containing"
-            " reflectivity-based amplitudes. Please check the fit data and naming"
-            " scheme to ensure that the results are interpreted correctly.",
-            UserWarning,
-        )
-        return False
-
     # ----------------------------------------------------------------------------------
     # Amplitude-based Queries
     # ----------------------------------------------------------------------------------
@@ -345,3 +319,36 @@ class Results:
             possible_pairs_to_phases[tuple(amps[::-1])] = phase
 
         return possible_pairs_to_phases
+
+    def _is_fit_acc_corrected(self) -> bool:
+        """Determine if the fit is acceptance-corrected
+
+        This is done by checking if the sum of the reflectivities exceeds the number of
+        detected events.
+
+        Warning:
+            If the fit does not contain reflectivity-based amplitudes, or if the naming
+            scheme is not recognized, this method will return False and issue a warning.
+        """
+
+        refl_sums = self.coherent_sums.get("e")
+        total_reflectivity = (
+            [e.sum() for e in self.fit[list(refl_sums)].to_numpy()]
+            if refl_sums
+            else None
+        )
+        if total_reflectivity is not None:
+            detected_events = self.fit["intensity"].to_numpy()
+            if (total_reflectivity > detected_events).any():
+                return True
+            else:
+                return False
+
+        warnings.warn(
+            "Could not determine if fit is acceptance-corrected. This may be due to"
+            " the naming scheme not being recognized or the fit not containing"
+            " reflectivity-based amplitudes. Please check the fit data and naming"
+            " scheme to ensure that the results are interpreted correctly.",
+            UserWarning,
+        )
+        return False
