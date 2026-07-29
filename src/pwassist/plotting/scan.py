@@ -161,7 +161,7 @@ class ScanPlotter(BasePWAPlotter):
             self.results.data.loc[indices, data_columns]
             if indices is not None
             else self.results.data[data_columns]
-        )
+        ).copy()
         data_df["bin_width"] = data_df["m_high"] - data_df["m_low"]
 
         return fit_df, data_df
