@@ -46,7 +46,7 @@ class MassBin:
 
     def __str__(self) -> str:
         """Return a string representation of the mass bin."""
-        return f"{self.low}-{self.high})"
+        return f"{self.low}-{self.high}"
 
     def __lt__(self, other: "MassBin") -> bool:
         """Compare two MassBin instances based on their low values."""
