@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 
 from pwassist.io.binning import MassBin
-from pwassist.parser import AmplitudeParser
+from pwassist.parser import AmplitudeParser, NamingScheme
 from pwassist.plotting.factory import FactoryPlotter
 from pwassist.preprocessing.preprocessor import PreprocessReport, ProcessedBin
 
@@ -41,7 +41,7 @@ class Results:
     _phase_difference_dict: dict[tuple[str, str], str] = field(
         default_factory=dict, init=False
     )
-    _naming_scheme: str | None = field(default=None)
+    _naming_scheme: str | None | NamingScheme = field(default=None)
     parser: AmplitudeParser = field(init=False)
 
     _factory_plotter: FactoryPlotter | None = field(
@@ -85,7 +85,7 @@ class Results:
     def from_processed_bins(
         cls,
         processed_bins: list[ProcessedBin],
-        naming_scheme: str | None = None,
+        naming_scheme: str | None | NamingScheme = None,
         final_state_parity: int | None = None,
     ) -> "Results":
         """Construct a Results instance from a list of ProcessedBin objects."""
