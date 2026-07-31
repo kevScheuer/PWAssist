@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from pwassist.io.binning import BinBundle
+from pwassist.parser import AmplitudeParser
 
 
 def check_null_columns(bundle: BinBundle) -> None:
@@ -74,28 +75,13 @@ def check_error_columns(bundle: BinBundle) -> None:
 
 
 def wrap_phase_columns(bundle: BinBundle) -> None:
-    """Wrap phase columns (in radians) to the range (-180, 180] in degrees
-
-    Todo:
-        - Right now no phase difference identification utility is implemented, as this
-            depends on configuring some form of naming scheme convention for the
-            amplitude names. So currently we just check if the column name is in the
-            JLme_JLme format by counting the characters after splitting on "_"
-    """
+    """Wrap phase columns (in radians) to the range (-180, 180] in degrees"""
     fit = bundle.fit
     if fit is None:
         return
 
-    phase_cols = [
-        c
-        for c in fit.frame.columns
-        if (
-            "_" in c and len(c.split("_")[0]) == 4 and len(c.split("_")[1]) == 4
-        )  # JLme
-        or (
-            "_" in c and len(c.split("_")[0]) == 5 and len(c.split("_")[1]) == 5
-        )  # eJPmL
-    ]
+    parser = AmplitudeParser()
+    phase_cols = parser.get_phase_differences(fit.frame.columns.to_list())
     phase_err_cols = [
         f"{c}_err" for c in phase_cols if f"{c}_err" in fit.frame.columns
     ]  # We won't wrap them, but they need to be converted to degrees
