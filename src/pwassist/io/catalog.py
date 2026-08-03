@@ -12,16 +12,12 @@ import pandas as pd
 class ResultsFile:
     """Abstract base class for all CSV files produced from a fit result conversion
 
-    Attributes:
-        path (pathlib.Path): The path to the CSV file.
-        frame (pd.DataFrame): The contents of the CSV file as a DataFrame.
-
     Returns:
         _type_: The type of the ResultsFile.
     """
 
-    path: pathlib.Path
-    frame: pd.DataFrame
+    path: pathlib.Path  # the path to the CSV file
+    frame: pd.DataFrame  # the contents of the CSV file as a DataFrame
 
     # The columns that must be present in the CSV file for it to be identified as this
     # type.
@@ -176,13 +172,13 @@ class Catalog:
 
     The class currently expects the following structure
     input_dir/
-        mass_1.0-1.1/
-            fit.csv
-            fit_data.csv
-            fit_correlation.csv
-            ...
-        mass_1.1-1.2/
-            ...
+    mass_1.0-1.1/
+    fit.csv
+    fit_data.csv
+    fit_correlation.csv
+    ...
+    mass_1.1-1.2/
+    ...
 
     Note that the file names are not hardcoded. What type of file the CSV is will be
     determined by the column and data it contains. See ResultsFile for details.

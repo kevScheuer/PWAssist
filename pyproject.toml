@@ -19,11 +19,15 @@ dev = [
     "ipykernel>=7.2.0",
     "isort>=8.0.1",
     "jupyter>=1.1.1",
-    "pydata-sphinx-theme>=0.17.1",
     "pytest>=9.0.3",
-    "sphinx>=9.1.0",
 ]
 test = ["pytest>=9.0.3", "pytest-cov>=7.1.0"]
+docs = [
+    "sphinx",
+    "sphinx-book-theme",
+    "sphinx-autodoc-typehints",
+    "myst-parser",
+]
 
 [build-system]
 requires = ["uv_build>=0.11.12,<0.12"]

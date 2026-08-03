@@ -209,25 +209,27 @@ class AmplitudeParser:
         sums that are actually present in the columns.
 
         Example:
-            If the columns contain the following labels:
-                ["1P+0p", "1P+1p", "1S-1n", "1P", "p"]
-            The function determines that the possible coherent sums are (based off the
-            JLme naming scheme):
-                "J" -> ["1"]
-                "e" -> ["p", "n"]
-                "Je" -> ["1p", "1n"]
-                "JL" -> ["1P", "1S"]
-                "JLe" -> ["1Pp", "1Sn"]
-                "JLm" -> ["1P0", "1P1", "1S-1"]
-            Then, it returns only those sums that are actually present in the columns:
-                {"JL": ["1P"], "e": ["p"]}
+        If the columns contain the following labels:
+        ["1P+0p", "1P+1p", "1S-1n", "1P", "p"]
+        The function determines that the possible coherent sums are (based off the
+        JLme naming scheme):
+        "J" -> ["1"]
+        "e" -> ["p", "n"]
+        "Je" -> ["1p", "1n"]
+        "JL" -> ["1P", "1S"]
+        "JLe" -> ["1Pp", "1Sn"]
+        "JLm" -> ["1P0", "1P1", "1S-1"]
+        Then, it returns only those sums that are actually present in the columns:
+        {"JL": ["1P"], "e": ["p"]}
 
         Args:
             columns: list of column names from a results dataframe.
+
         Returns:
             dict[str, list[str]]: a dictionary of coherent sum labels and coherent sums
                 The keys are the sum labels (e.g. "JL", "e", etc.) and the values are
                 lists of coherent sums found in the columns.
+
         """
 
         base_amplitudes = self.get_amplitudes(columns)
