@@ -6,18 +6,25 @@ import numpy as np
 import pandas as pd
 
 from pwassist.io.binning import BinBundle
+from pwassist.io.catalog import Catalog, ResultsFile
 from pwassist.parser import AmplitudeParser
+
+FILE_TYPE_MAP: dict[str, type[ResultsFile]] = {
+    cls.__name__: cls for cls in Catalog.RESULT_FILE_TYPES
+}
 
 
 def check_null_columns(bundle: BinBundle) -> None:
     """Check if null columns exist in the fit or data files of a bundle"""
-    for label, rf in (("fit", bundle.fit), ("data", bundle.data)):
-        if rf is None:
+    for label, rf in FILE_TYPE_MAP.items():
+        if bundle.get(rf) is None:
             continue
-        null_cols = rf.frame.columns[rf.frame.isnull().any()].tolist()
+        frame = bundle.get(rf).frame  # type: ignore claims frame could be None...
+        null_cols = frame.columns[frame.isnull().any()].tolist()
         if null_cols:
             warnings.warn(
-                f"[{bundle.bin_id}] {label} file contains null values in columns: {null_cols}",
+                f"[{bundle.bin_id}] {label} file contains null values in columns:"
+                f" {null_cols}.",
                 UserWarning,
             )
 
@@ -103,10 +110,10 @@ def wrap_phase_columns(bundle: BinBundle) -> None:
 
 def downcast_numeric_dtypes(bundle: BinBundle) -> None:
     """Downcast numeric columns to save memory"""
-    for label, rf in (("fit", bundle.fit), ("data", bundle.data)):
-        if rf is None:
+    for label, rf in FILE_TYPE_MAP.items():
+        if bundle.get(rf) is None:
             continue
-        df = rf.frame
+        df = bundle.get(rf).frame  # type: ignore claims frame could be None...
         for col in df.select_dtypes(include=["float64"]).columns:
             df[col] = pd.to_numeric(df[col], downcast="float")
         for col in df.select_dtypes(include=["int64"]).columns:

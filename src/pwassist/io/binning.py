@@ -64,14 +64,25 @@ class BinBundle:
     # Loaded ResultsFile DataFrames: file_type -> ResultsFile instance
     _loaded: dict[str, ResultsFile] = field(default_factory=dict, init=False)
 
-    def get(self, file_type: str) -> ResultsFile | None:
+    def get(self, file_type: str | type[ResultsFile]) -> ResultsFile | None:
         """Get loaded ResultsFile for the given file type, or None if not found."""
-        if file_type not in self.paths:
-            return None
-        if file_type not in self._loaded:
+
+        if isinstance(file_type, type) and issubclass(file_type, ResultsFile):
+            cls = file_type
+            file_label = cls.__name__
+        elif isinstance(file_type, str):
             cls = FILE_TYPE_MAP[file_type]
-            self._loaded[file_type] = cls.from_path(self.paths[file_type])
-        return self._loaded[file_type]
+            file_label = file_type
+        else:
+            raise TypeError(
+                f"file_type must be str or ResultsFile, got {type(file_type)}"
+            )
+
+        if file_label not in self.paths:
+            return None
+        if file_label not in self._loaded:
+            self._loaded[file_label] = cls.from_path(self.paths[file_label])
+        return self._loaded[file_label]
 
     @property
     def fit(self) -> FitFile:
