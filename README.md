@@ -11,7 +11,7 @@ See the [quick start guide](./examples/notebooks/quick_start.ipynb) for an examp
 
 
 ## Documentation
-By default, the documentation is built via *GitHub Actions* and posted to the associated [github pages]()  TODO: create link. To build the documentation yourself, run
+The documentation can be found at the [associated github pages site](https://kevscheuer.github.io/PWAssist/). By default, this is built automatically by GitHub actions. To build the documentation yourself, run
 ```shell
 uv run --group docs sphinx-build -b html docs/source docs/build
 ```
