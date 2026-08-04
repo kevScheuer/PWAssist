@@ -23,7 +23,7 @@ def check_null_columns(bundle: BinBundle) -> None:
         null_cols = frame.columns[frame.isnull().any()].tolist()
         if null_cols:
             warnings.warn(
-                f"[{bundle.bin_id}] {label} file contains null values in columns:"
+                f"[{bundle.bin_id}] {label} contains null values in columns:"
                 f" {null_cols}.",
                 UserWarning,
             )
