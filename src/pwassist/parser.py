@@ -244,12 +244,16 @@ class AmplitudeParser:
         # columns
         found_sums = {}
         for sum_label, sums in expected_sum_groups.items():
-            found_sums[sum_label] = [s for s in sums if s in columns]
+            found_sums[sum_label] = list(set([s for s in sums if s in columns]))
 
         return found_sums
 
     def get_amplitudes(self, columns: list[str]) -> list[str]:
-        """Return a list of base amplitude labels found in the provided columns.
+        """Return a list of base amplitude labels according to a naming scheme.
+
+        If no naming scheme is specified, the function will attempt to infer a common
+        scheme from the provided columns. If multiple schemes are found, a ValueError
+        will be raised.
 
         Amplitudes are identified by those strings who always have a "_re" and "_im"
         part attached to them. Of course, other parameters may be written like this,
@@ -263,7 +267,12 @@ class AmplitudeParser:
         Returns:
             list[str]: a list of base amplitude labels found in the provided columns.
         """
-        amplitudes = [c[:-3] for c in columns if c.endswith("_re") or c.endswith("_im")]
+        amplitudes = list(
+            set([c[:-3] for c in columns if c.endswith("_re") or c.endswith("_im")])
+        )
+
+        if not amplitudes:
+            return []
 
         return self._filter_by_scheme(amplitudes, self.requested_scheme)
 
@@ -276,10 +285,15 @@ class AmplitudeParser:
             list[str]: a list of phase difference labels found in the provided columns.
         """
         base_amplitudes = self.get_amplitudes(columns)
+        if len(base_amplitudes) < 2:
+            return []  # Need at least two amplitudes to form a phase difference
         all_possible_pairs = list(itertools.combinations(base_amplitudes, 2))
-        all_possible_phase_diffs = [f"{a1}_{a2}" for a1, a2 in all_possible_pairs] + [
-            f"{a2}_{a1}" for a1, a2 in all_possible_pairs
-        ]
+        all_possible_phase_diffs = list(
+            set(
+                [f"{a1}_{a2}" for a1, a2 in all_possible_pairs]
+                + [f"{a2}_{a1}" for a1, a2 in all_possible_pairs]
+            )
+        )
         return [p for p in all_possible_phase_diffs if p in columns]
 
     def to_latex(self, label: str) -> str:
