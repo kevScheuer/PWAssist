@@ -1,0 +1,860 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pwassist.core.result &#8212; PWAssist  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=4418a689" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pwassist/core/result';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">PWAssist  documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.io.catalog.html">pwassist.io.catalog</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.Catalog.html">pwassist.io.catalog.Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.CorrelationFile.html">pwassist.io.catalog.CorrelationFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.CovarianceFile.html">pwassist.io.catalog.CovarianceFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.DataFile.html">pwassist.io.catalog.DataFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.FitFile.html">pwassist.io.catalog.FitFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.NormIntFile.html">pwassist.io.catalog.NormIntFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.ResultsFile.html">pwassist.io.catalog.ResultsFile</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.io.binning.html">pwassist.io.binning</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.binning.BinBundle.html">pwassist.io.binning.BinBundle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.binning.BinCollection.html">pwassist.io.binning.BinCollection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.binning.MassBin.html">pwassist.io.binning.MassBin</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.preprocessing.preprocessor.html">pwassist.preprocessing.preprocessor</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.preprocessing.preprocessor.FunctionStep.html">pwassist.preprocessing.preprocessor.FunctionStep</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.preprocessing.preprocessor.PreprocessReport.html">pwassist.preprocessing.preprocessor.PreprocessReport</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.preprocessing.preprocessor.PreprocessStep.html">pwassist.preprocessing.preprocessor.PreprocessStep</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.preprocessing.preprocessor.Preprocessor.html">pwassist.preprocessing.preprocessor.Preprocessor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.preprocessing.preprocessor.ProcessedBin.html">pwassist.preprocessing.preprocessor.ProcessedBin</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.core.result.html">pwassist.core.result</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.core.result.Results.html">pwassist.core.result.Results</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.parser.html">pwassist.parser</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.parser.AmplitudeParser.html">pwassist.parser.AmplitudeParser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.parser.NamingScheme.html">pwassist.parser.NamingScheme</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.parser.ParsedAmplitude.html">pwassist.parser.ParsedAmplitude</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.parser.SchemeDef.html">pwassist.parser.SchemeDef</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.plotting.base.html">pwassist.plotting.base</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.plotting.base.BasePWAPlotter.html">pwassist.plotting.base.BasePWAPlotter</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.plotting.factory.html">pwassist.plotting.factory</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.plotting.factory.FactoryPlotter.html">pwassist.plotting.factory.FactoryPlotter</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.plotting.scan.html">pwassist.plotting.scan</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.plotting.scan.ScanPlotter.html">pwassist.plotting.scan.ScanPlotter</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.pipeline.pipeline.html">pwassist.pipeline.pipeline</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.pipeline.pipeline.Pipeline.html">pwassist.pipeline.pipeline.Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.pipeline.pipeline.PipelineConfig.html">pwassist.pipeline.pipeline.PipelineConfig</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.pipeline.pipeline.PipelineReport.html">pwassist.pipeline.pipeline.PipelineReport</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.cli.html">pwassist.cli</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.cli.build_parser.html">pwassist.cli.build_parser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.cli.main.html">pwassist.cli.main</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/kevScheuer/PWAssist" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/kevScheuer/PWAssist/issues/new?title=Issue%20on%20page%20%2F_modules/pwassist/core/result.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pwassist.core.result</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pwassist.io.binning</span><span class="w"> </span><span class="kn">import</span> <span class="n">MassBin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pwassist.parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">AmplitudeParser</span><span class="p">,</span> <span class="n">NamingScheme</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pwassist.plotting.factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">FactoryPlotter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pwassist.preprocessing.preprocessor</span><span class="w"> </span><span class="kn">import</span> <span class="n">PreprocessReport</span><span class="p">,</span> <span class="n">ProcessedBin</span>
+
+
+<div class="viewcode-block" id="Results">
+<a class="viewcode-back" href="../../../api/pwassist.core.result.Results.html#pwassist.core.result.Results">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Results</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Assembled, preprocessed, analysis-ready results from a collection of PWA bins.</span>
+
+<span class="sd">    Todo:</span>
+<span class="sd">        - Add examples and lots of documentation, as this is the main user-facing class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Result dataframes</span>
+    <span class="n">fit</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+    <span class="n">correlation</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">covariance</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">norm_int</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">bootstrap</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># TODO: implement bootstrap dataframe support</span>
+    <span class="n">randomized</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># TODO: implement randomized df support</span>
+
+    <span class="c1"># Result metadata</span>
+    <span class="n">mass_bins</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">MassBin</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">reports</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">PreprocessReport</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">is_acc_corrected</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">final_state_parity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># Amplitude-based attributes</span>
+    <span class="n">coherent_sums</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">amplitudes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">phase_differences</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">_phase_difference_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">_naming_scheme</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">NamingScheme</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">:</span> <span class="n">AmplitudeParser</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">_factory_plotter</span><span class="p">:</span> <span class="n">FactoryPlotter</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_factory_plotter</span> <span class="o">=</span> <span class="n">FactoryPlotter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_naming_scheme</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_naming_scheme</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="o">=</span> <span class="n">AmplitudeParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_naming_scheme</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">amplitudes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">get_amplitudes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">to_list</span><span class="p">())</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">amplitudes</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitudes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No amplitudes found in fit dataframe using naming scheme&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot; &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_naming_scheme</span><span class="si">}</span><span class="s2">&#39;. This will affect plotting scripts.&quot;</span><span class="p">,</span>
+                <span class="ne">UserWarning</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># ensure that the coherent sums and phase differences are immutable</span>
+        <span class="n">coh_sums</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">get_coherent_sums</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">to_list</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coherent_sums</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">sum_label</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">coh_sum</span><span class="p">)</span> <span class="k">for</span> <span class="n">sum_label</span><span class="p">,</span> <span class="n">coh_sum</span> <span class="ow">in</span> <span class="n">coh_sums</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phase_differences</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">get_phase_differences</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">to_list</span><span class="p">())</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phase_difference_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_phase_difference_dict</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_acc_corrected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_fit_acc_corrected</span><span class="p">()</span>
+
+        <span class="k">return</span>
+
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+    <span class="c1"># Constructors</span>
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="Results.from_processed_bins">
+<a class="viewcode-back" href="../../../api/pwassist.core.result.Results.html#pwassist.core.result.Results.from_processed_bins">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_processed_bins</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">processed_bins</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ProcessedBin</span><span class="p">],</span>
+        <span class="n">naming_scheme</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">NamingScheme</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">final_state_parity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Results&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct a Results instance from a list of ProcessedBin objects.&quot;&quot;&quot;</span>
+        <span class="c1"># sort the processed bins by mass bin low edge to ensure consistent ordering</span>
+        <span class="n">processed_bins</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">processed_bins</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">pb</span><span class="p">:</span> <span class="n">pb</span><span class="o">.</span><span class="n">mass_bin</span><span class="o">.</span><span class="n">low</span><span class="p">)</span>
+
+        <span class="c1"># concatenate all dataframes for each file type across all bins</span>
+        <span class="n">fit_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">pb</span><span class="o">.</span><span class="n">fit</span> <span class="k">for</span> <span class="n">pb</span> <span class="ow">in</span> <span class="n">processed_bins</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">data_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">pb</span><span class="o">.</span><span class="n">data</span> <span class="k">for</span> <span class="n">pb</span> <span class="ow">in</span> <span class="n">processed_bins</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">correlations</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">pb</span><span class="o">.</span><span class="n">correlation</span> <span class="k">for</span> <span class="n">pb</span> <span class="ow">in</span> <span class="n">processed_bins</span> <span class="k">if</span> <span class="n">pb</span><span class="o">.</span><span class="n">correlation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">],</span>
+                <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">pb</span><span class="o">.</span><span class="n">correlation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">pb</span> <span class="ow">in</span> <span class="n">processed_bins</span><span class="p">)</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="n">covariances</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">pb</span><span class="o">.</span><span class="n">covariance</span> <span class="k">for</span> <span class="n">pb</span> <span class="ow">in</span> <span class="n">processed_bins</span> <span class="k">if</span> <span class="n">pb</span><span class="o">.</span><span class="n">covariance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">],</span>
+                <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">pb</span><span class="o">.</span><span class="n">covariance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">pb</span> <span class="ow">in</span> <span class="n">processed_bins</span><span class="p">)</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="n">norm_ints</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">pb</span><span class="o">.</span><span class="n">norm_int</span> <span class="k">for</span> <span class="n">pb</span> <span class="ow">in</span> <span class="n">processed_bins</span> <span class="k">if</span> <span class="n">pb</span><span class="o">.</span><span class="n">norm_int</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">],</span>
+                <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">pb</span><span class="o">.</span><span class="n">norm_int</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">pb</span> <span class="ow">in</span> <span class="n">processed_bins</span><span class="p">)</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">fit</span><span class="o">=</span><span class="n">fit_df</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">data_df</span><span class="p">,</span>
+            <span class="n">correlation</span><span class="o">=</span><span class="n">correlations</span><span class="p">,</span>
+            <span class="n">covariance</span><span class="o">=</span><span class="n">covariances</span><span class="p">,</span>
+            <span class="n">norm_int</span><span class="o">=</span><span class="n">norm_ints</span><span class="p">,</span>
+            <span class="n">mass_bins</span><span class="o">=</span><span class="p">[</span><span class="n">pb</span><span class="o">.</span><span class="n">mass_bin</span> <span class="k">for</span> <span class="n">pb</span> <span class="ow">in</span> <span class="n">processed_bins</span><span class="p">],</span>
+            <span class="n">reports</span><span class="o">=</span><span class="p">[</span><span class="n">pb</span><span class="o">.</span><span class="n">report</span> <span class="k">for</span> <span class="n">pb</span> <span class="ow">in</span> <span class="n">processed_bins</span><span class="p">],</span>
+            <span class="n">_naming_scheme</span><span class="o">=</span><span class="n">naming_scheme</span><span class="p">,</span>
+            <span class="n">final_state_parity</span><span class="o">=</span><span class="n">final_state_parity</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Results.load">
+<a class="viewcode-back" href="../../../api/pwassist.core.result.Results.html#pwassist.core.result.Results.load">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Results&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a Results instance from a pickle file.&quot;&quot;&quot;</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Results.save">
+<a class="viewcode-back" href="../../../api/pwassist.core.result.Results.html#pwassist.core.result.Results.save">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save the Results instance to a pickle file.&quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;fit&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">,</span>
+            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+            <span class="s2">&quot;correlation&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">correlation</span><span class="p">,</span>
+            <span class="s2">&quot;covariance&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">covariance</span><span class="p">,</span>
+            <span class="s2">&quot;norm_int&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_int</span><span class="p">,</span>
+            <span class="s2">&quot;mass_bins&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_bins</span><span class="p">,</span>
+            <span class="s2">&quot;reports&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reports</span><span class="p">,</span>
+            <span class="s2">&quot;final_state_parity&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_state_parity</span><span class="p">,</span>
+            <span class="s2">&quot;_naming_scheme&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_naming_scheme</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+    <span class="c1"># Summaries and Reports</span>
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="Results.summary">
+<a class="viewcode-back" href="../../../api/pwassist.core.result.Results.html#pwassist.core.result.Results.summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Print a summary of the Results instance and its preprocessor warnings.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Results Summary:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Number of mass bins: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass_bins</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;fit&quot;</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="s2">&quot;correlation&quot;</span><span class="p">,</span> <span class="s2">&quot;covariance&quot;</span><span class="p">,</span> <span class="s2">&quot;norm_int&quot;</span><span class="p">):</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">info</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">warnings</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Results.warnings">
+<a class="viewcode-back" href="../../../api/pwassist.core.result.Results.html#pwassist.core.result.Results.warnings">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">warnings</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Print a summary of all warnings from the preprocessing reports.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">reports</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No preprocessing reports available.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">flagged</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reports</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">warnings</span><span class="p">]</span>
+        <span class="n">total_ms</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">total_time_ms</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reports</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reports</span><span class="p">)</span><span class="si">}</span><span class="s2"> bins were processed in </span><span class="si">{</span><span class="n">total_ms</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ms.&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">report</span> <span class="ow">in</span> <span class="n">flagged</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Bin ID: </span><span class="si">{</span><span class="n">report</span><span class="o">.</span><span class="n">bin_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">warning</span> <span class="ow">in</span> <span class="n">report</span><span class="o">.</span><span class="n">warnings</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">- </span><span class="si">{</span><span class="n">warning</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Results.preprocess_summary">
+<a class="viewcode-back" href="../../../api/pwassist.core.result.Results.html#pwassist.core.result.Results.preprocess_summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">preprocess_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Print a summary of the preprocessing reports.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">reports</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No preprocessing reports available.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Preprocessing Summary:&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">report</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reports</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Bin ID: </span><span class="si">{</span><span class="n">report</span><span class="o">.</span><span class="n">bin_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Applied Steps: </span><span class="si">{</span><span class="n">report</span><span class="o">.</span><span class="n">applied_steps</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Warnings: </span><span class="si">{</span><span class="n">report</span><span class="o">.</span><span class="n">warnings</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Timings (ms): </span><span class="si">{</span><span class="n">report</span><span class="o">.</span><span class="n">timings_ms</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Total Time (ms): </span><span class="si">{</span><span class="n">report</span><span class="o">.</span><span class="n">total_time_ms</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+    <span class="c1"># Significance Queries</span>
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+
+    <span class="c1"># TODO: copy over get_significant_amplitudes / phases from old results class</span>
+
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+    <span class="c1"># Data Queries</span>
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+<div class="viewcode-block" id="Results.get_mass_centers">
+<a class="viewcode-back" href="../../../api/pwassist.core.result.Results.html#pwassist.core.result.Results.get_mass_centers">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the list of mass bin centers.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;m_center&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Results.get_mass_edges">
+<a class="viewcode-back" href="../../../api/pwassist.core.result.Results.html#pwassist.core.result.Results.get_mass_edges">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return list of mass bin edges in (low, high) pairs&quot;&quot;&quot;</span>
+        <span class="n">low_edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;m_low&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">high_edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;m_high&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">low_edges</span><span class="p">,</span> <span class="n">high_edges</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Results.get_average_mass_bin_width">
+<a class="viewcode-back" href="../../../api/pwassist.core.result.Results.html#pwassist.core.result.Results.get_average_mass_bin_width">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_average_mass_bin_width</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return average mass bin width across all bins in the results.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;m_high&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;m_low&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Results.get_t_edges">
+<a class="viewcode-back" href="../../../api/pwassist.core.result.Results.html#pwassist.core.result.Results.get_t_edges">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_t_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return list of t bin edges in (low, high) pairs&quot;&quot;&quot;</span>
+        <span class="n">low_edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;t_low&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">high_edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;t_high&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">low_edges</span><span class="p">,</span> <span class="n">high_edges</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Results.get_t_average">
+<a class="viewcode-back" href="../../../api/pwassist.core.result.Results.html#pwassist.core.result.Results.get_t_average">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_t_average</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return average t_avg value across all bins in the results.</span>
+
+<span class="sd">        Note: This assumes that the Result is constructed from a single t bin. If</span>
+<span class="sd">            multiple t bins are present, this will return the average of all t_avg</span>
+<span class="sd">            values, which may be undesired.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;t_avg&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="Results.get_mass_indices">
+<a class="viewcode-back" href="../../../api/pwassist.core.result.Results.html#pwassist.core.result.Results.get_mass_indices">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">low</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">high</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return list of indices for mass bins that fall within the specified range.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            low (float): Lower bound of the mass range.</span>
+<span class="sd">            high (float): Upper bound of the mass range.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list[int]: List of indices corresponding to mass bins within the range.</span>
+<span class="sd">        Todo:</span>
+<span class="sd">            - Right now this assumes that the data dataframe consists of only mass bins,</span>
+<span class="sd">                and so the fit df corresponds to the same indices. For t-binning or</span>
+<span class="sd">                other bins, we will need to devise some way of linking these together.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">[</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;m_center&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">low</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;m_center&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">high</span><span class="p">)</span>
+        <span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Results.get_t_rms">
+<a class="viewcode-back" href="../../../api/pwassist.core.result.Results.html#pwassist.core.result.Results.get_t_rms">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_t_rms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return RMS of t_avg values across all bins in the results.</span>
+
+<span class="sd">        Note: This assumes that the Result is constructed from a single t bin. If</span>
+<span class="sd">            multiple t bins are present, this will return the RMS of all t_avg</span>
+<span class="sd">            values, which may be undesired.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;t_rms&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span></div>
+
+
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+    <span class="c1"># Amplitude-based Queries</span>
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+<div class="viewcode-block" id="Results.find_phase">
+<a class="viewcode-back" href="../../../api/pwassist.core.result.Results.html#pwassist.core.result.Results.find_phase">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">amp1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">amp2</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Find the phase difference column name for a given pair of amplitudes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            amp1 (str): Name of the first amplitude.</span>
+<span class="sd">            amp2 (str): Name of the second amplitude.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str | None: The name of the phase difference column, or None if not found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase_difference_dict</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">amp1</span><span class="p">,</span> <span class="n">amp2</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+    <span class="c1"># Analysis</span>
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FactoryPlotter</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a FactoryPlotter instance for plotting the results.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_factory_plotter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_factory_plotter</span> <span class="o">=</span> <span class="n">FactoryPlotter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_factory_plotter</span>
+
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+    <span class="c1"># Helpers</span>
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_build_phase_difference_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build dictionary of all pairs of amplitudes and corresponding phases</span>
+
+<span class="sd">        Since the phase_difference orderings are not known a priori, it&#39;s unclear how</span>
+<span class="sd">        to request a phase difference column from a dataframe. This dictionary will</span>
+<span class="sd">        allow for easy lookup of the phase difference for a pair of amplitudes,</span>
+<span class="sd">        regardless of their order in the dataframe.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;AmplitudeParser is not initialized.&quot;</span><span class="p">)</span>
+
+        <span class="n">possible_pairs_to_phases</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">phase</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_differences</span><span class="p">:</span>
+            <span class="n">amps</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">amps</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Phase difference &#39;</span><span class="si">{</span><span class="n">phase</span><span class="si">}</span><span class="s2">&#39; does not correspond to a pair of&quot;</span>
+                    <span class="s2">&quot; amplitudes.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">possible_pairs_to_phases</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">amps</span><span class="p">)]</span> <span class="o">=</span> <span class="n">phase</span>
+            <span class="n">possible_pairs_to_phases</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">amps</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span> <span class="o">=</span> <span class="n">phase</span>
+
+        <span class="k">return</span> <span class="n">possible_pairs_to_phases</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_is_fit_acc_corrected</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine if the fit is acceptance-corrected</span>
+
+<span class="sd">        This is done by checking if the sum of the reflectivities exceeds the number of</span>
+<span class="sd">        detected events.</span>
+
+<span class="sd">        Warning:</span>
+<span class="sd">            If the fit does not contain reflectivity-based amplitudes, or if the naming</span>
+<span class="sd">            scheme is not recognized, this method will return False and issue a warning.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">refl_sums</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coherent_sums</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;e&quot;</span><span class="p">)</span>
+        <span class="n">total_reflectivity</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">refl_sums</span><span class="p">)]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()]</span>
+            <span class="k">if</span> <span class="n">refl_sums</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">total_reflectivity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">detected_events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">[</span><span class="s2">&quot;intensity&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">total_reflectivity</span> <span class="o">&gt;</span> <span class="n">detected_events</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Could not determine if fit is acceptance-corrected. This may be due to&quot;</span>
+            <span class="s2">&quot; the naming scheme not being recognized or the fit not containing&quot;</span>
+            <span class="s2">&quot; reflectivity-based amplitudes. Please check the fit data and naming&quot;</span>
+            <span class="s2">&quot; scheme to ensure that the results are interpreted correctly.&quot;</span><span class="p">,</span>
+            <span class="ne">UserWarning</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Kevin Scheuer
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

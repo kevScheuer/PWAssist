@@ -1,0 +1,1063 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pwassist.parser &#8212; PWAssist  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=4418a689" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pwassist/parser';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">PWAssist  documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/pwassist.io.catalog.html">pwassist.io.catalog</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.io.catalog.Catalog.html">pwassist.io.catalog.Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.io.catalog.CorrelationFile.html">pwassist.io.catalog.CorrelationFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.io.catalog.CovarianceFile.html">pwassist.io.catalog.CovarianceFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.io.catalog.DataFile.html">pwassist.io.catalog.DataFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.io.catalog.FitFile.html">pwassist.io.catalog.FitFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.io.catalog.NormIntFile.html">pwassist.io.catalog.NormIntFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.io.catalog.ResultsFile.html">pwassist.io.catalog.ResultsFile</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/pwassist.io.binning.html">pwassist.io.binning</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.io.binning.BinBundle.html">pwassist.io.binning.BinBundle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.io.binning.BinCollection.html">pwassist.io.binning.BinCollection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.io.binning.MassBin.html">pwassist.io.binning.MassBin</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/pwassist.preprocessing.preprocessor.html">pwassist.preprocessing.preprocessor</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.preprocessing.preprocessor.FunctionStep.html">pwassist.preprocessing.preprocessor.FunctionStep</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.preprocessing.preprocessor.PreprocessReport.html">pwassist.preprocessing.preprocessor.PreprocessReport</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.preprocessing.preprocessor.PreprocessStep.html">pwassist.preprocessing.preprocessor.PreprocessStep</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.preprocessing.preprocessor.Preprocessor.html">pwassist.preprocessing.preprocessor.Preprocessor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.preprocessing.preprocessor.ProcessedBin.html">pwassist.preprocessing.preprocessor.ProcessedBin</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/pwassist.core.result.html">pwassist.core.result</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.core.result.Results.html">pwassist.core.result.Results</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/pwassist.parser.html">pwassist.parser</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.parser.AmplitudeParser.html">pwassist.parser.AmplitudeParser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.parser.NamingScheme.html">pwassist.parser.NamingScheme</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.parser.ParsedAmplitude.html">pwassist.parser.ParsedAmplitude</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.parser.SchemeDef.html">pwassist.parser.SchemeDef</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/pwassist.plotting.base.html">pwassist.plotting.base</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.plotting.base.BasePWAPlotter.html">pwassist.plotting.base.BasePWAPlotter</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/pwassist.plotting.factory.html">pwassist.plotting.factory</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.plotting.factory.FactoryPlotter.html">pwassist.plotting.factory.FactoryPlotter</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/pwassist.plotting.scan.html">pwassist.plotting.scan</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.plotting.scan.ScanPlotter.html">pwassist.plotting.scan.ScanPlotter</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/pwassist.pipeline.pipeline.html">pwassist.pipeline.pipeline</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.pipeline.pipeline.Pipeline.html">pwassist.pipeline.pipeline.Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.pipeline.pipeline.PipelineConfig.html">pwassist.pipeline.pipeline.PipelineConfig</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.pipeline.pipeline.PipelineReport.html">pwassist.pipeline.pipeline.PipelineReport</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/pwassist.cli.html">pwassist.cli</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.cli.build_parser.html">pwassist.cli.build_parser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/pwassist.cli.main.html">pwassist.cli.main</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/kevScheuer/PWAssist" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/kevScheuer/PWAssist/issues/new?title=Issue%20on%20page%20%2F_modules/pwassist/parser.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pwassist.parser</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">replace</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
+
+
+<div class="viewcode-block" id="NamingScheme">
+<a class="viewcode-back" href="../../api/pwassist.parser.NamingScheme.html#pwassist.parser.NamingScheme">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NamingScheme</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">AUTO</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span>
+    <span class="n">JLME</span> <span class="o">=</span> <span class="s2">&quot;JLme&quot;</span>  <span class="c1"># e.g. 1P-1p</span>
+    <span class="n">EJPML</span> <span class="o">=</span> <span class="s2">&quot;eJPmL&quot;</span>  <span class="c1"># e.g. p1p0S</span>
+    <span class="n">LME</span> <span class="o">=</span> <span class="s2">&quot;Lme&quot;</span>  <span class="c1"># e.g. S0+</span></div>
+
+
+
+<div class="viewcode-block" id="ParsedAmplitude">
+<a class="viewcode-back" href="../../api/pwassist.parser.ParsedAmplitude.html#pwassist.parser.ParsedAmplitude">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ParsedAmplitude</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Quantum numbers extracted from the amplitude name&quot;&quot;&quot;</span>
+
+    <span class="n">amp_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">e</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">J</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">P</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">m</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">L</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+<div class="viewcode-block" id="ParsedAmplitude.get">
+<a class="viewcode-back" href="../../api/pwassist.parser.ParsedAmplitude.html#pwassist.parser.ParsedAmplitude.get">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantum_number</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the value of a quantum number by name&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantum_number</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SchemeDef">
+<a class="viewcode-back" href="../../api/pwassist.parser.SchemeDef.html#pwassist.parser.SchemeDef">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SchemeDef</span><span class="p">:</span>
+    <span class="n">infer</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span>  <span class="c1"># Determine if an amplitude matches this naming scheme</span>
+    <span class="n">parse</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">ParsedAmplitude</span><span class="p">]</span>  <span class="c1"># index-based parser for the amplitude name</span>
+    <span class="n">sum_groups</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span>  <span class="c1"># possible quantum number groupings</span>
+    <span class="n">single_amplitudes</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>  <span class="c1"># base individual amplitude quantum numbers</span>
+    <span class="n">example</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
+
+<span class="c1"># --------------------------------------------------------------------------------------</span>
+<span class="c1"># Scheme Implementations</span>
+<span class="c1"># --------------------------------------------------------------------------------------</span>
+<span class="c1"># NOTE: The following functions are used to infer the naming scheme of an amplitude</span>
+<span class="c1"># based on its name. If you wish to add a new naming scheme, be very careful that its</span>
+<span class="c1"># inference function does not overlap with any of the existing ones.</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_infer_jlme</span><span class="p">(</span><span class="n">amp</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="c1"># Examples: 1P+0p, 2D-1n, 3F+2p</span>
+    <span class="k">return</span> <span class="n">amp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_jlme</span><span class="p">(</span><span class="n">amp</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ParsedAmplitude</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">ParsedAmplitude</span><span class="p">(</span><span class="n">amp_name</span><span class="o">=</span><span class="n">amp</span><span class="p">,</span> <span class="n">J</span><span class="o">=</span><span class="n">amp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">L</span><span class="o">=</span><span class="n">amp</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">m</span><span class="o">=</span><span class="n">amp</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">e</span><span class="o">=</span><span class="n">amp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_infer_lme</span><span class="p">(</span><span class="n">amp</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="c1"># Examples: S0+, P+1-, D-2+, F+3-</span>
+    <span class="k">return</span> <span class="n">amp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isupper</span><span class="p">()</span> <span class="ow">and</span> <span class="n">amp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_lme</span><span class="p">(</span><span class="n">amp</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ParsedAmplitude</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">ParsedAmplitude</span><span class="p">(</span>
+        <span class="n">amp_name</span><span class="o">=</span><span class="n">amp</span><span class="p">,</span>
+        <span class="n">L</span><span class="o">=</span><span class="n">amp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">J</span><span class="o">=</span><span class="n">amp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c1"># this scheme is for two-ps, where L=J</span>
+        <span class="n">m</span><span class="o">=</span><span class="n">amp</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">e</span><span class="o">=</span><span class="n">amp</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_infer_ejpml</span><span class="p">(</span><span class="n">amp</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="c1"># Examples: p1p0S, m1mmP, p3mqF</span>
+    <span class="k">return</span> <span class="n">amp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">amp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">isupper</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_ejpml</span><span class="p">(</span><span class="n">amp</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ParsedAmplitude</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">ParsedAmplitude</span><span class="p">(</span>
+        <span class="n">amp_name</span><span class="o">=</span><span class="n">amp</span><span class="p">,</span> <span class="n">e</span><span class="o">=</span><span class="n">amp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">J</span><span class="o">=</span><span class="n">amp</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">P</span><span class="o">=</span><span class="n">amp</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">m</span><span class="o">=</span><span class="n">amp</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">L</span><span class="o">=</span><span class="n">amp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="p">)</span>
+
+
+<span class="c1"># The idea behind the coherent sum groupings is that any quantum number excluded has</span>
+<span class="c1"># been summed over in the amplitude. For example, if the sum group is (&quot;J&quot;, &quot;L&quot;),</span>
+<span class="c1"># then the amplitude has been summed over all possible values of &quot;e&quot; and &quot;m&quot;.</span>
+<span class="n">SCHEMES</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">NamingScheme</span><span class="p">,</span> <span class="n">SchemeDef</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">NamingScheme</span><span class="o">.</span><span class="n">JLME</span><span class="p">:</span> <span class="n">SchemeDef</span><span class="p">(</span>
+        <span class="n">infer</span><span class="o">=</span><span class="n">_infer_jlme</span><span class="p">,</span>
+        <span class="n">parse</span><span class="o">=</span><span class="n">_parse_jlme</span><span class="p">,</span>
+        <span class="n">example</span><span class="o">=</span><span class="s2">&quot;1P+0p&quot;</span><span class="p">,</span>
+        <span class="n">sum_groups</span><span class="o">=</span><span class="p">(</span>
+            <span class="p">(</span><span class="s2">&quot;e&quot;</span><span class="p">,),</span>
+            <span class="p">(</span><span class="s2">&quot;J&quot;</span><span class="p">,),</span>
+            <span class="p">(</span><span class="s2">&quot;J&quot;</span><span class="p">,</span> <span class="s2">&quot;e&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;J&quot;</span><span class="p">,</span> <span class="s2">&quot;L&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;J&quot;</span><span class="p">,</span> <span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;e&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;J&quot;</span><span class="p">,</span> <span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">),</span>
+        <span class="p">),</span>
+        <span class="n">single_amplitudes</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;J&quot;</span><span class="p">,</span> <span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="s2">&quot;e&quot;</span><span class="p">),</span>
+    <span class="p">),</span>
+    <span class="n">NamingScheme</span><span class="o">.</span><span class="n">LME</span><span class="p">:</span> <span class="n">SchemeDef</span><span class="p">(</span>
+        <span class="n">infer</span><span class="o">=</span><span class="n">_infer_lme</span><span class="p">,</span>
+        <span class="n">parse</span><span class="o">=</span><span class="n">_parse_lme</span><span class="p">,</span>
+        <span class="n">example</span><span class="o">=</span><span class="s2">&quot;S0+&quot;</span><span class="p">,</span>
+        <span class="n">sum_groups</span><span class="o">=</span><span class="p">(</span>
+            <span class="p">(</span><span class="s2">&quot;e&quot;</span><span class="p">,),</span>
+            <span class="p">(</span><span class="s2">&quot;L&quot;</span><span class="p">,),</span>
+            <span class="p">(</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;e&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">),</span>
+        <span class="p">),</span>
+        <span class="n">single_amplitudes</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="s2">&quot;e&quot;</span><span class="p">),</span>
+    <span class="p">),</span>
+    <span class="n">NamingScheme</span><span class="o">.</span><span class="n">EJPML</span><span class="p">:</span> <span class="n">SchemeDef</span><span class="p">(</span>
+        <span class="n">infer</span><span class="o">=</span><span class="n">_infer_ejpml</span><span class="p">,</span>
+        <span class="n">parse</span><span class="o">=</span><span class="n">_parse_ejpml</span><span class="p">,</span>
+        <span class="n">example</span><span class="o">=</span><span class="s2">&quot;p1p0S&quot;</span><span class="p">,</span>
+        <span class="n">sum_groups</span><span class="o">=</span><span class="p">(</span>
+            <span class="p">(</span><span class="s2">&quot;e&quot;</span><span class="p">,),</span>
+            <span class="p">(</span><span class="s2">&quot;J&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;e&quot;</span><span class="p">,</span> <span class="s2">&quot;J&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;J&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;L&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;e&quot;</span><span class="p">,</span> <span class="s2">&quot;J&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;L&quot;</span><span class="p">),</span>
+        <span class="p">),</span>
+        <span class="n">single_amplitudes</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;e&quot;</span><span class="p">,</span> <span class="s2">&quot;J&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="s2">&quot;L&quot;</span><span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">}</span>
+
+<span class="c1"># --------------------------------------------------------------------------------------</span>
+<span class="c1"># Orbital angular momentum letter &lt;-&gt; integer (standard spectroscopic notation, skips J)</span>
+<span class="c1"># --------------------------------------------------------------------------------------</span>
+<span class="n">_L_LETTERS</span> <span class="o">=</span> <span class="s2">&quot;SPDFGHIKLM&quot;</span>
+<span class="n">_L_TO_INT</span> <span class="o">=</span> <span class="p">{</span><span class="n">letter</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">letter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">_L_LETTERS</span><span class="p">)}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_l_letter_to_int</span><span class="p">(</span><span class="n">letter</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_L_TO_INT</span><span class="p">[</span><span class="n">letter</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unrecognized orbital angular momentum letter: &#39;</span><span class="si">{</span><span class="n">letter</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># --------------------------------------------------------------------------------------</span>
+<span class="c1"># Amplitude Parser</span>
+<span class="c1"># --------------------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="AmplitudeParser">
+<a class="viewcode-back" href="../../api/pwassist.parser.AmplitudeParser.html#pwassist.parser.AmplitudeParser">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AmplitudeParser</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parses amplitudes and groups according to naming scheme and quantum numbers.</span>
+
+<span class="sd">    Can be initialized with a specific naming scheme, or allow the parser to attempt</span>
+<span class="sd">    to infer the scheme from the amplitude name.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">scheme</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">NamingScheme</span> <span class="o">=</span> <span class="n">NamingScheme</span><span class="o">.</span><span class="n">AUTO</span><span class="p">,</span>
+        <span class="n">final_state_parity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scheme</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">requested_scheme</span> <span class="o">=</span> <span class="n">NamingScheme</span><span class="p">(</span><span class="n">scheme</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">requested_scheme</span> <span class="o">=</span> <span class="n">NamingScheme</span><span class="o">.</span><span class="n">AUTO</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">requested_scheme</span> <span class="o">=</span> <span class="n">scheme</span>
+        <span class="k">if</span> <span class="n">final_state_parity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">final_state_parity</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;final_state_parity must be either -1 or 1&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">final_state_parity</span> <span class="o">=</span> <span class="n">final_state_parity</span>
+
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+    <span class="c1"># Public Methods</span>
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="AmplitudeParser.infer_naming_scheme">
+<a class="viewcode-back" href="../../api/pwassist.parser.AmplitudeParser.html#pwassist.parser.AmplitudeParser.infer_naming_scheme">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">infer_naming_scheme</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NamingScheme</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">label</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Amplitude name cannot be empty&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">scheme</span><span class="p">,</span> <span class="n">scheme_def</span> <span class="ow">in</span> <span class="n">SCHEMES</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">scheme_def</span><span class="o">.</span><span class="n">infer</span><span class="p">(</span><span class="n">label</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">scheme</span>
+        <span class="k">return</span> <span class="n">NamingScheme</span><span class="o">.</span><span class="n">AUTO</span></div>
+
+
+<div class="viewcode-block" id="AmplitudeParser.parse_amplitude">
+<a class="viewcode-back" href="../../api/pwassist.parser.AmplitudeParser.html#pwassist.parser.AmplitudeParser.parse_amplitude">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse_amplitude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ParsedAmplitude</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse an amplitude name into its quantum numbers</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            label (str): the amplitude name to parse</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ParsedAmplitude: a dataclass containing the parsed quantum numbers</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: if the naming scheme cannot be inferred or is invalid</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scheme</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">requested_scheme</span>
+        <span class="k">if</span> <span class="n">scheme</span> <span class="o">==</span> <span class="n">NamingScheme</span><span class="o">.</span><span class="n">AUTO</span><span class="p">:</span>
+            <span class="n">scheme</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infer_naming_scheme</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">scheme</span> <span class="o">==</span> <span class="n">NamingScheme</span><span class="o">.</span><span class="n">AUTO</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not infer naming scheme for amplitude: </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">scheme_def</span> <span class="o">=</span> <span class="n">SCHEMES</span><span class="p">[</span><span class="n">scheme</span><span class="p">]</span>
+        <span class="n">parsed</span> <span class="o">=</span> <span class="n">scheme_def</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_final_state_parity</span><span class="p">(</span><span class="n">parsed</span><span class="p">,</span> <span class="n">scheme_def</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AmplitudeParser.get_coherent_sums">
+<a class="viewcode-back" href="../../api/pwassist.parser.AmplitudeParser.html#pwassist.parser.AmplitudeParser.get_coherent_sums">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_coherent_sums</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a dictionary of coherent sum labels and coherent sums found</span>
+
+<span class="sd">        The function will first attempt to find all possible coherent sums from the</span>
+<span class="sd">        &quot;base&quot; amplitudes in the provided columns. Then, it returns only those coherent</span>
+<span class="sd">        sums that are actually present in the columns.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">        If the columns contain the following labels:</span>
+<span class="sd">        [&quot;1P+0p&quot;, &quot;1P+1p&quot;, &quot;1S-1n&quot;, &quot;1P&quot;, &quot;p&quot;]</span>
+<span class="sd">        The function determines that the possible coherent sums are (based off the</span>
+<span class="sd">        JLme naming scheme):</span>
+<span class="sd">        &quot;J&quot; -&gt; [&quot;1&quot;]</span>
+<span class="sd">        &quot;e&quot; -&gt; [&quot;p&quot;, &quot;n&quot;]</span>
+<span class="sd">        &quot;Je&quot; -&gt; [&quot;1p&quot;, &quot;1n&quot;]</span>
+<span class="sd">        &quot;JL&quot; -&gt; [&quot;1P&quot;, &quot;1S&quot;]</span>
+<span class="sd">        &quot;JLe&quot; -&gt; [&quot;1Pp&quot;, &quot;1Sn&quot;]</span>
+<span class="sd">        &quot;JLm&quot; -&gt; [&quot;1P0&quot;, &quot;1P1&quot;, &quot;1S-1&quot;]</span>
+<span class="sd">        Then, it returns only those sums that are actually present in the columns:</span>
+<span class="sd">        {&quot;JL&quot;: [&quot;1P&quot;], &quot;e&quot;: [&quot;p&quot;]}</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            columns: list of column names from a results dataframe.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict[str, list[str]]: a dictionary of coherent sum labels and coherent sums</span>
+<span class="sd">                The keys are the sum labels (e.g. &quot;JL&quot;, &quot;e&quot;, etc.) and the values are</span>
+<span class="sd">                lists of coherent sums found in the columns.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">base_amplitudes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_amplitudes</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span>
+
+        <span class="c1"># These are all possible sums that could be present in the columns, based on</span>
+        <span class="c1"># the naming scheme from the &quot;base&quot; amplitudes</span>
+        <span class="n">expected_sum_groups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_sum_groups</span><span class="p">(</span>
+            <span class="n">base_amplitudes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">requested_scheme</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Of the possible sums, only keep those that are actually present in the</span>
+        <span class="c1"># columns</span>
+        <span class="n">found_sums</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">sum_label</span><span class="p">,</span> <span class="n">sums</span> <span class="ow">in</span> <span class="n">expected_sum_groups</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">found_sums</span><span class="p">[</span><span class="n">sum_label</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sums</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="n">found_sums</span></div>
+
+
+<div class="viewcode-block" id="AmplitudeParser.get_amplitudes">
+<a class="viewcode-back" href="../../api/pwassist.parser.AmplitudeParser.html#pwassist.parser.AmplitudeParser.get_amplitudes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_amplitudes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a list of base amplitude labels according to a naming scheme.</span>
+
+<span class="sd">        If no naming scheme is specified, the function will attempt to infer a common</span>
+<span class="sd">        scheme from the provided columns. If multiple schemes are found, a ValueError</span>
+<span class="sd">        will be raised.</span>
+
+<span class="sd">        Amplitudes are identified by those strings who always have a &quot;_re&quot; and &quot;_im&quot;</span>
+<span class="sd">        part attached to them. Of course, other parameters may be written like this,</span>
+<span class="sd">        but should most likely not get confused with an amplitude naming scheme. The</span>
+<span class="sd">        reason we have to filter our amplitudes is because our columns also have</span>
+<span class="sd">        coherent sums, and these formats can be easily confused for a different</span>
+<span class="sd">        naming scheme.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            columns: list of column names from a results dataframe.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list[str]: a list of base amplitude labels found in the provided columns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">amplitudes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">set</span><span class="p">([</span><span class="n">c</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">columns</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_re&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">c</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_im&quot;</span><span class="p">)])</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">amplitudes</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_by_scheme</span><span class="p">(</span><span class="n">amplitudes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">requested_scheme</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AmplitudeParser.get_phase_differences">
+<a class="viewcode-back" href="../../api/pwassist.parser.AmplitudeParser.html#pwassist.parser.AmplitudeParser.get_phase_differences">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_phase_differences</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a list of phase difference labels found in the provided columns.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            columns: list of column names from a results dataframe.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list[str]: a list of phase difference labels found in the provided columns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">base_amplitudes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_amplitudes</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">base_amplitudes</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>  <span class="c1"># Need at least two amplitudes to form a phase difference</span>
+        <span class="n">all_possible_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">base_amplitudes</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">all_possible_phase_diffs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">set</span><span class="p">(</span>
+                <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">a1</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">a2</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span> <span class="ow">in</span> <span class="n">all_possible_pairs</span><span class="p">]</span>
+                <span class="o">+</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">a2</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">a1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span> <span class="ow">in</span> <span class="n">all_possible_pairs</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">all_possible_phase_diffs</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="AmplitudeParser.to_latex">
+<a class="viewcode-back" href="../../api/pwassist.parser.AmplitudeParser.html#pwassist.parser.AmplitudeParser.to_latex">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_latex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;LaTeX string for a given amplitude or phase difference.</span>
+
+<span class="sd">        For coherent sums, use sum_to_latex, as a bare coherent sum string does not</span>
+<span class="sd">        carry enough info to identify its scheme.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            label (str): the amplitude or phase difference label to convert to LaTeX</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: a $J^P L_m^{(e)}$ style LaTeX string for the amplitude or phase</span>
+<span class="sd">                difference</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;_&quot;</span> <span class="ow">in</span> <span class="n">label</span><span class="p">:</span>
+            <span class="c1"># phase difference</span>
+            <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;$</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_amp_latex</span><span class="p">(</span><span class="n">a1</span><span class="p">)</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_amp_latex</span><span class="p">(</span><span class="n">a2</span><span class="p">)</span><span class="si">}</span><span class="s2">$&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;$</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_amp_latex</span><span class="p">(</span><span class="n">label</span><span class="p">)</span><span class="si">}</span><span class="s2">$&quot;</span></div>
+
+
+<div class="viewcode-block" id="AmplitudeParser.sum_to_latex">
+<a class="viewcode-back" href="../../api/pwassist.parser.AmplitudeParser.html#pwassist.parser.AmplitudeParser.sum_to_latex">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sum_to_latex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">sum_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;LaTeX string for a given coherent sum.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            group_key (str): key from get_coherent_sums() output e.g. &#39;JL&#39;, &#39;e&#39;, etc.</span>
+<span class="sd">                Pass it alongside the sum_string to identify the naming scheme and</span>
+<span class="sd">                quantum numbers.</span>
+<span class="sd">            sum_string (str): the coherent sum string to convert to LaTeX</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scheme</span><span class="p">,</span> <span class="n">group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_group</span><span class="p">(</span><span class="n">group_key</span><span class="p">)</span>
+        <span class="n">scheme_def</span> <span class="o">=</span> <span class="n">SCHEMES</span><span class="p">[</span><span class="n">scheme</span><span class="p">]</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_group_from_string</span><span class="p">(</span><span class="n">sum_string</span><span class="p">,</span> <span class="n">group</span><span class="p">)</span>
+        <span class="n">parsed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_final_state_parity</span><span class="p">(</span>
+            <span class="n">ParsedAmplitude</span><span class="p">(</span><span class="n">amp_name</span><span class="o">=</span><span class="n">sum_string</span><span class="p">,</span> <span class="o">**</span><span class="n">raw</span><span class="p">),</span> <span class="n">scheme_def</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;$</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_render</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values_from_parsed</span><span class="p">(</span><span class="n">parsed</span><span class="p">))</span><span class="si">}</span><span class="s2">$&quot;</span></div>
+
+
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+    <span class="c1"># Private Methods</span>
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_final_state_parity</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">parsed</span><span class="p">:</span> <span class="n">ParsedAmplitude</span><span class="p">,</span> <span class="n">scheme_def</span><span class="p">:</span> <span class="n">SchemeDef</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ParsedAmplitude</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fill in P= final_state_parity * (-1)^L for non-parity explicit schemes</span>
+
+<span class="sd">        Schemes like JLme and Lme do not explicitly contain the parity quantum</span>
+<span class="sd">        number. For these schemes, we can calculate the parity from the final state</span>
+<span class="sd">        parity and the orbital angular momentum L.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            parsed (ParsedAmplitude): The parsed amplitude object</span>
+<span class="sd">            scheme_def (SchemeDef): The scheme definition for the current naming scheme</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ParsedAmplitude: A new ParsedAmplitude object with the P quantum number</span>
+<span class="sd">                filled in if applicable.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;P&quot;</span> <span class="ow">in</span> <span class="n">scheme_def</span><span class="o">.</span><span class="n">single_amplitudes</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">parsed</span>  <span class="c1"># P is already explicitly defined in the amplitude name</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_state_parity</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">parsed</span><span class="o">.</span><span class="n">L</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">parsed</span>  <span class="c1"># No final state parity provided, cannot calculate P</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="n">_l_letter_to_int</span><span class="p">(</span><span class="n">parsed</span><span class="o">.</span><span class="n">L</span><span class="p">)</span>
+        <span class="n">total_parity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_state_parity</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">**</span> <span class="n">L</span>
+        <span class="k">return</span> <span class="n">replace</span><span class="p">(</span><span class="n">parsed</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="s2">&quot;p&quot;</span> <span class="k">if</span> <span class="n">total_parity</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;m&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_filter_by_scheme</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labels</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">scheme</span><span class="p">:</span> <span class="n">NamingScheme</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns labels that match a particular naming scheme</span>
+
+<span class="sd">        Note that if NamingScheme is set to &quot;Auto&quot;, the function will attempt to infer</span>
+<span class="sd">        a common scheme from the provided labels. If multiple schemes are found,</span>
+<span class="sd">        a ValueError will be raised.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            labels (list[str]): strings to be filtered by naming scheme</span>
+<span class="sd">            scheme (NamingScheme): an amplitude naming scheme based on quantum numbers</span>
+<span class="sd">                to filter on.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list[str]: a list of labels that match the specified naming scheme</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: if no labels are provided, an invalid naming scheme is</span>
+<span class="sd">                specified, or if multiple schemes are found when using AUTO.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">labels</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No labels provided to filter_by_scheme&quot;</span><span class="p">)</span>
+        <span class="n">filtered</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># try to infer a common naming scheme from the given labels if scheme is AUTO</span>
+        <span class="k">if</span> <span class="n">scheme</span> <span class="o">==</span> <span class="n">NamingScheme</span><span class="o">.</span><span class="n">AUTO</span><span class="p">:</span>
+            <span class="n">scheme</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_common_scheme</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+
+        <span class="c1"># filter the labels by the specified scheme</span>
+        <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">infer_naming_scheme</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="o">==</span> <span class="n">scheme</span><span class="p">:</span>
+                <span class="n">filtered</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">filtered</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_find_common_scheme</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labels</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NamingScheme</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Find a common naming scheme from a list of labels.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            labels (list[str]): strings to be checked for a common naming scheme</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            NamingScheme: the common naming scheme found in the labels</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: if multiple schemes are found</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">found_schemes</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">infer_naming_scheme</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">}</span>
+
+        <span class="c1"># non-amplitude labels will still be marked &quot;AUTO&quot;, so filter those out</span>
+        <span class="n">found_schemes</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">NamingScheme</span><span class="o">.</span><span class="n">AUTO</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">found_schemes</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No valid amplitude labels found&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">found_schemes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Multiple naming schemes found: </span><span class="si">{</span><span class="n">found_schemes</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="s2">&quot;Please ensure all amplitudes use the same naming scheme, or&quot;</span>
+                <span class="s2">&quot; specify a scheme explicitly.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">found_schemes</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_build_sum_groups</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">amps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">scheme</span><span class="p">:</span> <span class="n">NamingScheme</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">amps</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No amplitudes provided to build_sum_groups&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c1"># ensure that we have a common scheme to work with across all labels</span>
+        <span class="k">if</span> <span class="n">scheme</span> <span class="o">==</span> <span class="n">NamingScheme</span><span class="o">.</span><span class="n">AUTO</span><span class="p">:</span>
+            <span class="n">scheme</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_common_scheme</span><span class="p">(</span><span class="n">amps</span><span class="p">)</span>
+
+        <span class="c1"># get the base amplitude names that match the specified scheme</span>
+        <span class="n">filtered_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_by_scheme</span><span class="p">(</span><span class="n">amps</span><span class="p">,</span> <span class="n">scheme</span><span class="p">)</span>
+
+        <span class="n">scheme_def</span> <span class="o">=</span> <span class="n">SCHEMES</span><span class="p">[</span><span class="n">scheme</span><span class="p">]</span>
+        <span class="n">groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># e.g. &quot;JL&quot; -&gt; {&quot;1P&quot;, &quot;2D&quot;, &quot;3F&quot;}</span>
+
+        <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">filtered_labels</span><span class="p">:</span>
+            <span class="c1"># parse amplitude name into its quantum numbers</span>
+            <span class="n">parsed</span> <span class="o">=</span> <span class="n">scheme_def</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+            <span class="n">parsed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_final_state_parity</span><span class="p">(</span><span class="n">parsed</span><span class="p">,</span> <span class="n">scheme_def</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">scheme_def</span><span class="o">.</span><span class="n">sum_groups</span><span class="p">:</span>
+                <span class="n">sum_label</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+                <span class="n">amp_sum</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parsed</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">qn</span><span class="p">)</span> <span class="k">for</span> <span class="n">qn</span> <span class="ow">in</span> <span class="n">group</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">amp_sum</span><span class="p">:</span>
+                    <span class="n">groups</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">sum_label</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">amp_sum</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="n">sum_label</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">sums</span><span class="p">))</span> <span class="k">for</span> <span class="n">sum_label</span><span class="p">,</span> <span class="n">sums</span> <span class="ow">in</span> <span class="n">groups</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_interpret_spin_projection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert spin-projection to signed format for LaTeX rendering.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            label (str): spin-projection &#39;m&#39; in the signed integer (&quot;-1&quot;, &quot;+0&quot;, etc.) or</span>
+<span class="sd">                character format (&quot;p2&quot;, &quot;m1&quot;, &quot;m&quot;, &quot;p&quot;, etc.)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: spin-projection in signed integer format for LaTeX rendering,</span>
+<span class="sd">                e.g. &quot;m1&quot; -&gt; &quot;-1&quot;, &quot;+0 -&gt; &quot;0&quot;, etc. Returns original label if</span>
+<span class="sd">                it cannot be interpreted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_CHAR_TO_SIGN</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;p&quot;</span><span class="p">:</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">:</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="s2">&quot;-&quot;</span><span class="p">}</span>
+
+        <span class="n">find_digit</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\d+&quot;</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">find_digit</span><span class="p">:</span>
+            <span class="c1"># split string on sign characters and digits</span>
+            <span class="n">sign_chars</span> <span class="o">=</span> <span class="n">label</span><span class="p">[:</span> <span class="n">find_digit</span><span class="o">.</span><span class="n">start</span><span class="p">()]</span>
+            <span class="n">digits</span> <span class="o">=</span> <span class="n">label</span><span class="p">[</span><span class="n">find_digit</span><span class="o">.</span><span class="n">start</span><span class="p">()</span> <span class="p">:]</span>
+
+            <span class="k">if</span> <span class="n">digits</span> <span class="o">==</span> <span class="s2">&quot;0&quot;</span><span class="p">:</span>
+                <span class="c1"># sometimes the zero spin-projection is given an unnecessary</span>
+                <span class="c1"># sign character, e.g. &quot;p0&quot; or &quot;-0&quot;. In this case, we forcibly</span>
+                <span class="c1"># drop the sign character and just render &quot;0&quot; in LaTeX.</span>
+                <span class="k">return</span> <span class="s2">&quot;0&quot;</span>
+            <span class="k">elif</span> <span class="n">sign_chars</span> <span class="ow">in</span> <span class="n">_CHAR_TO_SIGN</span><span class="p">:</span>
+                <span class="c1"># converts &quot;p&quot;, &quot;m&quot;, or &quot;n&quot; to &quot;+&quot;, &quot;-&quot;, or &quot;-&quot; respectively</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_CHAR_TO_SIGN</span><span class="p">[</span><span class="n">sign_chars</span><span class="p">]</span><span class="si">}{</span><span class="n">digits</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># label is already in signed format, e.g. &quot;-1&quot;, &quot;+2&quot;, etc.</span>
+                <span class="k">return</span> <span class="n">label</span>
+        <span class="k">elif</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">_CHAR_TO_SIGN</span><span class="p">:</span>
+            <span class="c1"># label is a single character, e.g. &quot;p&quot;, &quot;m&quot;, or &quot;n&quot;</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_CHAR_TO_SIGN</span><span class="p">[</span><span class="n">label</span><span class="p">]</span><span class="si">}</span><span class="s2">1&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># label is not a recognized spin-projection format</span>
+            <span class="k">return</span> <span class="n">label</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Bare LaTeX (no $$) string for a given set of quantum numbers.&quot;&quot;&quot;</span>
+
+        <span class="n">_CHAR_TO_SIGNED_INT</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;p&quot;</span><span class="p">:</span> <span class="s2">&quot;+1&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">:</span> <span class="s2">&quot;-1&quot;</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="s2">&quot;-1&quot;</span><span class="p">}</span>
+        <span class="n">_CHAR_TO_SIGN</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;p&quot;</span><span class="p">:</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">:</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="s2">&quot;-&quot;</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;e&quot;</span><span class="p">}:</span>
+            <span class="k">return</span> <span class="sa">rf</span><span class="s2">&quot;\varepsilon = </span><span class="si">{</span><span class="n">_CHAR_TO_SIGNED_INT</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="s1">&#39;e&#39;</span><span class="p">],</span><span class="w"> </span><span class="n">values</span><span class="p">[</span><span class="s1">&#39;e&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="n">latex</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="s2">&quot;J&quot;</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+            <span class="n">latex</span> <span class="o">+=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;J&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;P&quot;</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+            <span class="n">latex</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;^</span><span class="se">{{</span><span class="si">{</span><span class="n">_CHAR_TO_SIGN</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">],</span><span class="w"> </span><span class="n">values</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">])</span><span class="si">}</span><span class="se">}}</span><span class="s2">&quot;</span>
+
+        <span class="k">if</span> <span class="s2">&quot;L&quot;</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+            <span class="n">latex</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">values</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">latex</span> <span class="k">else</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;L&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;m&quot;</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                <span class="n">latex</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;_</span><span class="se">{{</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_interpret_spin_projection</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="s1">&#39;m&#39;</span><span class="p">])</span><span class="si">}</span><span class="se">}}</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="s2">&quot;e&quot;</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                <span class="n">latex</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;^</span><span class="se">{{</span><span class="s2">(</span><span class="si">{</span><span class="n">_CHAR_TO_SIGN</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="s1">&#39;e&#39;</span><span class="p">],</span><span class="w"> </span><span class="n">values</span><span class="p">[</span><span class="s1">&#39;e&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">)</span><span class="se">}}</span><span class="s2">&quot;</span>
+        <span class="k">elif</span> <span class="s2">&quot;e&quot;</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+            <span class="n">latex</span> <span class="o">+=</span> <span class="p">(</span>
+                <span class="sa">rf</span><span class="s2">&quot; (\varepsilon=</span><span class="si">{</span><span class="n">_CHAR_TO_SIGNED_INT</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="s1">&#39;e&#39;</span><span class="p">],</span><span class="w"> </span><span class="n">values</span><span class="p">[</span><span class="s1">&#39;e&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">latex</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_group_from_string</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">sum_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">group</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+
+        <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">qn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">group</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">values</span><span class="p">[</span><span class="n">qn</span><span class="p">]</span> <span class="o">=</span> <span class="n">sum_string</span><span class="p">[</span><span class="n">pos</span><span class="p">:]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">values</span><span class="p">[</span><span class="n">qn</span><span class="p">]</span> <span class="o">=</span> <span class="n">sum_string</span><span class="p">[</span><span class="n">pos</span> <span class="p">:</span> <span class="n">pos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="n">pos</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">values</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_find_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NamingScheme</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Resolve a get_coherent_sums() dict key back to its scheme + group tuple.&quot;&quot;&quot;</span>
+        <span class="n">schemes_to_check</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">requested_scheme</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">requested_scheme</span> <span class="o">!=</span> <span class="n">NamingScheme</span><span class="o">.</span><span class="n">AUTO</span>
+            <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">SCHEMES</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">scheme</span> <span class="ow">in</span> <span class="n">schemes_to_check</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">SCHEMES</span><span class="p">[</span><span class="n">scheme</span><span class="p">]</span><span class="o">.</span><span class="n">sum_groups</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">group</span><span class="p">)</span> <span class="o">==</span> <span class="n">group_key</span><span class="p">:</span>
+                    <span class="c1"># &quot;e&quot; matches every scheme identically; first hit is fine</span>
+                    <span class="k">return</span> <span class="n">scheme</span><span class="p">,</span> <span class="n">group</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unrecognized coherent-sum group key: &#39;</span><span class="si">{</span><span class="n">group_key</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_values_from_parsed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parsed</span><span class="p">:</span> <span class="n">ParsedAmplitude</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="n">qn</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">parsed</span><span class="p">,</span> <span class="n">qn</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">qn</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;J&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="s2">&quot;e&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">parsed</span><span class="p">,</span> <span class="n">qn</span><span class="p">)</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_amp_latex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">amp</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert amp label to latex string. Infer scheme and parity if necessary.&quot;&quot;&quot;</span>
+        <span class="n">scheme</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">requested_scheme</span>
+        <span class="k">if</span> <span class="n">scheme</span> <span class="o">==</span> <span class="n">NamingScheme</span><span class="o">.</span><span class="n">AUTO</span><span class="p">:</span>
+            <span class="n">scheme</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infer_naming_scheme</span><span class="p">(</span><span class="n">amp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">scheme</span> <span class="o">==</span> <span class="n">NamingScheme</span><span class="o">.</span><span class="n">AUTO</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not infer naming scheme for &#39;</span><span class="si">{</span><span class="n">amp</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="n">scheme_def</span> <span class="o">=</span> <span class="n">SCHEMES</span><span class="p">[</span><span class="n">scheme</span><span class="p">]</span>
+        <span class="n">parsed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_final_state_parity</span><span class="p">(</span><span class="n">scheme_def</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">amp</span><span class="p">),</span> <span class="n">scheme_def</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_render</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values_from_parsed</span><span class="p">(</span><span class="n">parsed</span><span class="p">))</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Kevin Scheuer
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

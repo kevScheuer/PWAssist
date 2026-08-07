@@ -1,0 +1,816 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pwassist.io.catalog &#8212; PWAssist  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=4418a689" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pwassist/io/catalog';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">PWAssist  documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.io.catalog.html">pwassist.io.catalog</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.Catalog.html">pwassist.io.catalog.Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.CorrelationFile.html">pwassist.io.catalog.CorrelationFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.CovarianceFile.html">pwassist.io.catalog.CovarianceFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.DataFile.html">pwassist.io.catalog.DataFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.FitFile.html">pwassist.io.catalog.FitFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.NormIntFile.html">pwassist.io.catalog.NormIntFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.ResultsFile.html">pwassist.io.catalog.ResultsFile</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.io.binning.html">pwassist.io.binning</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.binning.BinBundle.html">pwassist.io.binning.BinBundle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.binning.BinCollection.html">pwassist.io.binning.BinCollection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.binning.MassBin.html">pwassist.io.binning.MassBin</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.preprocessing.preprocessor.html">pwassist.preprocessing.preprocessor</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.preprocessing.preprocessor.FunctionStep.html">pwassist.preprocessing.preprocessor.FunctionStep</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.preprocessing.preprocessor.PreprocessReport.html">pwassist.preprocessing.preprocessor.PreprocessReport</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.preprocessing.preprocessor.PreprocessStep.html">pwassist.preprocessing.preprocessor.PreprocessStep</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.preprocessing.preprocessor.Preprocessor.html">pwassist.preprocessing.preprocessor.Preprocessor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.preprocessing.preprocessor.ProcessedBin.html">pwassist.preprocessing.preprocessor.ProcessedBin</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.core.result.html">pwassist.core.result</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.core.result.Results.html">pwassist.core.result.Results</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.parser.html">pwassist.parser</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.parser.AmplitudeParser.html">pwassist.parser.AmplitudeParser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.parser.NamingScheme.html">pwassist.parser.NamingScheme</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.parser.ParsedAmplitude.html">pwassist.parser.ParsedAmplitude</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.parser.SchemeDef.html">pwassist.parser.SchemeDef</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.plotting.base.html">pwassist.plotting.base</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.plotting.base.BasePWAPlotter.html">pwassist.plotting.base.BasePWAPlotter</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.plotting.factory.html">pwassist.plotting.factory</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.plotting.factory.FactoryPlotter.html">pwassist.plotting.factory.FactoryPlotter</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.plotting.scan.html">pwassist.plotting.scan</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.plotting.scan.ScanPlotter.html">pwassist.plotting.scan.ScanPlotter</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.pipeline.pipeline.html">pwassist.pipeline.pipeline</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.pipeline.pipeline.Pipeline.html">pwassist.pipeline.pipeline.Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.pipeline.pipeline.PipelineConfig.html">pwassist.pipeline.pipeline.PipelineConfig</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.pipeline.pipeline.PipelineReport.html">pwassist.pipeline.pipeline.PipelineReport</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.cli.html">pwassist.cli</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.cli.build_parser.html">pwassist.cli.build_parser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.cli.main.html">pwassist.cli.main</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/kevScheuer/PWAssist" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/kevScheuer/PWAssist/issues/new?title=Issue%20on%20page%20%2F_modules/pwassist/io/catalog.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pwassist.io.catalog</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Classes for identifying and cataloging PWA result files in a directory structure.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassVar</span><span class="p">,</span> <span class="n">Self</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+
+<div class="viewcode-block" id="ResultsFile">
+<a class="viewcode-back" href="../../../api/pwassist.io.catalog.ResultsFile.html#pwassist.io.catalog.ResultsFile">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ResultsFile</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract base class for all CSV files produced from a fit result conversion</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        _type_: The type of the ResultsFile.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span>  <span class="c1"># the path to the CSV file</span>
+    <span class="n">frame</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>  <span class="c1"># the contents of the CSV file as a DataFrame</span>
+
+    <span class="c1"># The columns that must be present in the CSV file for it to be identified as this</span>
+    <span class="c1"># type.</span>
+    <span class="n">required_columns</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ResultsFile.matches">
+<a class="viewcode-back" href="../../../api/pwassist.io.catalog.ResultsFile.html#pwassist.io.catalog.ResultsFile.matches">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">matches</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">columns</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the required columns are present.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">required_columns</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">columns</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="ResultsFile.identify">
+<a class="viewcode-back" href="../../../api/pwassist.io.catalog.ResultsFile.html#pwassist.io.catalog.ResultsFile.identify">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">identify</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine if this file is of this type. Override in subclasses.&quot;&quot;&quot;</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">header</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ResultsFile.from_path">
+<a class="viewcode-back" href="../../../api/pwassist.io.catalog.ResultsFile.html#pwassist.io.catalog.ResultsFile.from_path">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create an instance of the ResultsFile from a path.</span>
+
+<span class="sd">        Note that this method reads the entire CSV file into memory, which may be</span>
+<span class="sd">        inefficient for large files. Use with caution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="FitFile">
+<a class="viewcode-back" href="../../../api/pwassist.io.catalog.FitFile.html#pwassist.io.catalog.FitFile">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FitFile</span><span class="p">(</span><span class="n">ResultsFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Primary fit result file containing intensities, phases, and AmpTools status codes</span>
+
+<span class="sd">    Identified by &#39;likelihood&#39;, &#39;eMatrixStatus&#39;, and &#39;intensity&#39; columns.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">required_columns</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;likelihood&quot;</span><span class="p">,</span> <span class="s2">&quot;eMatrixStatus&quot;</span><span class="p">,</span> <span class="s2">&quot;intensity&quot;</span><span class="p">}</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="FitFile.identify">
+<a class="viewcode-back" href="../../../api/pwassist.io.catalog.FitFile.html#pwassist.io.catalog.FitFile.identify">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">identify</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">header</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="DataFile">
+<a class="viewcode-back" href="../../../api/pwassist.io.catalog.DataFile.html#pwassist.io.catalog.DataFile">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DataFile</span><span class="p">(</span><span class="n">ResultsFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Data file containing the number of events, efficiency, and bin edges.</span>
+
+<span class="sd">    Identified by &#39;events&#39;, &#39;efficiency&#39;, &#39;m_low&#39;, and &#39;m_high&#39; columns.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">required_columns</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;events&quot;</span><span class="p">,</span> <span class="s2">&quot;efficiency&quot;</span><span class="p">,</span> <span class="s2">&quot;m_low&quot;</span><span class="p">,</span> <span class="s2">&quot;m_high&quot;</span><span class="p">}</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="DataFile.identify">
+<a class="viewcode-back" href="../../../api/pwassist.io.catalog.DataFile.html#pwassist.io.catalog.DataFile.identify">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">identify</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">header</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="CorrelationFile">
+<a class="viewcode-back" href="../../../api/pwassist.io.catalog.CorrelationFile.html#pwassist.io.catalog.CorrelationFile">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CorrelationFile</span><span class="p">(</span><span class="n">ResultsFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Correlation matrix between fit parameters.</span>
+
+<span class="sd">    Identified by &#39;file&#39; and &#39;parameter&#39; columns, and if the diagonal elements of the</span>
+<span class="sd">    numeric columns are equivalent to 1.0.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">required_columns</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="s2">&quot;parameter&quot;</span><span class="p">})</span>
+
+<div class="viewcode-block" id="CorrelationFile.identify">
+<a class="viewcode-back" href="../../../api/pwassist.io.catalog.CorrelationFile.html#pwassist.io.catalog.CorrelationFile.identify">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">identify</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="c1"># first check that required columns are present</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">cls</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">header</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># then use small sample of data to check that diagonal elements are 1.0</span>
+        <span class="n">df_sample</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="n">numeric_cols</span> <span class="o">=</span> <span class="n">df_sample</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">])</span><span class="o">.</span><span class="n">columns</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">numeric_cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">diagonal_elements</span> <span class="o">=</span> <span class="n">df_sample</span><span class="p">[</span><span class="n">numeric_cols</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span><span class="o">.</span><span class="n">diagonal</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">diagonal_elements</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">diagonal_elements</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="CovarianceFile">
+<a class="viewcode-back" href="../../../api/pwassist.io.catalog.CovarianceFile.html#pwassist.io.catalog.CovarianceFile">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CovarianceFile</span><span class="p">(</span><span class="n">ResultsFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Covariance matrix between fit parameters.</span>
+
+<span class="sd">    Identified by &#39;file&#39; and &#39;parameter&#39; columns with real numeric covariance values</span>
+<span class="sd">    (values not bounded in [-1, 1] and not complex).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">required_columns</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="s2">&quot;parameter&quot;</span><span class="p">})</span>
+
+<div class="viewcode-block" id="CovarianceFile.identify">
+<a class="viewcode-back" href="../../../api/pwassist.io.catalog.CovarianceFile.html#pwassist.io.catalog.CovarianceFile.identify">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">identify</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="c1"># first check that required columns are present</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">cls</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">header</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># then use small sample of data to check that numeric columns are not bounded in</span>
+        <span class="c1"># [-1, 1] and not complex</span>
+        <span class="n">df_sample</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">numeric_cols</span> <span class="o">=</span> <span class="n">df_sample</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">])</span><span class="o">.</span><span class="n">columns</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">numeric_cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># Check it&#39;s not complex</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">df_sample</span><span class="p">[</span><span class="n">numeric_cols</span><span class="p">]</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="nb">complex</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+            <span class="k">pass</span>
+
+        <span class="n">numeric_data</span> <span class="o">=</span> <span class="n">df_sample</span><span class="p">[</span><span class="n">numeric_cols</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">numeric_data</span> <span class="o">=</span> <span class="n">numeric_data</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">numeric_data</span><span class="p">)]</span>
+
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">numeric_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">((</span><span class="n">numeric_data</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">numeric_data</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">))</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="NormIntFile">
+<a class="viewcode-back" href="../../../api/pwassist.io.catalog.NormIntFile.html#pwassist.io.catalog.NormIntFile">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">NormIntFile</span><span class="p">(</span><span class="n">ResultsFile</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalization integrals with complex values.</span>
+
+<span class="sd">    Identified by &#39;file&#39; and &#39;amplitude&#39; columns containing complex-valued</span>
+<span class="sd">    normalization integral data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">required_columns</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="s2">&quot;amplitude&quot;</span><span class="p">})</span>
+
+<div class="viewcode-block" id="NormIntFile.identify">
+<a class="viewcode-back" href="../../../api/pwassist.io.catalog.NormIntFile.html#pwassist.io.catalog.NormIntFile.identify">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">identify</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">header</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Catalog">
+<a class="viewcode-back" href="../../../api/pwassist.io.catalog.Catalog.html#pwassist.io.catalog.Catalog">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Catalog</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scans an input directory for PWA results organized into mass bins.</span>
+
+<span class="sd">    The class currently expects the following structure</span>
+<span class="sd">    input_dir/</span>
+<span class="sd">    mass_1.0-1.1/</span>
+<span class="sd">    fit.csv</span>
+<span class="sd">    fit_data.csv</span>
+<span class="sd">    fit_correlation.csv</span>
+<span class="sd">    ...</span>
+<span class="sd">    mass_1.1-1.2/</span>
+<span class="sd">    ...</span>
+
+<span class="sd">    Note that the file names are not hardcoded. What type of file the CSV is will be</span>
+<span class="sd">    determined by the column and data it contains. See ResultsFile for details.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        input_dir (pathlib.Path): The directory to scan for PWA results.</span>
+<span class="sd">        catalog (pd.DataFrame): A DataFrame containing the catalog of PWA results.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">RESULT_FILE_TYPES</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">FitFile</span><span class="p">,</span>
+        <span class="n">DataFile</span><span class="p">,</span>
+        <span class="n">CorrelationFile</span><span class="p">,</span>
+        <span class="n">CovarianceFile</span><span class="p">,</span>
+        <span class="n">NormIntFile</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">REQUIRED_FILE_TYPES</span> <span class="o">=</span> <span class="p">[</span><span class="n">FitFile</span><span class="p">,</span> <span class="n">DataFile</span><span class="p">]</span>
+    <span class="n">OPTIONAL_FILE_TYPES</span> <span class="o">=</span> <span class="p">[</span><span class="n">CorrelationFile</span><span class="p">,</span> <span class="n">CovarianceFile</span><span class="p">,</span> <span class="n">NormIntFile</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Catalog.__init__">
+<a class="viewcode-back" href="../../../api/pwassist.io.catalog.Catalog.html#pwassist.io.catalog.Catalog.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_dir</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            input_dir (pathlib.Path | str): The directory to scan for PWA results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_dir</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">input_dir</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_dir</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">input_dir</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input directory does not exist: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">input_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_dir</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input path must be a directory: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">input_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># -- private attributes --</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_manifest</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Catalog.scan">
+<a class="viewcode-back" href="../../../api/pwassist.io.catalog.Catalog.html#pwassist.io.catalog.Catalog.scan">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scan</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Scan the input directory for CSV files and catalog them.</span>
+
+<span class="sd">        Note that current structure is hard coded to expect mass bin directories</span>
+<span class="sd">        directly under the input directory.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: A DataFrame with columns &#39;bin_id&#39;, &#39;file_path&#39;, and</span>
+<span class="sd">                &#39;file_type&#39; describing the catalog of PWA result files.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If a CSV file is found that cannot be identified as a known</span>
+<span class="sd">                result file type.</span>
+<span class="sd">            FileNotFoundError: If a mass bin directory is missing the required file</span>
+<span class="sd">                types (FitFile and DataFile).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">records</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">mass_bin_dir</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_dir</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">mass_bin_dir</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="k">continue</span>
+
+            <span class="n">bin_id</span> <span class="o">=</span> <span class="n">mass_bin_dir</span><span class="o">.</span><span class="n">name</span>
+
+            <span class="n">csv_iterator</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">mass_bin_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*.csv&quot;</span><span class="p">))</span>
+
+            <span class="c1"># first confirm that required files are present and identifiable</span>
+            <span class="n">file_types_found</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">identify_file_type</span><span class="p">(</span><span class="n">csv_file</span><span class="p">)</span> <span class="k">for</span> <span class="n">csv_file</span> <span class="ow">in</span> <span class="n">csv_iterator</span>
+            <span class="p">}</span>
+
+            <span class="n">missing_required</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">ft</span><span class="o">.</span><span class="vm">__name__</span>
+                <span class="k">for</span> <span class="n">ft</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">REQUIRED_FILE_TYPES</span>
+                <span class="k">if</span> <span class="n">ft</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">file_types_found</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="n">missing_required</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Mass bin &#39;</span><span class="si">{</span><span class="n">bin_id</span><span class="si">}</span><span class="s2">&#39; is missing required file types:&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">missing_required</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+            <span class="c1"># then catalog all files in the bin</span>
+            <span class="k">for</span> <span class="n">csv_file</span> <span class="ow">in</span> <span class="n">csv_iterator</span><span class="p">:</span>
+                <span class="n">file_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">identify_file_type</span><span class="p">(</span><span class="n">csv_file</span><span class="p">)</span>
+                <span class="n">size_bytes</span> <span class="o">=</span> <span class="n">csv_file</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_size</span>
+                <span class="n">records</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;bin_id&quot;</span><span class="p">:</span> <span class="n">bin_id</span><span class="p">,</span>
+                        <span class="s2">&quot;file_path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">csv_file</span><span class="o">.</span><span class="n">resolve</span><span class="p">()),</span>
+                        <span class="s2">&quot;file_type&quot;</span><span class="p">:</span> <span class="n">file_type</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                        <span class="s2">&quot;size_bytes&quot;</span><span class="p">:</span> <span class="n">size_bytes</span><span class="p">,</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_manifest</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">records</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manifest</span></div>
+
+
+<div class="viewcode-block" id="Catalog.identify_file_type">
+<a class="viewcode-back" href="../../../api/pwassist.io.catalog.Catalog.html#pwassist.io.catalog.Catalog.identify_file_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">identify_file_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">[</span><span class="n">ResultsFile</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Identify file type by using class&#39; identify method.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">file_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">RESULT_FILE_TYPES</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">file_type</span><span class="o">.</span><span class="n">identify</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">file_type</span>
+
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown result file type: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">manifest</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The manifest DataFrame produced by scan().</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: A DataFrame with columns &#39;bin_id&#39;, &#39;file_path&#39;, and</span>
+<span class="sd">                &#39;file_type&#39; describing the catalog of PWA result files.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manifest</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scan</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manifest</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Manifest is not available after scanning.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manifest</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Kevin Scheuer
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
