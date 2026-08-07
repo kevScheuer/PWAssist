@@ -94,10 +94,6 @@ def wrap_phase_columns(bundle: BinBundle) -> None:
     ]  # We won't wrap them, but they need to be converted to degrees
 
     if not phase_cols:
-        warnings.warn(
-            f"[{bundle.bin_id}] No phase columns found in fit file to wrap.",
-            UserWarning,
-        )
         return
 
     for col in phase_cols:
