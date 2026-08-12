@@ -104,12 +104,18 @@ class BinBundle:
     def norm_int(self) -> NormIntFile | None:
         return self.get("NormIntFile")  # type: ignore
 
-    def unload(self, file_type: str | None = None) -> None:
+    def unload(self, file_type: str | type[ResultsFile] | None = None) -> None:
         """Drop loaded DataFrame(s) after preprocessing to save memory."""
         if file_type is None:
             self._loaded.clear()
-        else:
+        elif isinstance(file_type, type) and issubclass(file_type, ResultsFile):
+            self._loaded.pop(file_type.__name__, None)
+        elif isinstance(file_type, str):
             self._loaded.pop(file_type, None)
+        else:
+            raise TypeError(
+                f"file_type must be str or ResultsFile, got {type(file_type)}"
+            )
 
 
 class BinCollection:
