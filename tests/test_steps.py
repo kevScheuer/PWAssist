@@ -7,11 +7,13 @@ import pytest
 import pwassist.preprocessing.steps as steps
 from pwassist.io.binning import BinBundle, MassBin
 from pwassist.io.catalog import (
+    BootstrapFile,
     CorrelationFile,
     CovarianceFile,
     DataFile,
     FitFile,
     NormIntFile,
+    RandomizedFile,
 )
 
 
@@ -22,6 +24,8 @@ def make_bundle(
     correlation: pd.DataFrame | None = None,
     covariance: pd.DataFrame | None = None,
     norm_int: pd.DataFrame | None = None,
+    randomized: pd.DataFrame | None = None,
+    bootstrap: pd.DataFrame | None = None,
     bin_id="mass_1.0-1.1",
 ) -> BinBundle:
     bundle = BinBundle(mass_bin=MassBin.from_bin_id(bin_id), bin_id=bin_id, paths={})
@@ -31,6 +35,8 @@ def make_bundle(
         ("CorrelationFile", CorrelationFile, correlation),
         ("CovarianceFile", CovarianceFile, covariance),
         ("NormIntFile", NormIntFile, norm_int),
+        ("RandomizedFile", RandomizedFile, randomized),
+        ("BootstrapFile", BootstrapFile, bootstrap),
     ):
         if frame is not None:
             dummy_path = pathlib.Path(path / f"{name}.csv")
@@ -220,7 +226,7 @@ class TestErrorColumns:
         warning = recwarn.pop()
         assert issubclass(warning.category, UserWarning)
         assert str(warning.message) == (
-            "[mass_1.0-1.1] Fit contains negative values in error column"
+            "[mass_1.0-1.1] Results contain negative values in error column"
             " 'intensity_err'."
         )
 
@@ -246,12 +252,12 @@ class TestErrorColumns:
         warning2 = recwarn.pop()
         assert issubclass(warning1.category, UserWarning)
         assert str(warning1.message) == (
-            "[mass_1.0-1.1] Fit contains non-finite values in error column"
+            "[mass_1.0-1.1] Results contain non-finite values in error column"
             " 'intensity_err'."
         )
         assert issubclass(warning2.category, UserWarning)
         assert str(warning2.message) == (
-            "[mass_1.0-1.1] Fit contains non-finite values in error column"
+            "[mass_1.0-1.1] Results contain non-finite values in error column"
             " 'parameter_err'."
         )
 
@@ -274,6 +280,13 @@ class TestErrorColumns:
         bundle_no_err_cols = make_bundle(path=tmp_path, fit=fit_no_err_cols, data=None)
         steps.check_error_columns(bundle_no_err_cols)
         assert len(recwarn) == 0
+
+
+class TestAlignPhaseColumnNames:
+    # TODO: create a fit frame with phases, then a randomized frame with some flipped
+    # phases, and test that the randomized frame is aligned to the fit frame after
+    # running the align_phase_column_names step.
+    pass
 
 
 class TestWrapPhaseColumns:

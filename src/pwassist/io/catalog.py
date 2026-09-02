@@ -50,6 +50,11 @@ class FitFile(ResultsFile):
     """Primary fit result file containing intensities, phases, and AmpTools status codes
 
     Identified by 'likelihood', 'eMatrixStatus', and 'intensity' columns.
+
+    Todo:
+        - Ideally would prefer to identify by content alone, as in other ResultsFile
+        types, but currently no unique content-based identifier exists that
+        distinguishes it from a RandomizedFile or BootstrapFile.
     """
 
     required_columns: ClassVar[frozenset[str]] = frozenset(
@@ -59,6 +64,10 @@ class FitFile(ResultsFile):
     @classmethod
     def identify(cls, path: pathlib.Path) -> bool:
         header = pd.read_csv(path, nrows=0)
+
+        # distinguish from RandomizedFile and BootstrapFile by checking the file path
+        if "random" in str(path).lower() or "bootstrap" in str(path).lower():
+            return False
         return cls.matches(header.columns)
 
 
@@ -191,11 +200,10 @@ class RandomizedFile(ResultsFile):
         if not cls.matches(header.columns):
             return False
 
-        # then use small sample of data to check if 'random' within the file path
-        df_sample = pd.read_csv(path, nrows=5)
-        file_paths = df_sample["file"].astype(str).str.lower()
+        if "random" not in str(path).lower():
+            return False
 
-        return all("random" in path_str for path_str in file_paths)
+        return True
 
 
 @dataclass(slots=True)
@@ -223,10 +231,10 @@ class BootstrapFile(ResultsFile):
         if not cls.matches(header.columns):
             return False
 
-        # then use small sample of data to check if 'bootstrap' within the file path
-        df_sample = pd.read_csv(path, nrows=5)
-        file_paths = df_sample["file"].astype(str).str.lower()
-        return all("bootstrap" in path_str for path_str in file_paths)
+        if "bootstrap" not in str(path).lower():
+            return False
+
+        return True
 
 
 class Catalog:

@@ -26,6 +26,16 @@ def sample_bins(tmp_path: Path):
     (bin_dir / "normint.csv").write_text(
         "file,amplitude,amp1,amp2\nfit.csv,amp1,8+0j,2-1j\n"
     )
+    (bin_dir / "randomized.csv").write_text(
+        "file,likelihood,eMatrixStatus,intensity\n"
+        "fit_0.csv,-1234.5,0,10.0\n"
+        "fit_1.csv,-1235.0,0,9.8\n"
+    )
+    (bin_dir / "bootstrap.csv").write_text(
+        "file,likelihood,eMatrixStatus,intensity\n"
+        "fit_0.csv,-1234.5,0,10.2\n"
+        "fit_1.csv,-1235.0,0,9.8\n"
+    )
 
     # Create a second bin that only contains the basic required files (fit and data) to
     # test optional file handling
@@ -79,6 +89,16 @@ class TestIdentifyFileType:
         normint_file = sample_bins / "mass_1.0-1.1" / "normint.csv"
         assert catalog.identify_file_type(normint_file).__name__ == "NormIntFile"
 
+    def test_identify_randomized_file(self, sample_bins):
+        catalog = Catalog(sample_bins)
+        randomized_file = sample_bins / "mass_1.0-1.1" / "randomized.csv"
+        assert catalog.identify_file_type(randomized_file).__name__ == "RandomizedFile"
+
+    def test_identify_bootstrap_file(self, sample_bins):
+        catalog = Catalog(sample_bins)
+        bootstrap_file = sample_bins / "mass_1.0-1.1" / "bootstrap.csv"
+        assert catalog.identify_file_type(bootstrap_file).__name__ == "BootstrapFile"
+
     def test_identify_unknown_file(self, sample_bins):
         catalog = Catalog(sample_bins)
         unknown_file = sample_bins / "mass_1.0-1.1" / "unknown.csv"
@@ -96,7 +116,7 @@ class TestIdentifyFileType:
         manifest = catalog.scan()
         assert isinstance(manifest, pd.DataFrame)
 
-        assert len(manifest) == 7
+        assert len(manifest) == 9
 
         first_bin_id = "mass_1.0-1.1"
         second_bin_id = "mass_1.1-1.2"
@@ -109,6 +129,8 @@ class TestIdentifyFileType:
                 "CorrelationFile": "correlation.csv",
                 "CovarianceFile": "covariance.csv",
                 "NormIntFile": "normint.csv",
+                "RandomizedFile": "randomized.csv",
+                "BootstrapFile": "bootstrap.csv",
             }
             if row["bin_id"] == first_bin_id:
                 file_type = row["file_type"]

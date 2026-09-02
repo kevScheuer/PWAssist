@@ -70,6 +70,7 @@ class TestPreprocessor:
             "check_null_columns",
             "check_fit_status",
             "check_error_columns",
+            "align_phase_column_names",
             "wrap_phase_columns",
             "downcast_numeric_dtypes",
             "check_covariance_matrix",
