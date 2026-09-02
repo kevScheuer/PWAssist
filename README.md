@@ -15,3 +15,9 @@ The documentation can be found at the [associated github pages site](https://kev
 ```shell
 uv run --group docs sphinx-build -b html docs/source docs/build
 ```
+
+## Tests
+By default, tests are run automatically by Github actions. To run them yourself, do
+```shell
+uv run --group test pytest
+```

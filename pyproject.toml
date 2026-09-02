@@ -29,6 +29,9 @@ docs = [
     "myst-parser",
 ]
 
+[tool.pytest.ini_options]
+addopts = "--cov=src/pwassist --cov-report=term-missing"
+
 [build-system]
 requires = ["uv_build>=0.11.12,<0.12"]
 build-backend = "uv_build"
