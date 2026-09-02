@@ -313,9 +313,6 @@ class Catalog:
             FileNotFoundError: If a mass bin directory is missing the required file
                 types (FitFile and DataFile).
 
-        Todo:
-            - check subdirectories for randomized and bootstrap files, which may be in a
-            subdirectory of the mass bin. Maybe do this for all subdirs.
         """
 
         records = []
@@ -326,7 +323,7 @@ class Catalog:
 
             bin_id = mass_bin_dir.name
 
-            csv_iterator = sorted(mass_bin_dir.glob("*.csv"))
+            csv_iterator = sorted(mass_bin_dir.glob("**/*.csv"))
 
             # first confirm that required files are present and identifiable
             file_types_found = {
