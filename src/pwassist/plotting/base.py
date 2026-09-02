@@ -47,6 +47,14 @@ class BasePWAPlotter:
         return self.results.norm_int
 
     @property
+    def randomized(self) -> pd.DataFrame | None:
+        return self.results.randomized
+
+    @property
+    def bootstrap(self) -> pd.DataFrame | None:
+        return self.results.bootstrap
+
+    @property
     def _mass_centers(self) -> list[float]:
         return self.results.get_mass_centers()
 
@@ -59,18 +67,18 @@ class BasePWAPlotter:
     # ----------------------------------------------------------------------------------
     def get_bootstrap_error(self, label: str) -> pd.Series:
         """Get the bootstrap error for a given label from the fit dataframe."""
-        raise NotImplementedError("get_bootstrap_error not yet implemented")
 
         if self.bootstrap is None:
             raise ValueError("Bootstrap results are not available in the results.")
 
-        if label not in self.boostrap.columns:
+        if label not in self.bootstrap.columns:
             raise KeyError(f"Label '{label}' not found in bootstrap results.")
 
-        if label in self.phase_differences:
+        grouped = self.bootstrap.groupby("bin_id")[label]
+
+        if label in self.results.phase_differences:
             return grouped.apply(self._circular_std)
 
-        grouped = self.bootstrap.groupby("bin_id")[label]
         return grouped.std()  # Standard deviation as error estimate
 
     def _circular_std(self, angles: pd.Series) -> float:

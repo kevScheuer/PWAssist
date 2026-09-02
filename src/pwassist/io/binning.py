@@ -6,12 +6,14 @@ from dataclasses import dataclass, field
 import pandas as pd
 
 from pwassist.io.catalog import (
+    BootstrapFile,
     Catalog,
     CorrelationFile,
     CovarianceFile,
     DataFile,
     FitFile,
     NormIntFile,
+    RandomizedFile,
     ResultsFile,
 )
 
@@ -103,6 +105,14 @@ class BinBundle:
     @property
     def norm_int(self) -> NormIntFile | None:
         return self.get("NormIntFile")  # type: ignore
+
+    @property
+    def randomized(self) -> RandomizedFile | None:
+        return self.get("RandomizedFile")  # type: ignore
+
+    @property
+    def bootstrap(self) -> BootstrapFile | None:
+        return self.get("BootstrapFile")  # type: ignore
 
     def unload(self, file_type: str | type[ResultsFile] | None = None) -> None:
         """Drop loaded DataFrame(s) after preprocessing to save memory."""

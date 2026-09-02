@@ -36,6 +36,8 @@ class ProcessedBin:
     correlation: pd.DataFrame | None
     covariance: pd.DataFrame | None
     norm_int: pd.DataFrame | None
+    randomized: pd.DataFrame | None
+    bootstrap: pd.DataFrame | None
 
 
 class PreprocessStep(Protocol):
@@ -59,6 +61,7 @@ DEFAULT_STEPS: list[PreprocessStep] = [
     FunctionStep("check_null_columns", steps.check_null_columns),
     FunctionStep("check_fit_status", steps.check_fit_status),
     FunctionStep("check_error_columns", steps.check_error_columns),
+    FunctionStep("align_phase_column_names", steps.align_phase_column_names),
     FunctionStep("wrap_phase_columns", steps.wrap_phase_columns),
     FunctionStep("downcast_numeric_dtypes", steps.downcast_numeric_dtypes),
     FunctionStep("check_covariance_matrix", steps.check_covariance_matrix),
@@ -107,6 +110,8 @@ class Preprocessor:
             correlation=bundle.correlation.frame if bundle.correlation else None,
             covariance=bundle.covariance.frame if bundle.covariance else None,
             norm_int=bundle.norm_int.frame if bundle.norm_int else None,
+            randomized=bundle.randomized.frame if bundle.randomized else None,
+            bootstrap=bundle.bootstrap.frame if bundle.bootstrap else None,
         )
 
         bundle.unload()  # free raw dataframes from memory after processing

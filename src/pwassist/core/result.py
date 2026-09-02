@@ -25,8 +25,8 @@ class Results:
     correlation: pd.DataFrame | None = None
     covariance: pd.DataFrame | None = None
     norm_int: pd.DataFrame | None = None
-    bootstrap: pd.DataFrame | None = None  # TODO: implement bootstrap dataframe support
-    randomized: pd.DataFrame | None = None  # TODO: implement randomized df support
+    bootstrap: pd.DataFrame | None = None
+    randomized: pd.DataFrame | None = None
 
     # Result metadata
     mass_bins: list[MassBin] = field(default_factory=list)
@@ -119,6 +119,22 @@ class Results:
             if any(pb.norm_int is not None for pb in processed_bins)
             else None
         )
+        randomized = (
+            pd.concat(
+                [pb.randomized for pb in processed_bins if pb.randomized is not None],
+                ignore_index=True,
+            )
+            if any(pb.randomized is not None for pb in processed_bins)
+            else None
+        )
+        bootstrap = (
+            pd.concat(
+                [pb.bootstrap for pb in processed_bins if pb.bootstrap is not None],
+                ignore_index=True,
+            )
+            if any(pb.bootstrap is not None for pb in processed_bins)
+            else None
+        )
 
         return cls(
             fit=fit_df,
@@ -126,6 +142,8 @@ class Results:
             correlation=correlations,
             covariance=covariances,
             norm_int=norm_ints,
+            randomized=randomized,
+            bootstrap=bootstrap,
             mass_bins=[pb.mass_bin for pb in processed_bins],
             reports=[pb.report for pb in processed_bins],
             _naming_scheme=naming_scheme,
@@ -148,6 +166,8 @@ class Results:
             "correlation": self.correlation,
             "covariance": self.covariance,
             "norm_int": self.norm_int,
+            "randomized": self.randomized,
+            "bootstrap": self.bootstrap,
             "mass_bins": self.mass_bins,
             "reports": self.reports,
             "final_state_parity": self.final_state_parity,
@@ -165,7 +185,15 @@ class Results:
         print(f"Results Summary:")
         print(f"  Number of mass bins: {len(self.mass_bins)}")
 
-        for name in ("fit", "data", "correlation", "covariance", "norm_int"):
+        for name in (
+            "fit",
+            "data",
+            "correlation",
+            "covariance",
+            "norm_int",
+            "randomized",
+            "bootstrap",
+        ):
             df = getattr(self, name)
             if df is not None:
                 print(f"\n{name}")

@@ -15,7 +15,7 @@ FILE_TYPE_MAP: dict[str, type[ResultsFile]] = {
 
 
 def check_null_columns(bundle: BinBundle) -> None:
-    """Check if null columns exist in the fit or data files of a bundle"""
+    """Check if null columns exist in any of the results files"""
     for label, rf in FILE_TYPE_MAP.items():
         if bundle.get(rf) is None:
             continue
@@ -30,7 +30,7 @@ def check_null_columns(bundle: BinBundle) -> None:
 
 
 def check_fit_status(bundle: BinBundle) -> None:
-    """Flag fits with bad Minuit or error matrix statuses"""
+    """Flag final fits with bad Minuit or error matrix statuses"""
     fit = bundle.fit
     if (
         fit is None
@@ -58,27 +58,69 @@ def check_fit_status(bundle: BinBundle) -> None:
 
 
 def check_error_columns(bundle: BinBundle) -> None:
-    """Ensure '_err' columns are non-negative and finite"""
+    """Ensure '_err' columns are non-negative and finite
+
+    Checks the final fits, randomized, and bootstrap results.
+    """
+
+    def warn_if_invalid(series: pd.Series, col_name: str, bin_id: str) -> None:
+        if (series < 0).any():
+            warnings.warn(
+                f"[{bin_id}] Results contain negative values in error column"
+                f" '{col_name}'.",
+                UserWarning,
+            )
+        if not np.isfinite(series).all():
+            warnings.warn(
+                f"[{bin_id}] Results contain non-finite values in error column"
+                f" '{col_name}'.",
+                UserWarning,
+            )
+
     fit = bundle.fit
 
     if fit is None:
         return
 
-    err_cols = [c for c in fit.frame.columns if c.endswith("_err")]
-    for col in err_cols:
-        series = fit.frame[col]
-        if (series < 0).any():
-            warnings.warn(
-                f"[{bundle.bin_id}] Fit contains negative values in error column"
-                f" '{col}'.",
-                UserWarning,
-            )
-        if not np.isfinite(series).all():
-            warnings.warn(
-                f"[{bundle.bin_id}] Fit contains non-finite values in error column"
-                f" '{col}'.",
-                UserWarning,
-            )
+    for col in fit.frame.columns:
+        if col.endswith("_err"):
+            series = fit.frame[col]
+            warn_if_invalid(series, col, bundle.bin_id)
+
+    if bundle.randomized is not None:
+        for col in bundle.randomized.frame.columns:
+            if col.endswith("_err"):
+                series = bundle.randomized.frame[col]
+                warn_if_invalid(series, col, bundle.bin_id)
+
+    if bundle.bootstrap is not None:
+        for col in bundle.bootstrap.frame.columns:
+            if col.endswith("_err"):
+                series = bundle.bootstrap.frame[col]
+                warn_if_invalid(series, col, bundle.bin_id)
+
+
+def align_phase_column_names(bundle: BinBundle) -> None:
+    """Make phase names consistent across fit, randomized, and bootstrap results"""
+    fit = bundle.fit
+    if fit is None:
+        return
+
+    parser = AmplitudeParser()
+    phase_cols = parser.get_phase_differences(fit.frame.columns.to_list())
+    reversed_phase_cols = [
+        f"{a2}_{a1}" for a1, a2 in (col.split("_") for col in phase_cols)
+    ]
+    if bundle.randomized is not None:
+        for col in reversed_phase_cols:
+            if col in bundle.randomized.frame.columns:
+                new_col = f"{col.split('_')[1]}_{col.split('_')[0]}"
+                bundle.randomized.frame.rename(columns={col: new_col}, inplace=True)
+    if bundle.bootstrap is not None:
+        for col in reversed_phase_cols:
+            if col in bundle.bootstrap.frame.columns:
+                new_col = f"{col.split('_')[1]}_{col.split('_')[0]}"
+                bundle.bootstrap.frame.rename(columns={col: new_col}, inplace=True)
 
 
 def wrap_phase_columns(bundle: BinBundle) -> None:
@@ -103,13 +145,29 @@ def wrap_phase_columns(bundle: BinBundle) -> None:
     for col in phase_err_cols:
         fit.frame[col] = np.rad2deg(fit.frame[col])  # Convert to degrees
 
+    if bundle.randomized is not None:
+        for col in phase_cols:
+            bundle.randomized.frame[col] = np.rad2deg(
+                np.angle(np.exp(1j * bundle.randomized.frame[col]))
+            )
+        for col in phase_err_cols:
+            bundle.randomized.frame[col] = np.rad2deg(bundle.randomized.frame[col])
+
+    if bundle.bootstrap is not None:
+        for col in phase_cols:
+            bundle.bootstrap.frame[col] = np.rad2deg(
+                np.angle(np.exp(1j * bundle.bootstrap.frame[col]))
+            )
+        for col in phase_err_cols:
+            bundle.bootstrap.frame[col] = np.rad2deg(bundle.bootstrap.frame[col])
+
 
 def downcast_numeric_dtypes(bundle: BinBundle) -> None:
     """Downcast numeric columns to save memory"""
     for label, rf in FILE_TYPE_MAP.items():
         if bundle.get(rf) is None:
             continue
-        df = bundle.get(rf).frame  # type: ignore claims frame could be None...
+        df = bundle.get(rf).frame  # type: ignore
         for col in df.select_dtypes(include=["float64"]).columns:
             df[col] = pd.to_numeric(df[col], downcast="float")
         for col in df.select_dtypes(include=["int64"]).columns:

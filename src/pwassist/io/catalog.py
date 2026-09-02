@@ -70,7 +70,7 @@ class DataFile(ResultsFile):
     """
 
     required_columns: ClassVar[frozenset[str]] = frozenset(
-        {"events", "efficiency", "m_low", "m_high"}
+        {"events", "m_low", "m_high"}
     )
 
     @classmethod
@@ -167,6 +167,68 @@ class NormIntFile(ResultsFile):
         return cls.matches(header.columns)
 
 
+@dataclass(slots=True)
+class RandomizedFile(ResultsFile):
+    """Fits from randomized starting values, used to explore the likelihood landscape.
+
+    Identified by 'likelihood', 'eMatrixStatus' and 'intensity' columns, similar to
+    FitFile, but also checks that the 'random' is contained somewhere in the file path.
+
+    Todo:
+        - Ideally would prefer to identify by content alone, as in other ResultsFile
+        types, but currently no unique content-based identifier exists that
+        distinguishes it from a BootstrapFile.
+    """
+
+    required_columns: ClassVar[frozenset[str]] = frozenset(
+        {"likelihood", "eMatrixStatus", "intensity", "file"}
+    )
+
+    @classmethod
+    def identify(cls, path: pathlib.Path) -> bool:
+        # first check that required columns are present
+        header = pd.read_csv(path, nrows=0)
+        if not cls.matches(header.columns):
+            return False
+
+        # then use small sample of data to check if 'random' within the file path
+        df_sample = pd.read_csv(path, nrows=5)
+        file_paths = df_sample["file"].astype(str).str.lower()
+
+        return all("random" in path_str for path_str in file_paths)
+
+
+@dataclass(slots=True)
+class BootstrapFile(ResultsFile):
+    """Fits from bootstrapped datasets, used to estimate uncertainties.
+
+    Identified by 'likelihood', 'eMatrixStatus' and 'intensity' columns, similar to
+    FitFile, but also checks that the 'bootstrap' is contained somewhere in the file
+    path.
+
+    Todo:
+        - Ideally would prefer to identify by content alone, as in other ResultsFile
+        types, but currently no unique content-based identifier exists that
+        distinguishes it from a RandomizedFile.
+    """
+
+    required_columns: ClassVar[frozenset[str]] = frozenset(
+        {"likelihood", "eMatrixStatus", "intensity", "file"}
+    )
+
+    @classmethod
+    def identify(cls, path: pathlib.Path) -> bool:
+        # first check that required columns are present
+        header = pd.read_csv(path, nrows=0)
+        if not cls.matches(header.columns):
+            return False
+
+        # then use small sample of data to check if 'bootstrap' within the file path
+        df_sample = pd.read_csv(path, nrows=5)
+        file_paths = df_sample["file"].astype(str).str.lower()
+        return all("bootstrap" in path_str for path_str in file_paths)
+
+
 class Catalog:
     """Scans an input directory for PWA results organized into mass bins.
 
@@ -194,10 +256,18 @@ class Catalog:
         CorrelationFile,
         CovarianceFile,
         NormIntFile,
+        RandomizedFile,
+        BootstrapFile,
     ]
 
     REQUIRED_FILE_TYPES = [FitFile, DataFile]
-    OPTIONAL_FILE_TYPES = [CorrelationFile, CovarianceFile, NormIntFile]
+    OPTIONAL_FILE_TYPES = [
+        CorrelationFile,
+        CovarianceFile,
+        NormIntFile,
+        RandomizedFile,
+        BootstrapFile,
+    ]
 
     def __init__(
         self,
@@ -234,6 +304,10 @@ class Catalog:
                 result file type.
             FileNotFoundError: If a mass bin directory is missing the required file
                 types (FitFile and DataFile).
+
+        Todo:
+            - check subdirectories for randomized and bootstrap files, which may be in a
+            subdirectory of the mass bin. Maybe do this for all subdirs.
         """
 
         records = []
