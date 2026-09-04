@@ -35,6 +35,13 @@ def stamp_kinematic_bin_columns(bundle: BinBundle) -> None:
             continue
 
         for col, value in columns.items():
+            if col in rf.frame.columns:
+                warnings.warn(
+                    f"[{bundle.bin_id}] Column '{col}' already exists in"
+                    f" {rf.__class__.__name__}.frame."
+                    f" Overwriting with kinematic bin values: {value}.",
+                    UserWarning,
+                )
             rf.frame[col] = value
         rf.frame["bin_id"] = kb.bin_id
 
