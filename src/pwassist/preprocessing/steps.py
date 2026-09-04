@@ -212,8 +212,6 @@ def downcast_numeric_dtypes(bundle: BinBundle) -> None:
             df[col] = pd.to_numeric(df[col], downcast="float")
         for col in df.select_dtypes(include=["int64"]).columns:
             df[col] = pd.to_numeric(df[col], downcast="integer")
-        if "file" in df.columns:
-            df["file"] = df["file"].astype("category")
 
 
 def check_covariance_matrix(bundle: BinBundle) -> None:
@@ -281,7 +279,7 @@ def check_normalization_integral_matrix(bundle: BinBundle) -> None:
     if norm_int is None:
         return
 
-    matrix = norm_int.frame.select_dtypes(include=[np.number])
+    matrix = norm_int.frame.select_dtypes(include=[np.complexfloating])
 
     if matrix.shape[0] != matrix.shape[1]:
         warnings.warn(
