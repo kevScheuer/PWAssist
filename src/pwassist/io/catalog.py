@@ -320,7 +320,12 @@ class Catalog:
         dir_to_kinematics_map = self._build_dir_to_kinematics_map(data_csvs)
 
         orphan_csvs = [
-            csv for csv in all_csvs if csv.parent not in dir_to_kinematics_map
+            csv
+            for csv in all_csvs
+            if not any(
+                csv.parent.is_relative_to(kinematic_dir)
+                for kinematic_dir in dir_to_kinematics_map.keys()
+            )
         ]
         if orphan_csvs:
             warnings.warn(
