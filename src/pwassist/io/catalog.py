@@ -194,11 +194,13 @@ class NormIntFile(ResultsFile):
                 inefficient for large files. Use with caution.
         """
         frame = pd.read_csv(path)
+        if "file" in frame.columns:
+            frame["file"] = frame["file"].astype("category")
 
         # Convert complex columns to complex dtype
         str_cols = (
             frame.drop(columns=["file", "amplitude"])
-            .select_dtypes(include=["str"])
+            .select_dtypes(include=["object", "string"])
             .columns
         )
         # some cols have values like "1.0+-0.0j" which is not a valid complex number, so
