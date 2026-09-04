@@ -386,7 +386,8 @@ class Catalog:
                 or len(energy) != 2
             ):
                 raise ValueError(
-                    f"Kinematic bin information is incomplete for directory: {kinematic_dir}"
+                    f"Kinematic bin information is incomplete for directory:"
+                    f" {kinematic_dir}"
                 )
 
             csv_files_in_bin = list(kinematic_dir.glob("**/*.csv"))
@@ -403,8 +404,8 @@ class Catalog:
             ]
             if missing_required:
                 raise FileNotFoundError(
-                    f" Kinematic bin '{kinematic_dir.name}' is missing required file types:"
-                    f" {missing_required}"
+                    f"Kinematic bin '{kinematic_dir.name}' is missing required"
+                    f" file types: {missing_required}"
                 )
 
             # then catalog all files in the bin
@@ -462,9 +463,9 @@ class Catalog:
             dict[pathlib.Path, dict[str, tuple[float, float]]]: A dictionary mapping
                 file paths to kinematic bin information. Structure is
                 {file_path:
-                    {"mass_bin": (low, high),
-                    "t_bin": (low, high),
-                    "energy_bin": (low, high)}
+                    {"mass": (low, high),
+                    "t": (low, high),
+                    "energy": (low, high)}
                 }.
         """
         path_to_kinematics: dict[pathlib.Path, dict[str, tuple[float, float]]] = {}

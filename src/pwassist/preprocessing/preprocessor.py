@@ -26,7 +26,7 @@ class PreprocessReport:
 
 @dataclass(slots=True)
 class ProcessedBin:
-    """Analysis-ready output of preprocessor steps for a single mass bin."""
+    """Analysis-ready output of preprocessor steps for a single kinematic bin."""
 
     kinematic_bin: KinematicBin
     bin_id: str
