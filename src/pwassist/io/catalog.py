@@ -39,10 +39,16 @@ class ResultsFile:
     def from_path(cls, path: pathlib.Path) -> Self:
         """Create an instance of the ResultsFile from a path.
 
-        Note that this method reads the entire CSV file into memory, which may be
-        inefficient for large files. Use with caution.
+        Some files (like NormIntFile) require special handling, so this method can be
+        overridden in subclasses
+
+        Note:
+            This method reads the entire CSV file into memory, which may be
+                inefficient for large files. Use with caution.
         """
         frame = pd.read_csv(path)
+        if "file" in frame.columns:
+            frame["file"] = frame["file"].astype("category")
         return cls(path=path, frame=frame)
 
 
@@ -175,6 +181,35 @@ class NormIntFile(ResultsFile):
     def identify(cls, path: pathlib.Path) -> bool:
         header = pd.read_csv(path, nrows=0)
         return cls.matches(header.columns)
+
+    @classmethod
+    def from_path(cls, path: pathlib.Path) -> Self:
+        """Create an instance of the NormIntFile from a path.
+
+        We need to ensure that the complex-valued entries are read correctly, so we
+        override the base class method to handle this.
+
+        Note:
+            This method reads the entire CSV file into memory, which may be
+                inefficient for large files. Use with caution.
+        """
+        frame = pd.read_csv(path)
+
+        # Convert complex columns to complex dtype
+        str_cols = (
+            frame.drop(columns=["file", "amplitude"])
+            .select_dtypes(include=["str"])
+            .columns
+        )
+        # some cols have values like "1.0+-0.0j" which is not a valid complex number, so
+        # we need to replace "+-" with "-" before converting
+        frame[str_cols] = (
+            frame[str_cols]
+            .replace(r"\+-", "-", regex=True)
+            .apply(lambda col: col.astype(np.complex128))
+        )
+
+        return cls(path=path, frame=frame)
 
 
 @dataclass(slots=True)
