@@ -19,9 +19,9 @@ def stamp_kinematic_bin_columns(bundle: BinBundle) -> None:
     kb = bundle.kinematic_bin
 
     columns = {
-        "t_bin": (kb.t_bin.low, kb.t_bin.high),
-        "mass_bin": (kb.mass_bin.low, kb.mass_bin.high),
-        "energy_bin": (kb.energy_bin.low, kb.energy_bin.high),
+        "t_bin": [(kb.t_bin.low, kb.t_bin.high)],
+        "mass_bin": [(kb.mass_bin.low, kb.mass_bin.high)],
+        "energy_bin": [(kb.energy_bin.low, kb.energy_bin.high)],
         "bin_id": kb.bin_id,
     }
 
@@ -42,7 +42,11 @@ def stamp_kinematic_bin_columns(bundle: BinBundle) -> None:
                     f" Overwriting with kinematic bin values: {value}.",
                     UserWarning,
                 )
+
+            # duplicate the value to match the number of rows in the DataFrame
+            value = [value[0]] * len(rf.frame)
             rf.frame[col] = value
+
         rf.frame["bin_id"] = kb.bin_id
 
 
