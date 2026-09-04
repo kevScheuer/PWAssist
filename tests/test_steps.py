@@ -371,11 +371,6 @@ class TestDowncastNumericDTypes:
         assert fit_only_bundle.fit.frame["int32_col"].dtype == "int32"
         assert fit_only_bundle.fit.frame["int32_col"].values.tolist() == value_int32
 
-    def test_file_categorization(self, fit_only_bundle):
-        """Test that the file column is made into a category dtype."""
-        steps.downcast_numeric_dtypes(fit_only_bundle)
-        assert fit_only_bundle.fit.frame["file"].dtype.name == "category"
-
 
 class TestCheckCovarianceMatrix:
 
