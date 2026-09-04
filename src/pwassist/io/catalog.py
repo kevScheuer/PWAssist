@@ -371,10 +371,14 @@ class Catalog:
                 size_bytes = csv_file.stat().st_size
                 records.append(
                     {
-                        "bin_id": f"T={t[0]},{t[1]}-E={energy[0]},{energy[1]}-M={mass[0]},{mass[1]}",
-                        "t": t,
-                        "energy": energy,
-                        "mass": mass,
+                        "bin_id": (
+                            f"T={t[0]},{t[1]}-"
+                            f"E={energy[0]},{energy[1]}-"
+                            f"M={mass[0]},{mass[1]}"
+                        ),
+                        "t_bin": t,
+                        "energy_bin": energy,
+                        "mass_bin": mass,
                         "file_path": str(csv_file.resolve()),
                         "file_type": file_type.__name__,
                         "size_bytes": size_bytes,
