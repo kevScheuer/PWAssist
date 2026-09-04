@@ -18,15 +18,6 @@ def stamp_kinematic_bin_columns(bundle: BinBundle) -> None:
     """Attach kinematic bin information to each results file in the bundle"""
     kb = bundle.kinematic_bin
 
-    columns = {
-        "t_bin": pd.Interval(kb.t_bin.low, kb.t_bin.high, closed="neither"),
-        "mass_bin": pd.Interval(kb.mass_bin.low, kb.mass_bin.high, closed="neither"),
-        "energy_bin": pd.Interval(
-            kb.energy_bin.low, kb.energy_bin.high, closed="neither"
-        ),
-        "bin_id": kb.bin_id,
-    }
-
     # it may seem redundant to stamp the DataFile frame with the kinematic bin info
     # again, but this ensures there is a common set of columns across all results files,
     # allowing for easier group by operations and comparisons later on. Without it,
@@ -36,20 +27,31 @@ def stamp_kinematic_bin_columns(bundle: BinBundle) -> None:
         if rf is None:
             continue
 
-        for col, value in columns.items():
-            if col in rf.frame.columns:
-                warnings.warn(
-                    f"[{bundle.bin_id}] Column '{col}' already exists in"
-                    f" {rf.__class__.__name__}.frame."
-                    f" Overwriting with kinematic bin values: {value}.",
-                    UserWarning,
-                )
+        n = len(rf.frame)
+        new_columns = {
+            "t_bin": pd.Interval(kb.t_bin.low, kb.t_bin.high, closed="neither") * n,
+            "mass_bin": pd.Interval(kb.mass_bin.low, kb.mass_bin.high, closed="neither")
+            * n,
+            "energy_bin": pd.Interval(
+                kb.energy_bin.low, kb.energy_bin.high, closed="neither"
+            )
+            * n,
+            "bin_id": [kb.bin_id] * n,
+        }
 
-            # duplicate the value to match the number of rows in the DataFrame
-            value = [value] * len(rf.frame)
-            rf.frame[col] = value
+        overwritten = [c for c in new_columns if c in rf.frame.columns]
+        if overwritten:
+            warnings.warn(
+                f"[{bundle.bin_id}] Column(s) {overwritten} already exist in"
+                f" {rf.__class__.__name__}.frame. Overwriting with kinematic bin"
+                " values.",
+                UserWarning,
+            )
 
-        rf.frame["bin_id"] = kb.bin_id
+        stamped = pd.DataFrame(new_columns, index=rf.frame.index)
+        rf.frame = pd.concat(
+            [rf.frame.drop(columns=overwritten, errors="ignore"), stamped], axis=1
+        )
 
 
 def check_null_columns(bundle: BinBundle) -> None:
