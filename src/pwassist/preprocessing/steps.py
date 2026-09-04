@@ -19,9 +19,11 @@ def stamp_kinematic_bin_columns(bundle: BinBundle) -> None:
     kb = bundle.kinematic_bin
 
     columns = {
-        "t_bin": [(kb.t_bin.low, kb.t_bin.high)],
-        "mass_bin": [(kb.mass_bin.low, kb.mass_bin.high)],
-        "energy_bin": [(kb.energy_bin.low, kb.energy_bin.high)],
+        "t_bin": pd.Interval(kb.t_bin.low, kb.t_bin.high, closed="neither"),
+        "mass_bin": pd.Interval(kb.mass_bin.low, kb.mass_bin.high, closed="neither"),
+        "energy_bin": pd.Interval(
+            kb.energy_bin.low, kb.energy_bin.high, closed="neither"
+        ),
         "bin_id": kb.bin_id,
     }
 
@@ -44,7 +46,7 @@ def stamp_kinematic_bin_columns(bundle: BinBundle) -> None:
                 )
 
             # duplicate the value to match the number of rows in the DataFrame
-            value = [value[0]] * len(rf.frame)
+            value = [value] * len(rf.frame)
             rf.frame[col] = value
 
         rf.frame["bin_id"] = kb.bin_id
@@ -218,9 +220,7 @@ def check_covariance_matrix(bundle: BinBundle) -> None:
     if cov is None:
         return
 
-    matrix = cov.frame.select_dtypes(include=[np.number]).drop(
-        columns=["t_bin", "mass_bin", "energy_bin", "bin_id"], errors="ignore"
-    )
+    matrix = cov.frame.select_dtypes(include=[np.number])
 
     if cov.frame.shape[0] != matrix.shape[1]:
         warnings.warn(
@@ -250,9 +250,7 @@ def check_correlation_matrix(bundle: BinBundle) -> None:
     if corr is None:
         return
 
-    matrix = corr.frame.select_dtypes(include=[np.number]).drop(
-        columns=["t_bin", "mass_bin", "energy_bin", "bin_id"], errors="ignore"
-    )
+    matrix = corr.frame.select_dtypes(include=[np.number])
 
     if matrix.shape[0] != matrix.shape[1]:
         warnings.warn(
@@ -281,9 +279,7 @@ def check_normalization_integral_matrix(bundle: BinBundle) -> None:
     if norm_int is None:
         return
 
-    matrix = norm_int.frame.select_dtypes(include=[np.number]).drop(
-        columns=["t_bin", "mass_bin", "energy_bin", "bin_id"], errors="ignore"
-    )
+    matrix = norm_int.frame.select_dtypes(include=[np.number])
 
     if matrix.shape[0] != matrix.shape[1]:
         warnings.warn(
