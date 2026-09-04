@@ -26,17 +26,15 @@ def stamp_kinematic_bin_columns(bundle: BinBundle) -> None:
         rf = bundle.get(rf)
         if rf is None:
             continue
-
-        n = len(rf.frame)
         new_columns = {
-            "t_bin": pd.Interval(kb.t_bin.low, kb.t_bin.high, closed="neither") * n,
-            "mass_bin": pd.Interval(kb.mass_bin.low, kb.mass_bin.high, closed="neither")
-            * n,
+            "t_bin": pd.Interval(kb.t_bin.low, kb.t_bin.high, closed="neither"),
+            "mass_bin": pd.Interval(
+                kb.mass_bin.low, kb.mass_bin.high, closed="neither"
+            ),
             "energy_bin": pd.Interval(
                 kb.energy_bin.low, kb.energy_bin.high, closed="neither"
-            )
-            * n,
-            "bin_id": [kb.bin_id] * n,
+            ),
+            "bin_id": [kb.bin_id],
         }
 
         overwritten = [c for c in new_columns if c in rf.frame.columns]
