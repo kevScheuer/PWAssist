@@ -192,7 +192,10 @@ class Results:
 
     def summary(self) -> None:
         """Print a summary of the Results instance and its preprocessor warnings."""
-        width = os.get_terminal_size().columns
+        try:
+            width = os.get_terminal_size().columns
+        except OSError:
+            width = 80  # default width if terminal size cannot be determined
         print(f"{'-' * ((width -16)// 2)}Results Summary:{'-' * ((width -16)// 2)}")
         print(f"Number of kinematic bins: {len(self.kinematic_bins)}")
         print(f"\tUnique mass bins: {len(self.mass_bins)}")
