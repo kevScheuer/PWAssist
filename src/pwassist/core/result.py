@@ -1,3 +1,4 @@
+import os
 import pickle
 import warnings
 from dataclasses import dataclass, field
@@ -5,7 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from pwassist.io.binning import MassBin
+from pwassist.io.binning import EnergyBin, KinematicBin, MassBin, TBin
 from pwassist.parser import AmplitudeParser, NamingScheme
 from pwassist.plotting.factory import FactoryPlotter
 from pwassist.preprocessing.preprocessor import PreprocessReport, ProcessedBin
@@ -29,7 +30,10 @@ class Results:
     randomized: pd.DataFrame | None = None
 
     # Result metadata
-    mass_bins: list[MassBin] = field(default_factory=list)
+    kinematic_bins: list[KinematicBin] = field(default_factory=list)
+    mass_bins: list[MassBin] = field(init=False)
+    t_bins: list[TBin] = field(init=False)
+    energy_bins: list[EnergyBin] = field(init=False)
     reports: list[PreprocessReport] = field(default_factory=list)
     is_acc_corrected: bool = field(init=False)
     final_state_parity: int | None = field(default=None)
@@ -53,7 +57,9 @@ class Results:
 
         if self._naming_scheme is None:
             self._naming_scheme = "auto"
-        self.parser = AmplitudeParser(self._naming_scheme)
+        self.parser = AmplitudeParser(
+            self._naming_scheme, final_state_parity=self.final_state_parity
+        )
 
         self.amplitudes = self.parser.get_amplitudes(self.fit.columns.to_list())
         if self.amplitudes is None or len(self.amplitudes) == 0:
@@ -75,6 +81,10 @@ class Results:
 
         self.is_acc_corrected = self._is_fit_acc_corrected()
 
+        self.mass_bins = sorted(set(kb.mass_bin for kb in self.kinematic_bins))
+        self.t_bins = sorted(set(kb.t_bin for kb in self.kinematic_bins))
+        self.energy_bins = sorted(set(kb.energy_bin for kb in self.kinematic_bins))
+
         return
 
     # ----------------------------------------------------------------------------------
@@ -89,8 +99,8 @@ class Results:
         final_state_parity: int | None = None,
     ) -> "Results":
         """Construct a Results instance from a list of ProcessedBin objects."""
-        # sort the processed bins by mass bin low edge to ensure consistent ordering
-        processed_bins = sorted(processed_bins, key=lambda pb: pb.mass_bin.low)
+        # sort the processed bins by kinematic bin to ensure consistent ordering
+        processed_bins = sorted(processed_bins, key=lambda pb: pb.kinematic_bin)
 
         # concatenate all dataframes for each file type across all bins
         fit_df = pd.concat([pb.fit for pb in processed_bins], ignore_index=True)
@@ -144,7 +154,7 @@ class Results:
             norm_int=norm_ints,
             randomized=randomized,
             bootstrap=bootstrap,
-            mass_bins=[pb.mass_bin for pb in processed_bins],
+            kinematic_bins=[pb.kinematic_bin for pb in processed_bins],
             reports=[pb.report for pb in processed_bins],
             _naming_scheme=naming_scheme,
             final_state_parity=final_state_parity,
@@ -168,7 +178,7 @@ class Results:
             "norm_int": self.norm_int,
             "randomized": self.randomized,
             "bootstrap": self.bootstrap,
-            "mass_bins": self.mass_bins,
+            "kinematic_bins": self.kinematic_bins,
             "reports": self.reports,
             "final_state_parity": self.final_state_parity,
             "_naming_scheme": self._naming_scheme,
@@ -177,13 +187,21 @@ class Results:
             pickle.dump(data, f)
 
     # ----------------------------------------------------------------------------------
-    # Summaries and Reports
+    # Reports
     # ----------------------------------------------------------------------------------
 
     def summary(self) -> None:
         """Print a summary of the Results instance and its preprocessor warnings."""
-        print(f"Results Summary:")
-        print(f"  Number of mass bins: {len(self.mass_bins)}")
+        try:
+            width = os.get_terminal_size().columns
+        except OSError:
+            width = 80  # default width if terminal size cannot be determined
+        print(f"{'-' * ((width -16)// 2)}Results Summary:{'-' * ((width -16)// 2)}")
+        print(f"Number of kinematic bins: {len(self.kinematic_bins)}")
+        print(f"\tUnique mass bins: {len(self.mass_bins)}")
+        print(f"\tUnique t bins: {len(self.t_bins)}")
+        print(f"\tUnique beam energy bins: {len(self.energy_bins)}")
+        print(f"Number of preprocessing reports: {len(self.reports)}")
 
         for name in (
             "fit",
@@ -238,6 +256,12 @@ class Results:
     # ----------------------------------------------------------------------------------
     # Data Queries
     # ----------------------------------------------------------------------------------
+
+    # TODO: many of these are possibly replaced by the new binning system, but is
+    # unclear for plotting purposes which one will be used. For now, keeping them, and
+    # will filter them as plotter is developed. They are likely replaced by the
+    # pd.Interval-based binning system.
+
     def get_mass_centers(self) -> list[float]:
         """Return the list of mass bin centers."""
         return self.data["m_center"].astype(float).tolist()

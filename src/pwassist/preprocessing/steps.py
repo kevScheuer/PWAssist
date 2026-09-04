@@ -14,6 +14,44 @@ FILE_TYPE_MAP: dict[str, type[ResultsFile]] = {
 }
 
 
+def stamp_kinematic_bin_columns(bundle: BinBundle) -> None:
+    """Attach kinematic bin information to each results file in the bundle"""
+    kb = bundle.kinematic_bin
+
+    # it may seem redundant to stamp the DataFile frame with the kinematic bin info
+    # again, but this ensures there is a common set of columns across all results files,
+    # allowing for easier group by operations and comparisons later on. Without it,
+    # the non-rounded bin edges would cause mismatches
+    for rf in FILE_TYPE_MAP.values():
+        rf = bundle.get(rf)
+        if rf is None:
+            continue
+        new_columns = {
+            "t_bin": pd.Interval(kb.t_bin.low, kb.t_bin.high, closed="neither"),
+            "mass_bin": pd.Interval(
+                kb.mass_bin.low, kb.mass_bin.high, closed="neither"
+            ),
+            "energy_bin": pd.Interval(
+                kb.energy_bin.low, kb.energy_bin.high, closed="neither"
+            ),
+            "bin_id": [kb.bin_id],
+        }
+
+        overwritten = [c for c in new_columns if c in rf.frame.columns]
+        if overwritten:
+            warnings.warn(
+                f"[{bundle.bin_id}] Column(s) {overwritten} already exist in"
+                f" {rf.__class__.__name__}.frame. Overwriting with kinematic bin"
+                " values.",
+                UserWarning,
+            )
+
+        stamped = pd.DataFrame(new_columns, index=rf.frame.index)
+        rf.frame = pd.concat(
+            [rf.frame.drop(columns=overwritten, errors="ignore"), stamped], axis=1
+        )
+
+
 def check_null_columns(bundle: BinBundle) -> None:
     """Check if null columns exist in any of the results files"""
     for label, rf in FILE_TYPE_MAP.items():
@@ -172,8 +210,6 @@ def downcast_numeric_dtypes(bundle: BinBundle) -> None:
             df[col] = pd.to_numeric(df[col], downcast="float")
         for col in df.select_dtypes(include=["int64"]).columns:
             df[col] = pd.to_numeric(df[col], downcast="integer")
-        if "file" in df.columns:
-            df["file"] = df["file"].astype("category")
 
 
 def check_covariance_matrix(bundle: BinBundle) -> None:
@@ -231,5 +267,28 @@ def check_correlation_matrix(bundle: BinBundle) -> None:
     if not np.all((matrix.values >= -1) & (matrix.values <= 1)):
         warnings.warn(
             f"[{bundle.bin_id}] Correlation matrix has values outside [-1, 1].",
+            UserWarning,
+        )
+
+
+def check_normalization_integral_matrix(bundle: BinBundle) -> None:
+    """Check if the normInt is square and hermitian."""
+    norm_int = bundle.norm_int
+    if norm_int is None:
+        return
+
+    matrix = norm_int.frame.select_dtypes(include=[np.complexfloating])
+
+    if matrix.shape[0] != matrix.shape[1]:
+        warnings.warn(
+            f"[{bundle.bin_id}] Normalization integral matrix is not square."
+            f" Shape: {matrix.shape}",
+            UserWarning,
+        )
+        return
+
+    if not np.allclose(matrix.values, matrix.values.conj().T):
+        warnings.warn(
+            f"[{bundle.bin_id}] Normalization integral matrix is not Hermitian.",
             UserWarning,
         )

@@ -17,7 +17,8 @@ def sample_bins(tmp_path: Path):
         "likelihood,eMatrixStatus,intensity,parameter\n-1234.5,0,10.0,p1\n"
     )
     (bin_dir / "data.csv").write_text(
-        "events,efficiency,m_low,m_high\n1000,0.05,1.00,1.10\n"
+        "events,efficiency,m_low,m_high,e_low,e_high,t_low,t_high\n"
+        "1000,0.05,1.00,1.10,8.2,8.8,0.23,0.35\n"
     )
     (bin_dir / "correlation.csv").write_text(
         "file,parameter,p1,p2\n" "fit.csv,p1,1.0,0.3\n" "fit.csv,p2,0.3,1.0\n"
@@ -45,7 +46,8 @@ def sample_bins(tmp_path: Path):
         "likelihood,eMatrixStatus,intensity,parameter\n-2345.6,0,20.0,p1\n"
     )
     (bin_dir2 / "data.csv").write_text(
-        "events,efficiency,m_low,m_high\n2000,0.10,1.10,1.20\n"
+        "events,efficiency,m_low,m_high,e_low,e_high,t_low,t_high\n"
+        "2000,0.10,1.10,1.20,8.2,8.8,0.35,1.00\n"
     )
     return tmp_path
 
@@ -106,10 +108,18 @@ class TestIdentifyFileType:
         with pytest.raises(ValueError):
             catalog.identify_file_type(unknown_file)
 
-    def test_scan_requires_files(self, bin_missing_required_files):
+    def test_scan_requires_files(self, bin_missing_required_files, recwarn):
         catalog = Catalog(bin_missing_required_files)
-        with pytest.raises(FileNotFoundError):
-            catalog.scan()
+        catalog.scan()
+        assert len(recwarn) == 1
+        warning = recwarn.pop()
+        assert issubclass(warning.category, UserWarning)
+        assert str(warning.message) == (
+            "Found 1 CSV file(s) that could not be associated with a kinematic bin,"
+            " likely due to a missing data.csv file in the directory."
+            " These files will be ignored. Orphan files: "
+            f"{bin_missing_required_files / 'mass_1.2-1.3' / 'fit.csv'}"
+        )
 
     def test_scan(self, sample_bins):
         catalog = Catalog(sample_bins)
@@ -118,8 +128,8 @@ class TestIdentifyFileType:
 
         assert len(manifest) == 9
 
-        first_bin_id = "mass_1.0-1.1"
-        second_bin_id = "mass_1.1-1.2"
+        first_bin_id = "T=0.23,0.35-E=8.2,8.8-M=1.0,1.1"
+        second_bin_id = "T=0.35,1.0-E=8.2,8.8-M=1.1,1.2"
 
         for index, row in manifest.iterrows():
             # ensure that file types match the expected files in the sample_bins fixture
@@ -136,7 +146,7 @@ class TestIdentifyFileType:
                 file_type = row["file_type"]
                 expected_file_name = file_type_to_name[file_type]
                 assert row["file_path"] == str(
-                    sample_bins / first_bin_id / expected_file_name
+                    sample_bins / "mass_1.0-1.1" / expected_file_name
                 )
 
             # only the first bin has optional files, so we can check that the second bin
@@ -144,7 +154,7 @@ class TestIdentifyFileType:
             elif row["bin_id"] == second_bin_id:
                 assert row["file_type"] in ["FitFile", "DataFile"]
                 assert row["file_path"] == str(
-                    sample_bins / second_bin_id / file_type_to_name[row["file_type"]]
+                    sample_bins / "mass_1.1-1.2" / file_type_to_name[row["file_type"]]
                 )
 
             else:

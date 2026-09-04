@@ -1,6 +1,7 @@
 """Classes for identifying and cataloging PWA result files in a directory structure."""
 
 import pathlib
+import warnings
 from dataclasses import dataclass
 from typing import ClassVar, Self
 
@@ -38,10 +39,16 @@ class ResultsFile:
     def from_path(cls, path: pathlib.Path) -> Self:
         """Create an instance of the ResultsFile from a path.
 
-        Note that this method reads the entire CSV file into memory, which may be
-        inefficient for large files. Use with caution.
+        Some files (like NormIntFile) require special handling, so this method can be
+        overridden in subclasses
+
+        Note:
+            This method reads the entire CSV file into memory, which may be
+                inefficient for large files. Use with caution.
         """
         frame = pd.read_csv(path)
+        if "file" in frame.columns:
+            frame["file"] = frame["file"].astype("category")
         return cls(path=path, frame=frame)
 
 
@@ -175,6 +182,37 @@ class NormIntFile(ResultsFile):
         header = pd.read_csv(path, nrows=0)
         return cls.matches(header.columns)
 
+    @classmethod
+    def from_path(cls, path: pathlib.Path) -> Self:
+        """Create an instance of the NormIntFile from a path.
+
+        We need to ensure that the complex-valued entries are read correctly, so we
+        override the base class method to handle this.
+
+        Note:
+            This method reads the entire CSV file into memory, which may be
+                inefficient for large files. Use with caution.
+        """
+        frame = pd.read_csv(path)
+        if "file" in frame.columns:
+            frame["file"] = frame["file"].astype("category")
+
+        # Convert complex columns to complex dtype
+        str_cols = (
+            frame.drop(columns=["file", "amplitude"])
+            .select_dtypes(include=["object", "string"])
+            .columns
+        )
+        # some cols have values like "1.0+-0.0j" which is not a valid complex number, so
+        # we need to replace "+-" with "-" before converting
+        frame[str_cols] = (
+            frame[str_cols]
+            .replace(r"\+-", "-", regex=True)
+            .apply(lambda col: col.astype(np.complex128))
+        )
+
+        return cls(path=path, frame=frame)
+
 
 @dataclass(slots=True)
 class RandomizedFile(ResultsFile):
@@ -238,24 +276,13 @@ class BootstrapFile(ResultsFile):
 
 
 class Catalog:
-    """Scans an input directory for PWA results organized into mass bins.
+    """A catalog of PWA result files in a directory structure.
 
-    The class currently expects the following structure
-    input_dir/
-    mass_1.0-1.1/
-    fit.csv
-    fit_data.csv
-    fit_correlation.csv
-    ...
-    mass_1.1-1.2/
-    ...
-
-    Note that the file names are not hardcoded. What type of file the CSV is will be
-    determined by the column and data it contains. See ResultsFile for details.
+    What type of file the CSV is (fit, covariance, etc.) will primarily be
+    determined by its content and structure. See ResultsFile for details.
 
     Attributes:
         input_dir (pathlib.Path): The directory to scan for PWA results.
-        catalog (pd.DataFrame): A DataFrame containing the catalog of PWA results.
     """
 
     RESULT_FILE_TYPES = [
@@ -280,10 +307,16 @@ class Catalog:
     def __init__(
         self,
         input_dir: pathlib.Path | str,
+        sig_kinematic_digits: int = 3,
     ):
         """
         Args:
-            input_dir (pathlib.Path | str): The directory to scan for PWA results.
+            input_dir (pathlib.Path | str): The top level directory to scan for PWA
+                results. All CSV files in this directory and its subdirectories will be
+                scanned and cataloged.
+            sig_kinematic_digits (int, optional): The number of significant digits to
+                use when rounding kinematic bin values (mass, t, energy) for bin
+                identification. Defaults to 3.
         """
         self.input_dir = (
             pathlib.Path(input_dir) if isinstance(input_dir, str) else input_dir
@@ -296,43 +329,74 @@ class Catalog:
 
         # -- private attributes --
         self._manifest: pd.DataFrame | None = None
+        self._sig_kinematic_digits = sig_kinematic_digits
 
     def scan(self) -> pd.DataFrame:
         """Scan the input directory for CSV files and catalog them.
 
-        Note that current structure is hard coded to expect mass bin directories
-        directly under the input directory.
+        We assume that:
+            1. There is a data CSV file in each kinematic bin directory that contains
+                the binning information (t, beam energy, mass).
+            2. All csv's in the same directory, or subdirectories, of the data csv
+                belong to the same kinematic bin.
 
         Returns:
-            pd.DataFrame: A DataFrame with columns 'bin_id', 'file_path', and
-                'file_type' describing the catalog of PWA result files.
+            pd.DataFrame: A DataFrame with columns 'mass', 't', 'energy',
+                'file_path', and 'file_type' describing the catalog of PWA result files.
 
         Raises:
             ValueError: If a CSV file is found that cannot be identified as a known
                 result file type.
-            FileNotFoundError: If a mass bin directory is missing the required file
+            FileNotFoundError: If a kinematic bin is missing the required file
                 types (FitFile and DataFile).
-
-        Todo:
-            - check subdirectories for randomized and bootstrap files, which may be in a
-            subdirectory of the mass bin. Maybe do this for all subdirs.
         """
 
         records = []
+        all_csvs = list(self.input_dir.glob("**/*.csv"))
+        data_csvs = [csv_file for csv_file in all_csvs if DataFile.identify(csv_file)]
+        dir_to_kinematics_map = self._build_dir_to_kinematics_map(data_csvs)
 
-        for mass_bin_dir in sorted(self.input_dir.iterdir()):
-            if not mass_bin_dir.is_dir():
-                continue
+        orphan_csvs = [
+            csv
+            for csv in all_csvs
+            if not any(
+                csv.parent.is_relative_to(kinematic_dir)
+                for kinematic_dir in dir_to_kinematics_map.keys()
+            )
+        ]
+        if orphan_csvs:
+            warnings.warn(
+                f"Found {len(orphan_csvs)} CSV file(s) that could not be associated"
+                " with a kinematic bin, likely due to a missing data.csv file in the"
+                " directory. These files will be ignored. Orphan files: "
+                + ", ".join(str(csv) for csv in orphan_csvs),
+                UserWarning,
+            )
 
-            bin_id = mass_bin_dir.name
+        for kinematic_dir, kinematics in dir_to_kinematics_map.items():
+            mass = kinematics["mass"]
+            t = kinematics["t"]
+            energy = kinematics["energy"]
+            if (
+                (mass is None)
+                or len(mass) != 2
+                or (t is None)
+                or len(t) != 2
+                or (energy is None)
+                or len(energy) != 2
+            ):
+                raise ValueError(
+                    f"Kinematic bin information is incomplete for directory:"
+                    f" {kinematic_dir}"
+                )
 
-            csv_iterator = sorted(mass_bin_dir.glob("*.csv"))
+            csv_files_in_bin = list(kinematic_dir.glob("**/*.csv"))
 
-            # first confirm that required files are present and identifiable
             file_types_found = {
-                self.identify_file_type(csv_file) for csv_file in csv_iterator
+                self.identify_file_type(csv_file) for csv_file in csv_files_in_bin
             }
 
+            # confirm that required files are present and identifiable
             missing_required = [
                 ft.__name__
                 for ft in self.REQUIRED_FILE_TYPES
@@ -340,17 +404,24 @@ class Catalog:
             ]
             if missing_required:
                 raise FileNotFoundError(
-                    f"Mass bin '{bin_id}' is missing required file types:"
-                    f" {missing_required}"
+                    f"Kinematic bin '{kinematic_dir.name}' is missing required"
+                    f" file types: {missing_required}"
                 )
 
             # then catalog all files in the bin
-            for csv_file in csv_iterator:
+            for csv_file in csv_files_in_bin:
                 file_type = self.identify_file_type(csv_file)
                 size_bytes = csv_file.stat().st_size
                 records.append(
                     {
-                        "bin_id": bin_id,
+                        "bin_id": (
+                            f"T={t[0]},{t[1]}-"
+                            f"E={energy[0]},{energy[1]}-"
+                            f"M={mass[0]},{mass[1]}"
+                        ),
+                        "t_bin": t,
+                        "energy_bin": energy,
+                        "mass_bin": mass,
                         "file_path": str(csv_file.resolve()),
                         "file_type": file_type.__name__,
                         "size_bytes": size_bytes,
@@ -382,3 +453,45 @@ class Catalog:
         if self._manifest is None:
             raise RuntimeError("Manifest is not available after scanning.")
         return self._manifest
+
+    def _build_dir_to_kinematics_map(
+        self, data_csv_files: list[pathlib.Path]
+    ) -> dict[pathlib.Path, dict[str, tuple[float, float]]]:
+        """Map the data file directories to kinematic bin information.
+
+        Returns:
+            dict[pathlib.Path, dict[str, tuple[float, float]]]: A dictionary mapping
+                file paths to kinematic bin information. Structure is
+                {file_path:
+                    {"mass": (low, high),
+                    "t": (low, high),
+                    "energy": (low, high)}
+                }.
+        """
+        path_to_kinematics: dict[pathlib.Path, dict[str, tuple[float, float]]] = {}
+
+        round_to_n = lambda x, n: (
+            x if x == 0 else round(x, -int(np.floor(np.log10(abs(x)))) + (n - 1))
+        )
+
+        for data_csv in data_csv_files:
+            df = pd.read_csv(data_csv, nrows=1)
+
+            mass_low = round_to_n(df["m_low"].iloc[0], self._sig_kinematic_digits)
+            mass_high = round_to_n(df["m_high"].iloc[0], self._sig_kinematic_digits)
+            t_low = round_to_n(df["t_low"].iloc[0], self._sig_kinematic_digits)
+            t_high = round_to_n(df["t_high"].iloc[0], self._sig_kinematic_digits)
+            e_low = round_to_n(df["e_low"].iloc[0], self._sig_kinematic_digits)
+            e_high = round_to_n(df["e_high"].iloc[0], self._sig_kinematic_digits)
+
+            mass_bin = (mass_low, mass_high)
+            t_bin = (t_low, t_high)
+            energy_bin = (e_low, e_high)
+
+            path_to_kinematics[data_csv.parent] = {
+                "mass": mass_bin,
+                "t": t_bin,
+                "energy": energy_bin,
+            }
+
+        return path_to_kinematics

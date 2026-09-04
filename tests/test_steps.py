@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 import pwassist.preprocessing.steps as steps
-from pwassist.io.binning import BinBundle, MassBin
+from pwassist.io.binning import BinBundle, KinematicBin, MassBin
 from pwassist.io.catalog import (
     BootstrapFile,
     CorrelationFile,
@@ -26,9 +26,11 @@ def make_bundle(
     norm_int: pd.DataFrame | None = None,
     randomized: pd.DataFrame | None = None,
     bootstrap: pd.DataFrame | None = None,
-    bin_id="mass_1.0-1.1",
+    bin_id="T=0.1,0.2-E=8.2,8.8-M=1.0,1.1",
 ) -> BinBundle:
-    bundle = BinBundle(mass_bin=MassBin.from_bin_id(bin_id), bin_id=bin_id, paths={})
+    bundle = BinBundle(
+        kinematic_bin=KinematicBin.from_bin_id(bin_id), bin_id=bin_id, paths={}
+    )
     for name, cls, frame in (
         ("FitFile", FitFile, fit),
         ("DataFile", DataFile, data),
@@ -92,7 +94,8 @@ class TestCheckNullColumns:
         warning = recwarn.pop()
         assert issubclass(warning.category, UserWarning)
         assert str(warning.message) == (
-            "[mass_1.0-1.1] FitFile contains null values in columns: ['intensity']."
+            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] FitFile contains null values in columns:"
+            " ['intensity']."
         )
 
 
@@ -121,7 +124,7 @@ class TestFitStatus:
         warning = recwarn.pop()
         assert issubclass(warning.category, UserWarning)
         assert str(warning.message) == (
-            "[mass_1.0-1.1] Fit contains bad error matrix statuses"
+            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Fit contains bad error matrix statuses"
             " (eMatrixStatus != 3) in rows: [1]."
             " Covariance matrix may be unreliable."
         )
@@ -144,7 +147,7 @@ class TestFitStatus:
         warning = recwarn.pop()
         assert issubclass(warning.category, UserWarning)
         assert str(warning.message) == (
-            "[mass_1.0-1.1] Fit contains bad Minuit statuses"
+            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Fit contains bad Minuit statuses"
             " (lastMinuitCommandStatus != 0) in rows: [1]."
             " Fit may not have converged."
         )
@@ -169,12 +172,12 @@ class TestFitStatus:
         assert issubclass(warning1.category, UserWarning)
         assert issubclass(warning2.category, UserWarning)
         assert str(warning1.message) == (
-            "[mass_1.0-1.1] Fit contains bad error matrix statuses"
+            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Fit contains bad error matrix statuses"
             " (eMatrixStatus != 3) in rows: [1]."
             " Covariance matrix may be unreliable."
         )
         assert str(warning2.message) == (
-            "[mass_1.0-1.1] Fit contains bad Minuit statuses"
+            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Fit contains bad Minuit statuses"
             " (lastMinuitCommandStatus != 0) in rows: [1]."
             " Fit may not have converged."
         )
@@ -226,8 +229,8 @@ class TestErrorColumns:
         warning = recwarn.pop()
         assert issubclass(warning.category, UserWarning)
         assert str(warning.message) == (
-            "[mass_1.0-1.1] Results contain negative values in error column"
-            " 'intensity_err'."
+            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Results contain negative values in error"
+            " column 'intensity_err'."
         )
 
     def test_non_finite_error_column(self, tmp_path, recwarn):
@@ -252,13 +255,13 @@ class TestErrorColumns:
         warning2 = recwarn.pop()
         assert issubclass(warning1.category, UserWarning)
         assert str(warning1.message) == (
-            "[mass_1.0-1.1] Results contain non-finite values in error column"
-            " 'intensity_err'."
+            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Results contain non-finite values in error"
+            " column 'intensity_err'."
         )
         assert issubclass(warning2.category, UserWarning)
         assert str(warning2.message) == (
-            "[mass_1.0-1.1] Results contain non-finite values in error column"
-            " 'parameter_err'."
+            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Results contain non-finite values in error"
+            " column 'parameter_err'."
         )
 
     def test_no_fit_file(self, tmp_path, recwarn):
@@ -368,11 +371,6 @@ class TestDowncastNumericDTypes:
         assert fit_only_bundle.fit.frame["int32_col"].dtype == "int32"
         assert fit_only_bundle.fit.frame["int32_col"].values.tolist() == value_int32
 
-    def test_file_categorization(self, fit_only_bundle):
-        """Test that the file column is made into a category dtype."""
-        steps.downcast_numeric_dtypes(fit_only_bundle)
-        assert fit_only_bundle.fit.frame["file"].dtype.name == "category"
-
 
 class TestCheckCovarianceMatrix:
 
@@ -404,7 +402,8 @@ class TestCheckCovarianceMatrix:
         warning = recwarn.pop()
         assert issubclass(warning.category, UserWarning)
         assert str(warning.message) == (
-            "[mass_1.0-1.1] Covariance matrix is not square." " Shape: (2, 3)"
+            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Covariance matrix is not square."
+            " Shape: (2, 3)"
         )
 
     def test_non_symmetric_covariance_matrix(self, tmp_path, recwarn):
@@ -420,7 +419,7 @@ class TestCheckCovarianceMatrix:
         warning = recwarn.pop()
         assert issubclass(warning.category, UserWarning)
         assert str(warning.message) == (
-            "[mass_1.0-1.1] Covariance matrix is not symmetric."
+            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Covariance matrix is not symmetric."
         )
 
     def test_non_positive_semi_definite_covariance_matrix(self, tmp_path, recwarn):
@@ -436,7 +435,8 @@ class TestCheckCovarianceMatrix:
         warning = recwarn.pop()
         assert issubclass(warning.category, UserWarning)
         assert str(warning.message) == (
-            "[mass_1.0-1.1] Covariance matrix is not positive semi-definite."
+            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Covariance matrix is not positive"
+            " semi-definite."
         )
 
     def test_no_covariance_matrix(self, tmp_path, recwarn):
@@ -476,7 +476,8 @@ class TestCheckCorrelationMatrix:
         warning = recwarn.pop()
         assert issubclass(warning.category, UserWarning)
         assert str(warning.message) == (
-            "[mass_1.0-1.1] Correlation matrix is not square." " Shape: (2, 3)"
+            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Correlation matrix is not square."
+            " Shape: (2, 3)"
         )
 
     def test_non_symmetric_correlation_matrix(self, tmp_path, recwarn):
@@ -492,7 +493,7 @@ class TestCheckCorrelationMatrix:
         warning = recwarn.pop()
         assert issubclass(warning.category, UserWarning)
         assert str(warning.message) == (
-            "[mass_1.0-1.1] Correlation matrix is not symmetric."
+            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Correlation matrix is not symmetric."
         )
 
     def test_correlation_matrix_out_of_bounds(self, tmp_path, recwarn):
@@ -508,7 +509,8 @@ class TestCheckCorrelationMatrix:
         warning = recwarn.pop()
         assert issubclass(warning.category, UserWarning)
         assert str(warning.message) == (
-            "[mass_1.0-1.1] Correlation matrix has values outside [-1, 1]."
+            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Correlation matrix has values outside"
+            " [-1, 1]."
         )
 
     def test_no_correlation_matrix(self, tmp_path, recwarn):
