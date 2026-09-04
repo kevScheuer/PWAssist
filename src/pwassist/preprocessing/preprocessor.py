@@ -6,7 +6,7 @@ from typing import Callable, Protocol
 import pandas as pd
 
 import pwassist.preprocessing.steps as steps
-from pwassist.io.binning import BinBundle, MassBin
+from pwassist.io.binning import BinBundle, KinematicBin
 
 
 @dataclass(frozen=True)
@@ -28,7 +28,7 @@ class PreprocessReport:
 class ProcessedBin:
     """Analysis-ready output of preprocessor steps for a single mass bin."""
 
-    mass_bin: MassBin
+    kinematic_bin: KinematicBin
     bin_id: str
     report: PreprocessReport
     fit: pd.DataFrame
@@ -58,6 +58,7 @@ class FunctionStep:
 
 
 DEFAULT_STEPS: list[PreprocessStep] = [
+    FunctionStep("stamp_kinematic_bin_columns", steps.stamp_kinematic_bin_columns),
     FunctionStep("check_null_columns", steps.check_null_columns),
     FunctionStep("check_fit_status", steps.check_fit_status),
     FunctionStep("check_error_columns", steps.check_error_columns),
@@ -66,6 +67,9 @@ DEFAULT_STEPS: list[PreprocessStep] = [
     FunctionStep("downcast_numeric_dtypes", steps.downcast_numeric_dtypes),
     FunctionStep("check_covariance_matrix", steps.check_covariance_matrix),
     FunctionStep("check_correlation_symmetry", steps.check_correlation_matrix),
+    FunctionStep(
+        "check_normalization_integral_matrix", steps.check_normalization_integral_matrix
+    ),
 ]
 
 
@@ -102,7 +106,7 @@ class Preprocessor:
         )
 
         processed = ProcessedBin(
-            mass_bin=bundle.mass_bin,
+            kinematic_bin=bundle.kinematic_bin,
             bin_id=bundle.bin_id,
             report=report,
             fit=bundle.fit.frame,

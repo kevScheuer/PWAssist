@@ -14,6 +14,31 @@ FILE_TYPE_MAP: dict[str, type[ResultsFile]] = {
 }
 
 
+def stamp_kinematic_bin_columns(bundle: BinBundle) -> None:
+    """Attach kinematic bin information to each results file in the bundle"""
+    kb = bundle.kinematic_bin
+
+    columns = {
+        "t_bin": (kb.t_bin.low, kb.t_bin.high),
+        "mass_bin": (kb.mass_bin.low, kb.mass_bin.high),
+        "energy_bin": (kb.energy_bin.low, kb.energy_bin.high),
+        "bin_id": kb.bin_id,
+    }
+
+    # it may seem redundant to stamp the DataFile frame with the kinematic bin info
+    # again, but this ensures there is a common set of columns across all results files,
+    # allowing for easier group by operations and comparisons later on. Without it,
+    # the non-rounded bin edges would cause mismatches
+    for rf in FILE_TYPE_MAP.values():
+        rf = bundle.get(rf)
+        if rf is None:
+            continue
+
+        for col, value in columns.items():
+            rf.frame[col] = value
+        rf.frame["bin_id"] = kb.bin_id
+
+
 def check_null_columns(bundle: BinBundle) -> None:
     """Check if null columns exist in any of the results files"""
     for label, rf in FILE_TYPE_MAP.items():
@@ -182,7 +207,9 @@ def check_covariance_matrix(bundle: BinBundle) -> None:
     if cov is None:
         return
 
-    matrix = cov.frame.select_dtypes(include=[np.number])
+    matrix = cov.frame.select_dtypes(include=[np.number]).drop(
+        columns=["t_bin", "mass_bin", "energy_bin", "bin_id"], errors="ignore"
+    )
 
     if cov.frame.shape[0] != matrix.shape[1]:
         warnings.warn(
@@ -212,7 +239,9 @@ def check_correlation_matrix(bundle: BinBundle) -> None:
     if corr is None:
         return
 
-    matrix = corr.frame.select_dtypes(include=[np.number])
+    matrix = corr.frame.select_dtypes(include=[np.number]).drop(
+        columns=["t_bin", "mass_bin", "energy_bin", "bin_id"], errors="ignore"
+    )
 
     if matrix.shape[0] != matrix.shape[1]:
         warnings.warn(
@@ -231,5 +260,30 @@ def check_correlation_matrix(bundle: BinBundle) -> None:
     if not np.all((matrix.values >= -1) & (matrix.values <= 1)):
         warnings.warn(
             f"[{bundle.bin_id}] Correlation matrix has values outside [-1, 1].",
+            UserWarning,
+        )
+
+
+def check_normalization_integral_matrix(bundle: BinBundle) -> None:
+    """Check if the normInt is square and hermitian."""
+    norm_int = bundle.norm_int
+    if norm_int is None:
+        return
+
+    matrix = norm_int.frame.select_dtypes(include=[np.number]).drop(
+        columns=["t_bin", "mass_bin", "energy_bin", "bin_id"], errors="ignore"
+    )
+
+    if matrix.shape[0] != matrix.shape[1]:
+        warnings.warn(
+            f"[{bundle.bin_id}] Normalization integral matrix is not square."
+            f" Shape: {matrix.shape}",
+            UserWarning,
+        )
+        return
+
+    if not np.allclose(matrix.values, matrix.values.conj().T):
+        warnings.warn(
+            f"[{bundle.bin_id}] Normalization integral matrix is not Hermitian.",
             UserWarning,
         )

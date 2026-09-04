@@ -3,7 +3,7 @@ import pathlib
 import pytest
 
 import pwassist.preprocessing.preprocessor as prep
-from pwassist.io.binning import BinBundle, MassBin
+from pwassist.io.binning import BinBundle, EnergyBin, KinematicBin, MassBin, TBin
 
 
 class TestPreprocessReport:
@@ -29,7 +29,14 @@ class TestFunctionStep:
 
         step = prep.FunctionStep(name="dummy", func=dummy_func)
         bundle = BinBundle(
-            mass_bin=MassBin(1.0, 2.0), bin_id="bin1", paths={"fit": fit_file}
+            kinematic_bin=KinematicBin(
+                mass_bin=MassBin(1.0, 2.0),
+                t_bin=TBin(0.1, 0.2),
+                energy_bin=EnergyBin(8.2, 8.8),
+                bin_id="bin1",
+            ),
+            bin_id="bin1",
+            paths={"fit": fit_file},
         )
         step(bundle)
         assert called
@@ -67,6 +74,7 @@ class TestPreprocessor:
         step_names = preprocessor.step_names
 
         default_step_names = (
+            "stamp_kinematic_bin_columns",
             "check_null_columns",
             "check_fit_status",
             "check_error_columns",
@@ -75,6 +83,7 @@ class TestPreprocessor:
             "downcast_numeric_dtypes",
             "check_covariance_matrix",
             "check_correlation_symmetry",
+            "check_normalization_integral_matrix",
         )
 
         assert step_names == default_step_names
