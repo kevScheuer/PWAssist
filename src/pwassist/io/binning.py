@@ -31,6 +31,10 @@ class MassBin:
     def from_tuple(cls, mass_tuple: tuple[float, float]) -> "MassBin":
         """Create a MassBin from a tuple of (low, high)."""
         low, high = mass_tuple
+        if low >= high:
+            raise ValueError(
+                f"MassBin low value {low} must be less than high value {high}."
+            )
         return cls(low=low, high=high)
 
     @property
@@ -61,6 +65,10 @@ class TBin:
     def from_tuple(cls, t_tuple: tuple[float, float]) -> "TBin":
         """Create a TBin from a tuple of (low, high)."""
         low, high = t_tuple
+        if low >= high:
+            raise ValueError(
+                f"TBin low value {low} must be less than high value {high}."
+            )
         return cls(low=low, high=high)
 
     @property
@@ -91,6 +99,10 @@ class EnergyBin:
     def from_tuple(cls, energy_tuple: tuple[float, float]) -> "EnergyBin":
         """Create an EnergyBin from a tuple of (low, high)."""
         low, high = energy_tuple
+        if low >= high:
+            raise ValueError(
+                f"EnergyBin low value {low} must be less than high value {high}."
+            )
         return cls(low=low, high=high)
 
     @property
