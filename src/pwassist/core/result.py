@@ -1,3 +1,4 @@
+import dataclasses
 import os
 import pickle
 import warnings
@@ -92,7 +93,7 @@ class Results:
         return
 
     # ----------------------------------------------------------------------------------
-    # Constructors
+    # Constructors and Loaders
     # ----------------------------------------------------------------------------------
 
     @classmethod
@@ -189,6 +190,90 @@ class Results:
         }
         with open(filepath, "wb") as f:
             pickle.dump(data, f)
+
+    def filter_by_kinematic_bins(
+        self,
+        kinematic_bins: KinematicBin | list[KinematicBin] | None = None,
+        t_bins: (
+            tuple[float, float] | TBin | list[tuple[float, float]] | list[TBin] | None
+        ) = None,
+        energy_bins: (
+            tuple[float, float]
+            | EnergyBin
+            | list[tuple[float, float]]
+            | list[EnergyBin]
+            | None
+        ) = None,
+        mass_bins: (
+            tuple[float, float]
+            | MassBin
+            | list[tuple[float, float]]
+            | list[MassBin]
+            | None
+        ) = None,
+    ) -> "Results":
+        """Return a new Results instance filtered by the specified kinematic bins.
+
+        Args:
+            kinematic_bins (KinematicBin | list[KinematicBin] | None): List of
+                KinematicBin instances to filter by. If specified, t_bins, energy_bins,
+                and mass_bins will be ignored.
+            t_bins (
+                tuple[float, float] | TBin | list[tuple[float, float]] | list[TBin]
+                | None): List of requested t bins, either as (low, high) tuples or TBin
+                instances.
+            energy_bins (
+                tuple[float, float] | EnergyBin | list[tuple[float, float]]
+                | list[EnergyBin] | None): List of requested energy bins, either as
+                (low, high) tuples or EnergyBin instances.
+            mass_bins (
+                tuple[float, float] | MassBin | list[tuple[float, float]]
+                | list[MassBin] | None): List of requested mass bins, either as
+                (low, high) tuples or MassBin instances.
+        """
+        selected_bins: list[KinematicBin]
+
+        # Get the selected kinematic bins and corresponding bin_ids
+        if kinematic_bins is not None:
+            if isinstance(kinematic_bins, KinematicBin):
+                selected_bins = [kinematic_bins]
+            else:
+                selected_bins = kinematic_bins
+
+            if any(kb not in self.kinematic_bins for kb in selected_bins):
+                raise KeyError(
+                    "One or more specified kinematic bins are not present in the"
+                    " results."
+                )
+        else:
+            selected_bins = self._resolve_kinematic_bins(
+                t_bins=t_bins, energy_bins=energy_bins, mass_bins=mass_bins
+            )
+
+        selected_ids = {kb.bin_id for kb in selected_bins}
+        if not selected_ids:
+            raise KeyError(
+                "No kinematic bins found matching the specified criteria. Please check"
+                " the input parameters."
+            )
+
+        def _filter(df: pd.DataFrame | None) -> pd.DataFrame | None:
+            if df is None:
+                return None
+            return df[df["bin_id"].isin(selected_ids)].reset_index(drop=True)
+
+        return dataclasses.replace(
+            self,
+            fit=_filter(self.fit),
+            data=_filter(self.data),
+            correlation=_filter(self.correlation),
+            covariance=_filter(self.covariance),
+            norm_int=_filter(self.norm_int),
+            bootstrap=_filter(self.bootstrap),
+            randomized=_filter(self.randomized),
+            kinematic_bins=selected_bins,
+            reports=[r for r in self.reports if r.bin_id in selected_ids],
+        )
 
     # ----------------------------------------------------------------------------------
     # Reports
