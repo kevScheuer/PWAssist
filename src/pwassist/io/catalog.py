@@ -73,7 +73,7 @@ class FitFile(ResultsFile):
         header = pd.read_csv(path, nrows=0)
 
         # distinguish from RandomizedFile and BootstrapFile by checking the file path
-        if "random" in str(path).lower() or "bootstrap" in str(path).lower():
+        if "rand" in str(path).lower() or "bootstrap" in str(path).lower():
             return False
         return cls.matches(header.columns)
 
@@ -448,11 +448,16 @@ class Catalog:
 
     def identify_file_type(self, path: pathlib.Path) -> type[ResultsFile]:
         """Identify file type by using class' identify method."""
-        for file_type in self.RESULT_FILE_TYPES:
-            if file_type.identify(path):
-                return file_type
+        matches = [ft for ft in self.RESULT_FILE_TYPES if ft.identify(path)]
+        if len(matches) == 0 or not any(matches):
+            raise ValueError(f"Unknown result file type: {path}")
+        if sum(matches) > 1:
+            raise ValueError(
+                f"Ambiguous result file type: {path}. Matches multiple types:"
+                f" {', '.join(ft.__name__ for ft in matches)}"
+            )
 
-        raise ValueError(f"Unknown result file type: {path}")
+        return matches[0]
 
     @property
     def manifest(self) -> pd.DataFrame:
