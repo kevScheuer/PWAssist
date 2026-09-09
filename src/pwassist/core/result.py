@@ -31,9 +31,9 @@ class Results:
 
     # Result metadata
     kinematic_bins: list[KinematicBin] = field(default_factory=list)
-    mass_bins: list[MassBin] = field(init=False)
-    t_bins: list[TBin] = field(init=False)
-    energy_bins: list[EnergyBin] = field(init=False)
+    unique_mass_bins: frozenset[MassBin] = field(init=False)
+    unique_t_bins: frozenset[TBin] = field(init=False)
+    unique_energy_bins: frozenset[EnergyBin] = field(init=False)
     reports: list[PreprocessReport] = field(default_factory=list)
     is_acc_corrected: bool = field(init=False)
     final_state_parity: int | None = field(default=None)
@@ -81,9 +81,13 @@ class Results:
 
         self.is_acc_corrected = self._is_fit_acc_corrected()
 
-        self.mass_bins = sorted(set(kb.mass_bin for kb in self.kinematic_bins))
-        self.t_bins = sorted(set(kb.t_bin for kb in self.kinematic_bins))
-        self.energy_bins = sorted(set(kb.energy_bin for kb in self.kinematic_bins))
+        self.unique_mass_bins = frozenset(
+            sorted(kb.mass_bin for kb in self.kinematic_bins)
+        )
+        self.unique_t_bins = frozenset(sorted(kb.t_bin for kb in self.kinematic_bins))
+        self.unique_energy_bins = frozenset(
+            sorted(kb.energy_bin for kb in self.kinematic_bins)
+        )
 
         return
 
@@ -198,9 +202,9 @@ class Results:
             width = 80  # default width if terminal size cannot be determined
         print(f"{'-' * ((width -16)// 2)}Results Summary:{'-' * ((width -16)// 2)}")
         print(f"Number of kinematic bins: {len(self.kinematic_bins)}")
-        print(f"\tUnique mass bins: {len(self.mass_bins)}")
-        print(f"\tUnique t bins: {len(self.t_bins)}")
-        print(f"\tUnique beam energy bins: {len(self.energy_bins)}")
+        print(f"\tUnique mass bins: {len(self.unique_mass_bins)}")
+        print(f"\tUnique t bins: {len(self.unique_t_bins)}")
+        print(f"\tUnique beam energy bins: {len(self.unique_energy_bins)}")
         print(f"Number of preprocessing reports: {len(self.reports)}")
 
         for name in (
@@ -256,6 +260,168 @@ class Results:
     # ----------------------------------------------------------------------------------
     # Data Queries
     # ----------------------------------------------------------------------------------
+
+    def mass_kinematic_bins(
+        self,
+        t_bin: tuple[float, float] | TBin | None,
+        energy_bin: tuple[float, float] | EnergyBin | None,
+    ) -> list[KinematicBin]:
+        """List of mass bins, optionally filtered by t and/or energy bins.
+
+        Args:
+            t_bin (tuple[float,float] | TBin | None): Low and high edges of the t bin to
+                select, or a TBin instance. Only needs specification if the results span
+                multiple t bins. If None, the sole available t bin will be used.
+            energy_bin (tuple[float,float] | EnergyBin | None): Low and high edges of
+                the energy bin to select, or an EnergyBin instance. Only needs
+                specification if the results span multiple energy bins. If None, the
+                sole available energy bin will be used.
+
+        Returns:
+            list[KinematicBin]: List of mass bins that match the specified t and energy
+                bins.
+
+        Raises:
+            KeyError: If no kinematic bins match the specified t and energy bins, or if
+                the results are ambiguous.
+            ValueError: If multiple t or energy bins are present and none is specified,
+                making the mass bin selection ambiguous.
+        """
+        matching_kinematic_bins: list[KinematicBin] = self._resolve_kinematic_bins(
+            t_bins=t_bin, energy_bins=energy_bin
+        )
+        if not matching_kinematic_bins and (
+            t_bin is not None or energy_bin is not None
+        ):
+            raise KeyError(
+                f"No kinematic bins found matching t_bins={t_bin} and"
+                f" energy_bins={energy_bin}."
+            )
+        elif not matching_kinematic_bins:
+            raise KeyError(
+                "No kinematic bins found in the results. Please check the data."
+            )
+
+        # If the t_bins or energy_bins are not specified, ensure that there is only one
+        # unique t_bin and energy_bin in the matching kinematic bins
+        matching_t_bins = {kb.t_bin for kb in matching_kinematic_bins}
+        matching_energy_bins = {kb.energy_bin for kb in matching_kinematic_bins}
+        if len(matching_t_bins) > 1 or len(matching_energy_bins) > 1:
+            raise ValueError(
+                f"Cannot determine a mass range because multiple t or energy bins are"
+                f" present and must be specified. Found t_bins={matching_t_bins} and"
+                f" energy_bins={matching_energy_bins}."
+            )
+
+        return sorted(matching_kinematic_bins)
+
+    def t_kinematic_bins(
+        self,
+        energy_bin: tuple[float, float] | EnergyBin | None = None,
+        mass_bin: tuple[float, float] | MassBin | None = None,
+    ) -> list[KinematicBin]:
+        """List of t bins, optionally filtered by mass and/or energy bins.
+
+        Args:
+            mass_bin (tuple[float,float] | MassBin | None): Low and high edges of the
+                mass bin to select, or a MassBin instance. Only needs specification if
+                the results span multiple mass bins. If None, the sole available mass
+                bin will be used.
+            energy_bin (tuple[float,float] | EnergyBin | None): Low and high edges of
+                the energy bin to select, or an EnergyBin instance. Only needs
+                specification if the results span multiple energy bins. If None, the
+                sole available energy bin will be used.
+
+        Returns:
+            list[KinematicBin]: List of t bins that match the specified mass and energy
+                bins.
+
+        Raises:
+            KeyError: If no kinematic bins match the specified mass and energy bins, or
+            if the results are ambiguous.
+            ValueError: If multiple mass or energy bins are present and none is
+                specified, making the mass bin selection ambiguous.
+        """
+        matching_kinematic_bins = self._resolve_kinematic_bins(
+            mass_bins=mass_bin, energy_bins=energy_bin
+        )
+        if not matching_kinematic_bins and (
+            mass_bin is not None or energy_bin is not None
+        ):
+            raise KeyError(
+                f"No kinematic bins found matching t_bins={mass_bin} and"
+                f" energy_bins={energy_bin}."
+            )
+        elif not matching_kinematic_bins:
+            raise KeyError(
+                "No kinematic bins found in the results. Please check the data."
+            )
+
+        # If the mass_bins or energy_bins are not specified, ensure that there is only
+        # one unique mass_bin and energy_bin in the matching kinematic bins
+        matching_mass_bins = {kb.mass_bin for kb in matching_kinematic_bins}
+        matching_energy_bins = {kb.energy_bin for kb in matching_kinematic_bins}
+        if len(matching_mass_bins) > 1 or len(matching_energy_bins) > 1:
+            raise ValueError(
+                f"Cannot determine a mass range because multiple t or energy bins are"
+                f" present and must be specified. Found t_bins={matching_mass_bins} and"
+                f" energy_bins={matching_energy_bins}."
+            )
+
+        return sorted(matching_kinematic_bins)
+
+    def energy_kinematic_bins(
+        self,
+        t_bin: tuple[float, float] | TBin | None,
+        mass_bin: tuple[float, float] | MassBin | None,
+    ) -> list[KinematicBin]:
+        """List of energy bins, optionally filtered by t and/or mass bins.
+
+        Args:
+            t_bin (tuple[float,float] | TBin | None): Low and high edges of the t
+                bin to select, or a TBin instance. Only needs specification if the
+                results span multiple t bins. If None, the sole available t bin will
+                be used.
+            mass_bin (tuple[float,float] | MassBin | None): Low and high edges of
+                the mass bin to select, or a MassBin instance. Only needs
+                specification if the results span multiple mass bins. If None, the
+                sole available mass bin will be used.
+
+        Returns:
+            list[KinematicBin]: List of energy bins that match the specified t and mass
+                bins.
+
+        Raises:
+            KeyError: If no kinematic bins match the specified t and mass bins, or
+                if the results are ambiguous.
+            ValueError: If multiple t or mass bins are present and none is
+                specified, making the energy bin selection ambiguous.
+        """
+        matching_kinematic_bins = self._resolve_kinematic_bins(
+            t_bins=t_bin, mass_bins=mass_bin
+        )
+        if not matching_kinematic_bins and (t_bin is not None or mass_bin is not None):
+            raise KeyError(
+                f"No kinematic bins found matching t_bins={t_bin} and"
+                f" mass_bins={mass_bin}."
+            )
+        elif not matching_kinematic_bins:
+            raise KeyError(
+                "No kinematic bins found in the results. Please check the data."
+            )
+
+        # If the t_bins or mass_bins are not specified, ensure that there is only
+        # one unique t_bin and mass_bin in the matching kinematic bins
+        matching_t_bins = {kb.t_bin for kb in matching_kinematic_bins}
+        matching_mass_bins = {kb.mass_bin for kb in matching_kinematic_bins}
+        if len(matching_t_bins) > 1 or len(matching_mass_bins) > 1:
+            raise ValueError(
+                f"Cannot determine a mass range because multiple t or mass bins are"
+                f" present and must be specified. Found t_bins={matching_t_bins}"
+                f" and mass_bins={matching_mass_bins}."
+            )
+
+        return sorted(matching_kinematic_bins)
 
     # TODO: many of these are possibly replaced by the new binning system, but is
     # unclear for plotting purposes which one will be used. For now, keeping them, and
@@ -405,3 +571,101 @@ class Results:
             UserWarning,
         )
         return False
+
+    def _resolve_kinematic_bins(
+        self,
+        t_bins: (
+            tuple[float, float] | TBin | list[tuple[float, float]] | list[TBin] | None
+        ) = None,
+        energy_bins: (
+            tuple[float, float]
+            | EnergyBin
+            | list[tuple[float, float]]
+            | list[EnergyBin]
+            | None
+        ) = None,
+        mass_bins: (
+            tuple[float, float]
+            | MassBin
+            | list[tuple[float, float]]
+            | list[MassBin]
+            | None
+        ) = None,
+    ) -> list[KinematicBin]:
+        """Resolve requested kinematic bins against the bins present in results.
+
+        Args:
+            t_bins (list[tuple[float, float]] | list[TBin] | None): List of requested t
+                bins, either as (low, high) tuples or TBin instances.
+            energy_bins (list[tuple[float, float]] | list[EnergyBin] | None): List of
+                requested energy bins, either as (low, high) tuples or EnergyBin
+                instances.
+            mass_bins (list[tuple[float, float]] | list[MassBin] | None): List of
+                requested mass bins, either as (low, high) tuples or MassBin instances.
+
+        Returns:
+            list[KinematicBin]: List of resolved kinematic bins that match the requested
+                bins. If any of the requested bin types are None, then all kinematic
+                bins of that type will be selected. Otherwise, only the specified bins
+                will be selected.
+        Raises:
+            KeyError: If any of the requested bins are not found in the results, or if
+                the requested bins are invalid (e.g. low >= high).
+        """
+        formatted_t_bins: list[TBin] = []
+        if isinstance(t_bins, tuple):
+            formatted_t_bins = [TBin.from_tuple(t_bins)]
+        elif isinstance(t_bins, list) and all(isinstance(tb, tuple) for tb in t_bins):
+            formatted_t_bins = [TBin.from_tuple(tb) for tb in t_bins]  # type: ignore
+        elif isinstance(t_bins, TBin):
+            formatted_t_bins = [t_bins]
+
+        formatted_energy_bins: list[EnergyBin] = []
+        if isinstance(energy_bins, tuple):
+            formatted_energy_bins = [EnergyBin.from_tuple(energy_bins)]
+        elif isinstance(energy_bins, list) and all(
+            isinstance(eb, tuple) for eb in energy_bins
+        ):
+            formatted_energy_bins = [EnergyBin.from_tuple(eb) for eb in energy_bins]  # type: ignore
+        elif isinstance(energy_bins, EnergyBin):
+            formatted_energy_bins = [energy_bins]
+
+        formatted_mass_bins: list[MassBin] = []
+        if isinstance(mass_bins, tuple):
+            formatted_mass_bins = [MassBin.from_tuple(mass_bins)]
+        elif isinstance(mass_bins, list) and all(
+            isinstance(mb, tuple) for mb in mass_bins
+        ):
+            formatted_mass_bins = [MassBin.from_tuple(mb) for mb in mass_bins]  # type: ignore
+        elif isinstance(mass_bins, MassBin):
+            formatted_mass_bins = [mass_bins]
+
+        if t_bins is not None and any(
+            t not in self.unique_t_bins for t in formatted_t_bins
+        ):
+            raise KeyError(
+                f"Requested t bins {t_bins} not found in results. Available t bins:"
+                f" {[str(b) for b in self.unique_t_bins]}"
+            )
+        if energy_bins is not None and any(
+            e not in self.unique_energy_bins for e in formatted_energy_bins
+        ):
+            raise KeyError(
+                f"Requested energy bins {energy_bins} not found in results. Available"
+                f" energy bins: {[str(b) for b in self.unique_energy_bins]}"
+            )
+        if mass_bins is not None and any(
+            m not in self.unique_mass_bins for m in formatted_mass_bins
+        ):
+            raise KeyError(
+                f"Requested mass bins {mass_bins} not found in results. Available mass"
+                f" bins: {[str(b) for b in self.unique_mass_bins]}"
+            )
+
+        return [
+            kb
+            for kb in self.kinematic_bins
+            if (t_bins is None or kb.t_bin in formatted_t_bins)
+            and (energy_bins is None or kb.energy_bin in formatted_energy_bins)
+            and (mass_bins is None or kb.mass_bin in formatted_mass_bins)
+        ]
