@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from uncertainties import ufloat, unumpy
 
+from pwassist.io.binning import EnergyBin, KinematicBin, MassBin, TBin
 from pwassist.plotting.base import BasePWAPlotter
 
 
@@ -17,7 +18,9 @@ class ScanPlotter(BasePWAPlotter):
         self,
         sum_label: str,
         data_legend: str = "GlueX-I Data",
-        indices: list[int] | None = None,
+        mass_bins: list[tuple[float, float]] | list[MassBin] | None = None,
+        t_bin: tuple[float, float] | TBin | None = None,
+        energy_bin: tuple[float, float] | EnergyBin | None = None,
         ax: matplotlib.axes.Axes | None = None,
         kwargs: dict[str, Any] | None = None,
     ) -> matplotlib.axes.Axes:
@@ -28,14 +31,26 @@ class ScanPlotter(BasePWAPlotter):
         the available `JLe` coherent sums, or those that sum over the spin-projection
         `m`.
 
+        The results may span several t and/or beam energy bins, and so a single bin
+        must be selected if multiple are available. If only one bin is available, it
+        will be used automatically.
+
         Args:
             sum_label (str): The label of the coherent sum group to plot. See the
                 `coherent_sums` member of the `Results` class for a list of available
                 sum groups and the amplitudes that belong to each group.
             data_legend (str): The legend label for the data points. Defaults to
                 "GlueX-I Data".
-            indices (list[int] | None): Optional list of indices to select specific mass
-                bins. If None, all bins will be plotted.
+            mass_bins (list[tuple[float,float]] | list[MassBin] | None): Optional list
+                of mass bins to select. If None, all bins will be plotted.
+            t_bin (tuple[float, float] | TBin | None): Low and high edges of the t
+                bin to select, or a TBin instance. Only needs specification if the
+                results span multiple t bins. If None, the sole available t bin will be
+                used.
+            energy_bin (tuple[float,float] | EnergyBin | None): Low and high edges of
+                the energy bin to select, or an EnergyBin instance. Only needs
+                specification if the results span multiple energy bins. If None, the
+                sole available energy bin will be used.
             ax (matplotlib.axes.Axes | None): Optional axes to plot on. If None, a new
                 figure and axes will be created.
             kwargs (dict[str, Any] | None): Optional dictionary of keyword arguments
@@ -51,8 +66,16 @@ class ScanPlotter(BasePWAPlotter):
                 f" Available sum labels: {list(self.results.coherent_sums.keys())}"
             )
 
+        kb: list[KinematicBin] = self.results.mass_kinematic_bins(
+            t_bin=t_bin, energy_bin=energy_bin
+        )
+        if mass_bins is not None:
+            if all(isinstance(mb, tuple) for mb in mass_bins):
+                mass_bins = [MassBin.from_tuple(mb) for mb in mass_bins]  # type: ignore
+        kb = [k for k in kb if (mass_bins is None or k.mass_bin in mass_bins)]
         coherent_sums = self.results.coherent_sums[sum_label]
-        fit_df, data_df = self._coherent_sum_dataframes(coherent_sums, indices)
+
+        fit_df, data_df = self._coherent_sum_dataframes(coherent_sums, kb)
 
         # default to Dark2 colormap, and cycle if more columns than colors
         colors = plt.get_cmap("Dark2").colors  # type: ignore
@@ -117,14 +140,14 @@ class ScanPlotter(BasePWAPlotter):
         return ax
 
     def _coherent_sum_dataframes(
-        self, columns: tuple[str, ...], indices: list[int] | None = None
+        self, columns: tuple[str, ...], kb: list[KinematicBin] | None = None
     ) -> tuple[pd.DataFrame | pd.Series, pd.DataFrame]:
         """Prepare the dataframes for the coherent_sum plot
 
         Args:
             columns (list[str]): The list of column names to include in the dataframes.
-            indices (list[int] | None): Optional list of indices to select specific mass
-                bins.
+            kb (list[KinematicBin] | None): Optional list of sorted kinematic bins to
+                include in the dataframes.
         Returns:
             tuple[pd.DataFrame, pd.DataFrame]: A tuple containing the fit dataframe and
                 the data dataframe for the specified coherent sum group and indices.
@@ -141,11 +164,12 @@ class ScanPlotter(BasePWAPlotter):
         else:
             fit_columns.extend([f"{col}_err" for col in fit_columns])
 
-        fit_df = (
-            self.results.fit.loc[indices, fit_columns]
-            if indices is not None
-            else self.results.fit[fit_columns]
+        filtered_result = (
+            self.results.filter_by_kinematic_bins(kb)
+            if kb is not None
+            else self.results
         )
+        fit_df = filtered_result.fit[fit_columns]
 
         data_columns = [
             "m_center",
@@ -156,12 +180,7 @@ class ScanPlotter(BasePWAPlotter):
             "ac_events",
             "ac_events_err",
         ]
-
-        data_df = (
-            self.results.data.loc[indices, data_columns]
-            if indices is not None
-            else self.results.data[data_columns]
-        ).copy()
+        data_df = filtered_result.data[data_columns]
         data_df["bin_width"] = data_df["m_high"] - data_df["m_low"]
 
         return fit_df, data_df
