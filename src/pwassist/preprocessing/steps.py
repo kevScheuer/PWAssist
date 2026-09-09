@@ -98,20 +98,38 @@ def check_fit_status(bundle: BinBundle) -> None:
 def check_error_columns(bundle: BinBundle) -> None:
     """Ensure '_err' columns are non-negative and finite
 
-    Checks the final fits, randomized, and bootstrap results.
+    Checks the final fits, randomized, and bootstrap results. Any null entries are
+    ignored, as they are already flagged by check_null_columns.
     """
 
-    def warn_if_invalid(series: pd.Series, col_name: str, bin_id: str) -> None:
-        if (series < 0).any():
+    def negative_cols(frame: pd.DataFrame) -> list[str]:
+        return [
+            c
+            for c in frame.columns
+            if c.endswith("_err") and (frame[c][frame[c].notnull()] < 0).any()
+        ]
+
+    def non_finite_cols(frame: pd.DataFrame) -> list[str]:
+        return [
+            c
+            for c in frame.columns
+            if c.endswith("_err")
+            and not np.isfinite(frame[c][frame[c].notnull()]).all()
+        ]
+
+    def warn(
+        neg_cols: list[str], non_finite_cols: list[str], bin_id: str, label: str
+    ) -> None:
+        if neg_cols:
             warnings.warn(
-                f"[{bin_id}] Results contain negative values in error column"
-                f" '{col_name}'.",
+                f"[{bin_id}] {label} contain negative values in error columns:"
+                f" {neg_cols}.",
                 UserWarning,
             )
-        if not np.isfinite(series).all():
+        if non_finite_cols:
             warnings.warn(
-                f"[{bin_id}] Results contain non-finite values in error column"
-                f" '{col_name}'.",
+                f"[{bin_id}] {label} contain non-finite values in error columns:"
+                f" {non_finite_cols}.",
                 UserWarning,
             )
 
@@ -120,22 +138,28 @@ def check_error_columns(bundle: BinBundle) -> None:
     if fit is None:
         return
 
-    for col in fit.frame.columns:
-        if col.endswith("_err"):
-            series = fit.frame[col]
-            warn_if_invalid(series, col, bundle.bin_id)
+    warn(
+        negative_cols(fit.frame),
+        non_finite_cols(fit.frame),
+        bundle.bin_id,
+        "Fit results",
+    )
 
     if bundle.randomized is not None:
-        for col in bundle.randomized.frame.columns:
-            if col.endswith("_err"):
-                series = bundle.randomized.frame[col]
-                warn_if_invalid(series, col, bundle.bin_id)
+        warn(
+            negative_cols(bundle.randomized.frame),
+            non_finite_cols(bundle.randomized.frame),
+            bundle.bin_id,
+            "Randomized results",
+        )
 
     if bundle.bootstrap is not None:
-        for col in bundle.bootstrap.frame.columns:
-            if col.endswith("_err"):
-                series = bundle.bootstrap.frame[col]
-                warn_if_invalid(series, col, bundle.bin_id)
+        warn(
+            negative_cols(bundle.bootstrap.frame),
+            non_finite_cols(bundle.bootstrap.frame),
+            bundle.bin_id,
+            "Bootstrap results",
+        )
 
 
 def align_phase_column_names(bundle: BinBundle) -> None:
