@@ -422,7 +422,7 @@ class Catalog:
             ]
             if missing_required:
                 raise FileNotFoundError(
-                    f"Kinematic bin '{kinematic_dir.name}' is missing required"
+                    f"Kinematic bin '{str(kinematic_dir)}' is missing required"
                     f" file types: {missing_required}"
                 )
 
@@ -436,7 +436,7 @@ class Catalog:
                 if len(matching_files) > 1:
                     raise ValueError(
                         f"Multiple files of type '{ft.__name__}' found in kinematic"
-                        f" bin '{kinematic_dir.name}': "
+                        f" bin '{str(kinematic_dir)}': "
                         f"{[str(f) for f in matching_files]}"
                     )
                 if len(matching_files) == 0:
