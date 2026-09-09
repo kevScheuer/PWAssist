@@ -451,7 +451,7 @@ class Catalog:
         matches = [ft for ft in self.RESULT_FILE_TYPES if ft.identify(path)]
         if len(matches) == 0 or not any(matches):
             raise ValueError(f"Unknown result file type: {path}")
-        if sum(matches) > 1:
+        if len(matches) > 1:
             raise ValueError(
                 f"Ambiguous result file type: {path}. Matches multiple types:"
                 f" {', '.join(ft.__name__ for ft in matches)}"
