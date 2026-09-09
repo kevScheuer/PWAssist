@@ -426,9 +426,23 @@ class Catalog:
                     f" file types: {missing_required}"
                 )
 
-            # then catalog all files in the bin
-            for csv_file in csv_files_in_bin:
-                file_type = self.identify_file_type(csv_file)
+            # then catalog all files in the bin, ensuring we have one file per type
+            for ft in self.REQUIRED_FILE_TYPES + self.OPTIONAL_FILE_TYPES:
+                matching_files = [
+                    csv_file
+                    for csv_file in csv_files_in_bin
+                    if self.identify_file_type(csv_file) == ft
+                ]
+                if len(matching_files) > 1:
+                    raise ValueError(
+                        f"Multiple files of type '{ft.__name__}' found in kinematic"
+                        f" bin '{kinematic_dir.name}': "
+                        f"{[str(f) for f in matching_files]}"
+                    )
+                if len(matching_files) == 0:
+                    continue
+                csv_file = matching_files[0]
+                file_type = ft
                 size_bytes = csv_file.stat().st_size
                 records.append(
                     {
