@@ -55,6 +55,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--no-plots", action="store_true", help="Skip plot generation.")
     parser.add_argument(
+        "--ignore-csv", nargs="*", default=None, help="CSV file names to ignore."
+    )
+    parser.add_argument(
         "--plot-dir",
         type=Path,
         default=None,
@@ -83,6 +86,7 @@ def main(argv: list[str] | None = None) -> int:
         plot_output_dir=args.plot_dir,
         coherent_sum_groups=args.coherent_sums,
         save_path=args.save,
+        ignore_csv_files=args.ignore_csv,
         verbose=args.verbose,
     )
 

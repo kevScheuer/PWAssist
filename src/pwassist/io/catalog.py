@@ -308,6 +308,7 @@ class Catalog:
         self,
         input_dir: pathlib.Path | str,
         sig_kinematic_digits: int = 3,
+        ignore_files: str | list[str] | None = None,
     ):
         """
         Args:
@@ -317,6 +318,8 @@ class Catalog:
             sig_kinematic_digits (int, optional): The number of significant digits to
                 use when rounding kinematic bin values (mass, t, energy) for bin
                 identification. Defaults to 3.
+            ignore_files (str | None, optional): If provided, any CSV file whose name
+                matches this string will be ignored during the scan.
         """
         self.input_dir = (
             pathlib.Path(input_dir) if isinstance(input_dir, str) else input_dir
@@ -330,6 +333,12 @@ class Catalog:
         # -- private attributes --
         self._manifest: pd.DataFrame | None = None
         self._sig_kinematic_digits = sig_kinematic_digits
+        self._ignore_files: list[str] | None = None
+
+        if isinstance(ignore_files, str):
+            self._ignore_files = [ignore_files]
+        else:
+            self._ignore_files = ignore_files
 
     def scan(self) -> pd.DataFrame:
         """Scan the input directory for CSV files and catalog them.
@@ -391,6 +400,11 @@ class Catalog:
                 )
 
             csv_files_in_bin = list(kinematic_dir.glob("**/*.csv"))
+            csv_files_in_bin = [
+                f
+                for f in csv_files_in_bin
+                if not self._ignore_files or f.name not in self._ignore_files
+            ]
 
             file_types_found = {
                 self.identify_file_type(csv_file) for csv_file in csv_files_in_bin

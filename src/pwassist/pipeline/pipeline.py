@@ -65,6 +65,7 @@ class PipelineConfig:
     plot_output_dir: Path | str | None = None
     coherent_sum_groups: Sequence[str] | None = None  # If none, plot all available
     save_path: Path | None = None
+    ignore_csv_files: str | list[str] | None = None
     verbose: bool = False
 
 
@@ -85,7 +86,9 @@ class Pipeline:
 
         # ---- Step 1: Scan catalog and assemble bin collection ----
         t0 = time.perf_counter()
-        catalog = Catalog(self.config.root_dir)
+        catalog = Catalog(
+            self.config.root_dir, ignore_files=self.config.ignore_csv_files
+        )
         catalog.scan()
         collection = BinCollection.from_catalog(catalog)
         stage_timings["catalog"] = self._elapsed_time(t0)
