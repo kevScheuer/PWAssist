@@ -224,7 +224,7 @@ class RandomizedFile(ResultsFile):
     Todo:
         - Ideally would prefer to identify by content alone, as in other ResultsFile
         types, but currently no unique content-based identifier exists that
-        distinguishes it from a BootstrapFile.
+        distinguishes it from a BootstrapFile or FitFile.
     """
 
     required_columns: ClassVar[frozenset[str]] = frozenset(
@@ -238,7 +238,7 @@ class RandomizedFile(ResultsFile):
         if not cls.matches(header.columns):
             return False
 
-        if "random" not in str(path).lower():
+        if "rand" not in str(path).lower():
             return False
 
         return True
@@ -255,7 +255,7 @@ class BootstrapFile(ResultsFile):
     Todo:
         - Ideally would prefer to identify by content alone, as in other ResultsFile
         types, but currently no unique content-based identifier exists that
-        distinguishes it from a RandomizedFile.
+        distinguishes it from a RandomizedFile or FitFile.
     """
 
     required_columns: ClassVar[frozenset[str]] = frozenset(
