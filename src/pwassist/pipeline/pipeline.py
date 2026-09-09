@@ -49,7 +49,7 @@ class PipelineReport:
             lines.append(f"\t{stage}: {ms:.1f} ms")
         for r in self.bin_reports:
             for w in r.warnings:
-                lines.append(f"\t [{r.bin_id}] {w}")
+                lines.append(f"\t{w}")
         return "\n".join(lines)
 
 
