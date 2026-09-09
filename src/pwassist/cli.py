@@ -47,6 +47,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Path to pickle the assembled Results object to.",
     )
+    parser.add_argument(
+        "--write-report",
+        type=Path,
+        default=None,
+        help="Path to write the pipeline report summary to.",
+    )
     parser.add_argument("--no-plots", action="store_true", help="Skip plot generation.")
     parser.add_argument(
         "--plot-dir",
@@ -82,7 +88,14 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         results, report = Pipeline(config).run()
-        print(report.summary())
+        if args.write_report:
+            # ensure extension is .txt
+            report_path = args.write_report.with_suffix(".txt")
+            if report_path.exists():
+                print(f"Warning: Overwriting existing report at {report_path}.")
+            report_path.write_text(report.summary())
+        else:
+            print(report.summary())
         return 0
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
