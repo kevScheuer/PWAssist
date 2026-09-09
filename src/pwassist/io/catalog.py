@@ -131,7 +131,7 @@ class CovarianceFile(ResultsFile):
     """Covariance matrix between fit parameters.
 
     Identified by 'file' and 'parameter' columns with real numeric covariance values
-    (values not bounded in [-1, 1] and not complex).
+    (values not bounded in [-1, 1], not complex, not 1 on diagonal).
     """
 
     required_columns: ClassVar[frozenset[str]] = frozenset({"file", "parameter"})
@@ -144,9 +144,13 @@ class CovarianceFile(ResultsFile):
             return False
 
         # then use small sample of data to check that numeric columns are not bounded in
-        # [-1, 1] and not complex
+        # [-1, 1] and are not 1 on the diagonal (true for correlation matrices)
         df_sample = pd.read_csv(path, nrows=2)
         numeric_cols = df_sample.select_dtypes(include=[np.number]).columns
+
+        diagonal_elements = df_sample[numeric_cols].to_numpy().diagonal()
+        if len(diagonal_elements) == 0 or np.all(np.isclose(diagonal_elements, 1.0)):
+            return False
 
         if len(numeric_cols) == 0:
             return False
