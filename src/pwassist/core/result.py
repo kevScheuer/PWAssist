@@ -607,11 +607,18 @@ class Results:
         BasePWAPlotter.set_style(style)
 
     @staticmethod
-    def get_plot_style() -> str:
-        """Get the current global matplotlib style used by all plotters."""
+    def get_plot_style_name() -> str:
+        """Get the current global matplotlib style name used by all plotters."""
         from pwassist.plotting.base import BasePWAPlotter
 
-        return BasePWAPlotter.get_style()
+        return BasePWAPlotter.get_style_name()
+
+    @staticmethod
+    def get_plot_style_path() -> Path:
+        """Get the current global matplotlib style path used by all plotters."""
+        from pwassist.plotting.base import BasePWAPlotter
+
+        return BasePWAPlotter.get_style_path()
 
     # ----------------------------------------------------------------------------------
     # Helpers

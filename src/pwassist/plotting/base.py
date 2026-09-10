@@ -74,9 +74,17 @@ class BasePWAPlotter:
         )
 
     @classmethod
-    def get_style(cls) -> str:
+    def get_style_name(cls) -> str:
         """Return name or path of the current style used by all plotters"""
         return str(cls._current_style)
+
+    @classmethod
+    def get_style_path(cls) -> Path:
+        """Return the path to the current style used by all plotters"""
+        if isinstance(cls._current_style, Path):
+            return cls._current_style
+        else:
+            return Path(cls._resolve_style_path())
 
     @classmethod
     def set_style(cls, style: str | Path) -> None:
