@@ -28,6 +28,33 @@ class ParsedAmplitude:
         """Get the value of a quantum number by name"""
         return getattr(self, quantum_number)
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ParsedAmplitude):
+            return NotImplemented
+        return (
+            self.amp_name == other.amp_name
+            and self.e == other.e
+            and self.J == other.J
+            and self.P == other.P
+            and self.m == other.m
+            and self.L == other.L
+        )
+
+    def __hash__(self) -> int:
+        return hash((self.amp_name, self.e, self.J, self.P, self.m, self.L))
+
+    def __repr__(self) -> str:
+        return (
+            f"ParsedAmplitude(amp_name={self.amp_name!r}, e={self.e!r}, J={self.J!r}, "
+            f"P={self.P!r}, m={self.m!r}, L={self.L!r})"
+        )
+
+    def __str__(self) -> str:
+        return (
+            f"Amplitude: {self.amp_name}, e: {self.e}, J: {self.J}, "
+            f"P: {self.P}, m: {self.m}, L: {self.L}"
+        )
+
 
 @dataclass(frozen=True)
 class SchemeDef:

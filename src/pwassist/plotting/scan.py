@@ -190,28 +190,32 @@ class ScanPlotter(BasePWAPlotter):
         fractional: bool = False,
         sharey: bool = False,
         reflectivity: Literal["positive", "negative", "all"] = "all",
-        indices: list[int] | None = None,
         axs: np.ndarray | None = None,
         kwargs: dict[str, Any] | None = None,
     ) -> np.ndarray:
         """Plot a grid of amplitudes, organized by spin (rows) and projection (columns)
 
-        This plot will create a grid of all amplitudes plotted as a function of mass,
-        with the rows corresponding to the spin+parity+angular momenta combo (J^P L) and
-        the columns corresponding to the spin projection m. Any quantum numbers for the
-        label not available due to the naming scheme are simply dropped. Reflectivities
-        are plotted together in the same plot, with the option to select only positive
-        or negative reflectivities.
+        This plot will create a grid of all amplitudes plotted as a function of kinemtic
+        variable (e.g. mass, t, etc.), with the option to plot as fit fractions of the
+        total intensity. The grid is organized with the rows corresponding to the
+        spin+parity+angular momenta combo (J^P L) and the columns corresponding to the
+        spin projection m. Any quantum numbers for the label not available due to the
+        naming scheme are simply dropped. Reflectivities are plotted together in the
+        same plot, with the option to select only positive or negative reflectivities.
 
         Args:
+            TODO: include kin variable arg
             fractional (bool, optional): Plot as fit fractions of the total intensity.
                 Defaults to False.
             sharey (bool, optional): Share the y-axis across all subplots. Defaults to
                 False. Note that specifying custom axes will override this option.
             reflectivity (Literal['positive', 'negative', 'all'], optional): The type of
                 reflectivity to plot. Defaults to "all".
-            indices (list[int] | None, optional): Optional list of indices to select
-                specific mass bins. If None, all bins will be plotted. Defaults to None.
+            TODO: include binning options for mass, t, energy, etc. to select specific
+                bins to plot. If one is selected to plot in, the other two bins should
+                be a singular bin to select it out (if multiple are available). Should
+                also be able to select a subset of the kinematic variable bins to plot,
+                e.g. a range of mass bins.
             axs (np.ndarray | None, optional): The array of axes to plot on. If None, a
                 new figure and axes will be created. Note that one must be careful that
                 the shape of axes matches the expected shape based on the number of
@@ -229,26 +233,37 @@ class ScanPlotter(BasePWAPlotter):
         """
 
         if reflectivity not in ["positive", "negative", "all"]:
-            raise ValueError(
+            raise KeyError(
                 f"Invalid reflectivity value: {reflectivity}. Must be one of "
                 "'positive', 'negative', or 'all'."
             )
 
         if axs is None:
 
+            # if not plotting fit fractions, then our amplitudes will just divide by 1
+            intensity = (
+                (
+                    self.results.fit["ac_intensity"]
+                    if self.results.is_acc_corrected
+                    else self.results.fit["intensity"]
+                )
+                if fractional
+                else 1.0
+            )
+
             # TODO: parse through individual amplitudes, and determine max value of 'm'
             # Do the same for max "JPL", "JL", or "L" combos. This depends on naming
             # scheme though. Then build grid.
-            nrows = 2
-            ncols = 2
+            nrows: int
+            ncols: int
 
-            fig, axs = plt.subplots(
-                nrows=nrows,
-                ncols=ncols,
-                sharey=sharey,
-                figsize=(4 * ncols, 3 * nrows),
-                layout="constrained",
-            )
+            # fig, axs = plt.subplots(
+            #     nrows=nrows,
+            #     ncols=ncols,
+            #     sharey=sharey,
+            #     figsize= ???
+            #     layout="constrained",
+            # )
 
         return axs  # type: ignore
 
