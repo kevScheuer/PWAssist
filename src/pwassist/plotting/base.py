@@ -15,7 +15,7 @@ class BasePWAPlotter:
     """Base class all sub-plotters inherit from"""
 
     _STYLE_DIR = importlib.resources.files("pwassist") / "plotting" / "styles"
-    _DEFAULT_STYLE = Path("default")
+    _DEFAULT_STYLE = "default"
 
     _current_style: str | Path = _DEFAULT_STYLE
 
