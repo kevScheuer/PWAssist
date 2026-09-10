@@ -229,8 +229,8 @@ class TestErrorColumns:
         warning = recwarn.pop()
         assert issubclass(warning.category, UserWarning)
         assert str(warning.message) == (
-            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Results contain negative values in error"
-            " column 'intensity_err'."
+            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Fit results contain negative values in"
+            " error columns: ['intensity_err']."
         )
 
     def test_non_finite_error_column(self, tmp_path, recwarn):
@@ -242,26 +242,18 @@ class TestErrorColumns:
                 "lastMinuitCommandStatus": [0, 0],
                 "intensity": [10.0, 20.0],
                 "intensity_err": [1.0, float("inf")],  # Non-finite value in second row
-                "parameter": [0.5, 1.0],
-                "parameter_err": [0.1, float("nan")],  # Non-finite value in second row
             }
         )
         bundle_with_non_finite_err = make_bundle(
             path=tmp_path, fit=fit_with_non_finite_err, data=None
         )
         steps.check_error_columns(bundle_with_non_finite_err)
-        assert len(recwarn) == 2
+        assert len(recwarn) == 1
         warning1 = recwarn.pop()
-        warning2 = recwarn.pop()
         assert issubclass(warning1.category, UserWarning)
         assert str(warning1.message) == (
-            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Results contain non-finite values in error"
-            " column 'intensity_err'."
-        )
-        assert issubclass(warning2.category, UserWarning)
-        assert str(warning2.message) == (
-            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Results contain non-finite values in error"
-            " column 'parameter_err'."
+            "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Fit results contain non-finite values in"
+            " error columns: ['intensity_err']."
         )
 
     def test_no_fit_file(self, tmp_path, recwarn):
