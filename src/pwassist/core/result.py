@@ -597,6 +597,23 @@ class Results:
         return self._factory_plotter
 
     # ----------------------------------------------------------------------------------
+    # Pass-Through
+    # ----------------------------------------------------------------------------------
+    @staticmethod
+    def set_plot_style(style: str | Path) -> None:
+        """Set the global matplotlib style used by all plotters."""
+        from pwassist.plotting.base import BasePWAPlotter
+
+        BasePWAPlotter.set_style(style)
+
+    @staticmethod
+    def get_plot_style() -> str:
+        """Get the current global matplotlib style used by all plotters."""
+        from pwassist.plotting.base import BasePWAPlotter
+
+        return BasePWAPlotter.get_style()
+
+    # ----------------------------------------------------------------------------------
     # Helpers
     # ----------------------------------------------------------------------------------
     def _build_phase_difference_dict(self) -> dict[tuple[str, str], str]:

@@ -1,4 +1,5 @@
 import importlib.resources
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
@@ -13,12 +14,10 @@ if TYPE_CHECKING:
 class BasePWAPlotter:
     """Base class all sub-plotters inherit from"""
 
-    _STYLE_PATH = str(
-        importlib.resources.files("pwassist")
-        / "plotting"
-        / "styles"
-        / "default.mplstyle"
-    )
+    _STYLE_DIR = importlib.resources.files("pwassist") / "plotting" / "styles"
+    _DEFAULT_STYLE = Path("default")
+
+    _current_style: str | Path = _DEFAULT_STYLE
 
     def __init__(self, results: "Results"):
         self.results = results
@@ -63,6 +62,55 @@ class BasePWAPlotter:
         return self.results.get_average_mass_bin_width()
 
     # ----------------------------------------------------------------------------------
+    # Style Management
+    # ----------------------------------------------------------------------------------
+    @classmethod
+    def available_styles(cls) -> list[str]:
+        """List names of built-in styles available for use with set_style()."""
+        return sorted(
+            p.name.removesuffix(".mplstyle")
+            for p in cls._STYLE_DIR.iterdir()
+            if p.is_file() and p.name.endswith(".mplstyle")
+        )
+
+    @classmethod
+    def get_style(cls) -> str:
+        """Return name or path of the current style used by all plotters"""
+        return str(cls._current_style)
+
+    @classmethod
+    def set_style(cls, style: str | Path) -> None:
+        """Set global matplotlib style used by all plotters
+
+        Args:
+            style (str | Path): Either a built-in style name (from available_styles())
+                or a path to a custom .mplstyle file.
+
+        Raises:
+            ValueError: If the style is not a valid built-in style or a valid file path.
+        """
+        if isinstance(style, str) and style in cls.available_styles():
+            cls._current_style = style
+            return
+
+        path = Path(style)
+        if not path.is_file():
+            raise ValueError(
+                f"Style '{style}' not found. Use an existing file path or one of the"
+                " available styles."
+                f" Available styles: {cls.available_styles()}"
+            )
+        cls._current_style = path
+
+    @classmethod
+    def _resolve_style_path(cls) -> str:
+        """Resolve the current style to a file path for use with plt.style.context()"""
+        if isinstance(cls._current_style, Path):
+            return str(cls._current_style)
+        else:
+            return str(cls._STYLE_DIR / f"{cls._current_style}.mplstyle")
+
+    # ----------------------------------------------------------------------------------
     # Shared Helpers
     # ----------------------------------------------------------------------------------
     def get_bootstrap_error(self, label: str) -> pd.Series:
@@ -105,6 +153,5 @@ class BasePWAPlotter:
         return np.rad2deg(scipy.stats.circstd(angles_rad, low=0, high=np.pi))
 
     def _style(self):
-        # TODO: consider a way to allow users to specify their own style file, or use
-        # another one from directory of default styles.
-        return plt.style.context(self._STYLE_PATH)
+        """Context manager to apply the current style for plotting"""
+        return plt.style.context(self._resolve_style_path())
