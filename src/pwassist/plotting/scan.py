@@ -8,7 +8,60 @@ import pandas as pd
 from uncertainties import ufloat, unumpy
 
 from pwassist.io.binning import EnergyBin, KinematicBin, MassBin, TBin
+from pwassist.parser import SCHEMES, NamingScheme
 from pwassist.plotting.base import BasePWAPlotter
+
+# Different naming schemes use different reflectivity characters
+_POSITIVE_REFLECTIVITY_CHARS = frozenset({"p", "+"})
+_NEGATIVE_REFLECTIVITY_CHARS = frozenset({"n", "m", "-"})
+
+# Ordering of orbital angular momentum letters
+_L_ORDER = "SPDFGHIKLM"
+
+# Shorthand kinematic variables and their axis labels
+_KIN_VARIABLE_LABELS: dict[str, str] = {
+    "m": r"Mass $(GeV)$",
+    "t": r"$-t$ $(GeV^2)$",
+    "e": r"Beam Energy $(GeV)$",
+}
+
+
+def _numeric_sort_key(value: str) -> float:
+    """Numeric ordering for quantum-number character or string.
+
+    Args:
+        value (str): Quantum-number string to derive sort key from
+    Returns:
+        float: for sorting the string
+    """
+    if value in _L_ORDER:
+        return float(_L_ORDER.index(value))
+
+    sign_map = {"p": 1.0, "m": -1.0, "n": -1.0}
+
+    if value and value[0] in sign_map and (value[1:] == "" or value[1:].isdigit()):
+        magnitude = float(value[1:]) if value[1:] else 1.0
+        return sign_map[value[0]] * magnitude
+
+    try:
+        return float(value)
+    except ValueError:
+        return 0.0
+
+
+def _format_spin_projection(m: str) -> str:
+    """Render spin-projection as a signed integer string
+
+    Args:
+        m (str): spin-projection e.g. "-1", "+0", "p2", "m", etc.
+    Returns:
+        str: signed integer e.g. "m1" -> "-1", or original if uninterpretable
+    """
+    sign_map = {"p": "+", "m": "-", "n": "-"}
+    if m and m[0] in sign_map:
+        digits = m[1:] or "0"
+        return f"{sign_map[m[0]]}{digits}"
+    return m
 
 
 class ScanPlotter(BasePWAPlotter):
@@ -18,22 +71,20 @@ class ScanPlotter(BasePWAPlotter):
         self,
         sum_label: str,
         data_legend: str = "GlueX-I Data",
-        mass_bins: list[tuple[float, float]] | list[MassBin] | None = None,
+        kin_variable: str = "m",
         t_bin: tuple[float, float] | TBin | None = None,
         energy_bin: tuple[float, float] | EnergyBin | None = None,
+        mass_bin: tuple[float, float] | MassBin | None = None,
+        indices: list[int] | None = None,
         ax: matplotlib.axes.Axes | None = None,
         kwargs: dict[str, Any] | None = None,
     ) -> matplotlib.axes.Axes:
-        """Plot coherent sum group across the mass bins with data points.
+        """Plot coherent sum group across the bins with data points.
 
         A sum group is defined by the quantum numbers that the sum groups and the
         amplitude naming scheme. For example, in the `JLme` scheme, one can plot all
         the available `JLe` coherent sums, or those that sum over the spin-projection
         `m`.
-
-        The results may span several t and/or beam energy bins, and so a single bin
-        must be selected if multiple are available. If only one bin is available, it
-        will be used automatically.
 
         Args:
             sum_label (str): The label of the coherent sum group to plot. See the
@@ -41,16 +92,20 @@ class ScanPlotter(BasePWAPlotter):
                 sum groups and the amplitudes that belong to each group.
             data_legend (str): The legend label for the data points. Defaults to
                 "GlueX-I Data".
-            mass_bins (list[tuple[float,float]] | list[MassBin] | None): Optional list
-                of mass bins to select. If None, all bins will be plotted.
-            t_bin (tuple[float, float] | TBin | None): Low and high edges of the t
-                bin to select, or a TBin instance. Only needs specification if the
-                results span multiple t bins. If None, the sole available t bin will be
-                used.
-            energy_bin (tuple[float,float] | EnergyBin | None): Low and high edges of
-                the energy bin to select, or an EnergyBin instance. Only needs
-                specification if the results span multiple energy bins. If None, the
-                sole available energy bin will be used.
+            kin_variable (str): Shorthand ("m", "t", "e") or exact 'data' dataframe
+                column name for the kinematic variable to plot against. Default to 'm'
+                (mass).
+            t_bin (tuple[float, float] | TBin | None): Fixes the t bin to plot from if
+                the results span multiple t bins. If only 1 t bin is available,
+                specification is unnecessary. Defaults to None.
+            energy_bin (tuple[float,float] | EnergyBin | None): Fixes the beam energy
+                bin to plot from if the results span multiple energy bins. If only 1
+                energy bin is available, specification is unnecessary. Defaults to None.
+            mass_bin (tuple[float,float] | MassBin | None): Fixes the mass bin to plot
+                from if the results span multiple mass bins. If only 1 mass bin is
+                available, specification is unnecessary. Defaults to None.
+            indices (list[int] | None): Optional list of positions within the resolved
+                kinematic bin to select specific bins. Defaults to None.
             ax (matplotlib.axes.Axes | None): Optional axes to plot on. If None, a new
                 figure and axes will be created.
             kwargs (dict[str, Any] | None): Optional dictionary of keyword arguments
@@ -59,35 +114,31 @@ class ScanPlotter(BasePWAPlotter):
         Raises:
             KeyError: If the specified sum_label is not found in the coherent sums.
                 Prints available sum labels.
+            ValueError: If a bin is given for the dimension being scanned over, or
+                if multiple bins are present on a non-scammed dimension, leaving an
+                ambiguous plot range.
         """
         if sum_label not in self.results.coherent_sums:
             raise KeyError(
                 f"Sum label '{sum_label}' not found in coherent sums."
                 f" Available sum labels: {list(self.results.coherent_sums.keys())}"
             )
-
-        kb: list[KinematicBin] = self.results.mass_kinematic_bins(
-            t_bin=t_bin, energy_bin=energy_bin
-        )
-        if mass_bins is not None:
-            if all(isinstance(mb, tuple) for mb in mass_bins):
-                mass_bins = [MassBin.from_tuple(mb) for mb in mass_bins]  # type: ignore
-        kb = [k for k in kb if (mass_bins is None or k.mass_bin in mass_bins)]
         coherent_sums = self.results.coherent_sums[sum_label]
-
-        fit_df, data_df = self._coherent_sum_dataframes(coherent_sums, kb)
+        fit_df, data_df, x_label = self._scan_dataframes(
+            coherent_sums, kin_variable, t_bin, energy_bin, mass_bin, indices
+        )
 
         # default to Dark2 colormap, and cycle if more columns than colors
         colors = plt.get_cmap("Dark2").colors  # type: ignore
         colors = list(itertools.islice(itertools.cycle(colors), len(coherent_sums)))
-
-        kwargs = {
+        default_kwargs = {
             "marker": ["." for _ in range(len(coherent_sums))],
             "linestyle": ["" for _ in range(len(coherent_sums))],
             "alpha": [0.7 for _ in range(len(coherent_sums))],
             "colors": colors,
         }
-        kwargs.update(kwargs or {})
+        default_kwargs.update(kwargs or {})
+        kwargs = default_kwargs
 
         with self._style():
             fig, ax = (
@@ -106,7 +157,7 @@ class ScanPlotter(BasePWAPlotter):
                 data_points = unumpy.uarray(data_df["events"], data_df["events_err"])
 
             ax.errorbar(
-                x=data_df["m_center"],
+                x=data_df["x_center"],
                 xerr=data_df["bin_width"] / 2.0,
                 y=unumpy.nominal_values(data_points),
                 yerr=unumpy.std_devs(data_points),
@@ -121,7 +172,7 @@ class ScanPlotter(BasePWAPlotter):
                 label = self.results.parser.sum_to_latex(sum_label, coh_sum)
 
                 ax.errorbar(
-                    x=data_df["m_center"],
+                    x=data_df["x_center"],
                     xerr=data_df["bin_width"] / 2.0,
                     y=fit_df[coh_sum],
                     yerr=fit_df[f"{coh_sum}_err"],
@@ -132,102 +183,74 @@ class ScanPlotter(BasePWAPlotter):
                     color=kwargs["colors"][sum_idx],
                 )
 
-            ax.set_xlabel(r"Mass $(GeV)$")
+            ax.set_xlabel(x_label)
             ax.set_ylabel(rf"Events / {data_df['bin_width'].mean():.3f} GeV")
             ax.set_ylim(bottom=0)
             ax.legend()
 
         return ax
 
-    def _coherent_sum_dataframes(
-        self, columns: tuple[str, ...], kb: list[KinematicBin] | None = None
-    ) -> tuple[pd.DataFrame | pd.Series, pd.DataFrame]:
-        """Prepare the dataframes for the coherent_sum plot
-
-        Args:
-            columns (list[str]): The list of column names to include in the dataframes.
-            kb (list[KinematicBin] | None): Optional list of sorted kinematic bins to
-                include in the dataframes.
-        Returns:
-            tuple[pd.DataFrame, pd.DataFrame]: A tuple containing the fit dataframe and
-                the data dataframe for the specified coherent sum group and indices.
-        Todo:
-            - this can potentially be generalized to other bin plotters
-        """
-
-        # bootstrap fits replace fit errors, if available
-        fit_columns = list(columns)
-        if self.results.bootstrap is not None:
-            raise NotImplementedError(
-                "Replacing column errors by bootstrap std() not yet supported"
-            )
-        else:
-            fit_columns.extend([f"{col}_err" for col in fit_columns])
-
-        filtered_result = (
-            self.results.filter_by_kinematic_bins(kb)
-            if kb is not None
-            else self.results
-        )
-        fit_df = filtered_result.fit[fit_columns]
-
-        data_columns = [
-            "m_center",
-            "m_low",
-            "m_high",
-            "events",
-            "events_err",
-            "ac_events",
-            "ac_events_err",
-        ]
-        data_df = filtered_result.data[data_columns]
-        data_df["bin_width"] = data_df["m_high"] - data_df["m_low"]
-
-        return fit_df, data_df
-
     def amplitudes(
         self,
         fractional: bool = False,
         sharey: bool = False,
         reflectivity: Literal["positive", "negative", "all"] = "all",
+        kin_variable: str = "m",
+        t_bin: tuple[float, float] | TBin | None = None,
+        energy_bin: tuple[float, float] | EnergyBin | None = None,
+        mass_bin: tuple[float, float] | MassBin | None = None,
+        indices: list[int] | None = None,
         axs: np.ndarray | None = None,
         kwargs: dict[str, Any] | None = None,
     ) -> np.ndarray:
         """Plot a grid of amplitudes, organized by spin (rows) and projection (columns)
 
-        This plot will create a grid of all amplitudes plotted as a function of kinemtic
-        variable (e.g. mass, t, etc.), with the option to plot as fit fractions of the
-        total intensity. The grid is organized with the rows corresponding to the
+        This plot will create a grid of all amplitudes plotted as a function of the
+        selected kinematic variable, with the rows corresponding to the
         spin+parity+angular momenta combo (J^P L) and the columns corresponding to the
-        spin projection m. Any quantum numbers for the label not available due to the
-        naming scheme are simply dropped. Reflectivities are plotted together in the
-        same plot, with the option to select only positive or negative reflectivities.
+        spin-projection m. Any quantum numbers unavailable due to the naming scheme are
+        dropped. Reflectivities are plotted together in the same plot, with the option
+        to select only positive or negative reflectivities.
 
         Args:
-            TODO: include kin variable arg
-            fractional (bool, optional): Plot as fit fractions of the total intensity.
+            fractional (bool): Whether to plot the amplitudes as a fraction of the
+                total intensity. Defaults to False.
+            sharey (bool): Whether to share the y-axis across all amplitude plots.
                 Defaults to False.
-            sharey (bool, optional): Share the y-axis across all subplots. Defaults to
-                False. Note that specifying custom axes will override this option.
-            reflectivity (Literal['positive', 'negative', 'all'], optional): The type of
-                reflectivity to plot. Defaults to "all".
-            TODO: include binning options for mass, t, energy, etc. to select specific
-                bins to plot. If one is selected to plot in, the other two bins should
-                be a singular bin to select it out (if multiple are available). Should
-                also be able to select a subset of the kinematic variable bins to plot,
-                e.g. a range of mass bins.
-            axs (np.ndarray | None, optional): The array of axes to plot on. If None, a
-                new figure and axes will be created. Note that one must be careful that
-                the shape of axes matches the expected shape based on the number of
-                amplitudes. Defaults to None.
-            kwargs (dict[str, Any] | None, optional): Optional dictionary of keyword
-                arguments to customize the plot appearance. Defaults to None.
+            reflectivity (Literal["positive", "negative", "all"]): Which reflectivity
+                amplitudes to plot. Defaults to "all".
+            kin_variable (str): Shorthand ("m", "t", "e") or exact 'data' dataframe
+                column name for the kinematic variable to plot against.
+                Defaults to "m" (mass).
+            t_bin (tuple[float, float] | TBin | None): Fixes the t bin to plot from if
+                the results span multiple t bins. If only 1 t bin is available,
+                specification is unnecessary. Defaults to None.
+            energy_bin (tuple[float,float] | EnergyBin | None): Fixes the beam energy
+                bin to plot from if the results span multiple energy bins. If only 1
+                energy bin is available, specification is unnecessary. Defaults to None.
+            mass_bin (tuple[float,float] | EnergyBin | None): Fixes the mass bin to plot
+                from if the results span multiple mass bins. If only 1 mass bin is
+                available, specification is unnecessary. Defaults to None.
+            indices (list[int] | None): Optional list of positions within the resolved
+                kinematic bin to select specific bins. Defaults to None.
+            axs (np.ndarray | None): Optional array of axes to plot on. If None, a new
+                figure and axes will be created. Note that one must be careful that the
+                axes shape matches the expected shape.
+            kwargs (dict[str, Any] | None): Optional dictionary of keyword arguments
+                to customize the plot appearance. Recognized keys are "positive" and
+                "negative" mapping to a dict of matplotlib 'errorbar' kwargs that
+                override the defaults for the respective reflectivity amplitudes.
+                e.g. {"positive": {"color": "red"}, "negative": {"color": "blue"}}.
+                Defaults to None.
 
         Returns:
             np.ndarray: The array of axes objects containing the amplitude plots.
         Raises:
             ValueError: If the reflectivity argument is not one of "positive",
-                "negative", or "all".
+                "negative", or "all". If no naming scheme could be determined from the
+                amplitudes, or if a bin is given for the dimension being scanned over,
+                or if multiple bins are present along a non-scanned dimension, leaving
+                an ambiguous plot range.
             IndexError: If the provided axes shape does not match the expected shape
                 based on the number of amplitudes.
         """
@@ -238,34 +261,170 @@ class ScanPlotter(BasePWAPlotter):
                 "'positive', 'negative', or 'all'."
             )
 
-        if axs is None:
+        amps = list(self.results.amplitudes)
+        if not amps:
+            raise KeyError("No amplitudes found in the results to plot.")
+        # resolve naming scheme from the amplitudes (common across all, so select one)
+        parser = self.results.parser
+        scheme = parser.requested_scheme
+        if scheme == NamingScheme.AUTO:
+            scheme = parser.infer_naming_scheme(amps[0])
+        if scheme == NamingScheme.AUTO:
+            raise ValueError("Could not determine naming scheme from amplitudes.")
+        scheme_def = SCHEMES[scheme]
 
-            # if not plotting fit fractions, then our amplitudes will just divide by 1
-            intensity = (
-                (
-                    self.results.fit["ac_intensity"]
-                    if self.results.is_acc_corrected
-                    else self.results.fit["intensity"]
-                )
-                if fractional
-                else 1.0
+        # Determine the row and column quantum numbers based on the naming scheme.
+        row_quantum_numbers = tuple(
+            qn for qn in scheme_def.single_amplitudes if qn not in ("m", "e")
+        )
+        row_group_key = "".join(row_quantum_numbers)
+
+        parsed_amps = [(amp, parser.parse_amplitude(amp)) for amp in amps]
+
+        def _keep(parsed) -> bool:
+            if reflectivity == "all":
+                return True
+            if reflectivity == "positive":
+                return parsed.e in _POSITIVE_REFLECTIVITY_CHARS
+            return parsed.e in _NEGATIVE_REFLECTIVITY_CHARS
+
+        parsed_amps = [(amp, parsed) for amp, parsed in parsed_amps if _keep(parsed)]
+        if not parsed_amps:
+            raise ValueError(
+                f"No amplitudes found for reflectivity '{reflectivity}'. "
+                f"Available amplitudes: {amps}"
             )
 
-            # TODO: parse through individual amplitudes, and determine max value of 'm'
-            # Do the same for max "JPL", "JL", or "L" combos. This depends on naming
-            # scheme though. Then build grid.
-            nrows: int
-            ncols: int
+        row_groups: dict[tuple[str, ...], list[tuple[str, Any]]] = {}
+        col_values: set[str] = set()
+        for amp, parsed in parsed_amps:
+            row_key = tuple(parsed.get(qn) for qn in row_quantum_numbers)
+            row_groups.setdefault(row_key, []).append((amp, parsed))
+            col_values.add(parsed.m)
 
-            # fig, axs = plt.subplots(
-            #     nrows=nrows,
-            #     ncols=ncols,
-            #     sharey=sharey,
-            #     figsize= ???
-            #     layout="constrained",
-            # )
+        sorted_rows = sorted(
+            row_groups, key=lambda rk: tuple(_numeric_sort_key(qn) for qn in rk)
+        )
+        sorted_cols = sorted(col_values, key=_numeric_sort_key)
+        nrows, ncols = len(sorted_rows), len(sorted_cols)
 
-        return axs  # type: ignore
+        if axs is None:
+            fig, axs = plt.subplots(
+                nrows=nrows,
+                ncols=ncols,
+                sharey=sharey,
+                squeeze=False,
+                figsize=(4 * ncols, 3 * nrows),
+                layout="constrained",
+            )
+        else:
+            axs = np.asarray(axs)
+            try:
+                axs = axs.reshape(nrows, ncols)
+            except ValueError:
+                raise IndexError(
+                    f"Provided axes shape {axs.shape} does not match expected "
+                    f"shape ({nrows}, {ncols}) based on the number of amplitudes."
+                )
+        plot_columns = [amp for amp, _ in parsed_amps]
+        if fractional:
+            plot_columns.append("intensity")
+        fit_df, data_df, x_label = self._scan_dataframes(
+            plot_columns, kin_variable, t_bin, energy_bin, mass_bin, indices
+        )
+
+        # default styling
+        default_kwargs = {
+            "positive": {
+                "marker": ".",
+                "linestyle": "",
+                "alpha": 0.7,
+                "color": "tab:red",
+            },
+            "negative": {
+                "marker": ".",
+                "linestyle": "",
+                "alpha": 0.7,
+                "color": "tab:blue",
+            },
+        }
+        for refl in ("positive", "negative"):
+            default_kwargs[refl].update(kwargs.get(refl, {}) if kwargs else {})
+        kwargs = default_kwargs
+
+        y_label = (
+            "Fit Fraction" if fractional else f"Events / {data_df["bin_width"].mean()}"
+        )
+
+        with self._style():
+            for row_idx, row_key in enumerate(sorted_rows):
+                row_label = self.results.parser.sum_to_latex(
+                    row_group_key, "".join(row_key)
+                )
+                for col_idx, col_value in enumerate(sorted_cols):
+                    ax = axs[row_idx, col_idx]
+                    amps_here = [
+                        (amp, parsed)
+                        for amp, parsed in row_groups[row_key]
+                        if parsed.m == col_value
+                    ]
+                    if not amps_here:
+                        ax.set_visible(False)
+                        continue
+
+                    # plot positive reflectivity first
+                    amps_here.sort(
+                        key=lambda item: item[1].e not in _POSITIVE_REFLECTIVITY_CHARS
+                    )
+                    for amp, parsed in amps_here:
+                        refl_kind = (
+                            "positive"
+                            if parsed.e in _POSITIVE_REFLECTIVITY_CHARS
+                            else "negative"
+                        )
+
+                        if fractional:
+                            values = unumpy.uarray(fit_df[amp], fit_df[f"{amp}_err"])
+                            intensity = (
+                                unumpy.uarray(
+                                    fit_df["ac_intensity"], fit_df["ac_intensity_err"]
+                                )
+                                if self.results.is_acc_corrected
+                                else unumpy.uarray(
+                                    fit_df["intensity"], fit_df["intensity_err"]
+                                )
+                            )
+
+                            fraction = values / intensity
+
+                            y = unumpy.nominal_values(fraction)
+                            yerr = unumpy.std_devs(fraction)
+                        else:
+                            y = fit_df[amp].to_numpy()
+                            yerr = fit_df[f"{amp}_err"].to_numpy()
+
+                        ax.errorbar(
+                            x=data_df["x_center"],
+                            xerr=data_df["bin_width"] / 2.0,
+                            y=y,
+                            yerr=yerr,
+                            label=self.results.parser.to_latex(amp),
+                            **kwargs[refl_kind],
+                        )
+
+                    ax.set_title(
+                        rf"{row_label}, $m={_format_spin_projection(col_value)}$",
+                        fontsize="small",
+                    )
+                    ax.set_ylim(bottom=0)
+                    ax.legend(fontsize="x-small")
+
+                    if row_idx == nrows - 1:
+                        ax.set_xlabel(x_label)
+                    if col_idx == 0:
+                        ax.set_ylabel(y_label)
+
+        return axs
 
     def interference(
         self,
@@ -450,3 +609,227 @@ class ScanPlotter(BasePWAPlotter):
         fig, axs = plt.subplots(2, 2)
 
         return axs
+
+    # ----------------------------------------------------------------------------------
+    # Helpers
+    # ----------------------------------------------------------------------------------
+
+    def _resolve_kin_variable(
+        self, kin_variable: str
+    ) -> tuple[str, str | None, str | None, str]:
+        """Resolve a shorthand or column name to 'data' dataframe column.
+
+        Args:
+            kin_variable (str): A known shorthand ("m", "t", "e") or exact name of a
+                column in the 'data' dataframe to use as the x-axis values.
+
+        Returns:
+            tuple[str, str | None, str | None, str]: Central value column name,
+                the low-edge column name (if available), the high-edge column name (if
+                available), and a LaTeX formatted axis label.
+
+        Raises:
+            KeyError: If kin_variable cannot be resolved.
+        """
+
+        columns = self.results.data.columns
+        if kin_variable in _KIN_VARIABLE_LABELS:
+            center = (
+                f"{kin_variable}_center"
+                if f"{kin_variable}_center" in columns
+                else f"{kin_variable}_avg"
+            )
+            low = f"{kin_variable}_low" if f"{kin_variable}_low" in columns else None
+            high = f"{kin_variable}_high" if f"{kin_variable}_high" in columns else None
+            label = _KIN_VARIABLE_LABELS[kin_variable]
+        elif kin_variable in columns:
+            center = kin_variable
+            low = None
+            high = None
+            label = kin_variable
+        else:
+            raise KeyError(
+                f"kin_variable '{kin_variable}' cannot be resolved. Must be one of "
+                f"{list(_KIN_VARIABLE_LABELS.keys())} or a column in the 'data' "
+                f"dataframe: {list(columns)}"
+            )
+
+        if center not in columns:
+            raise KeyError(
+                f"Resolved center column '{center}' not found in 'data' dataframe. "
+                f"Available columns: {list(columns)}"
+            )
+
+        return center, low, high, label
+
+    def _resolve_scan_bins(
+        self,
+        kin_variable: str,
+        t_bin: tuple[float, float] | TBin | None,
+        energy_bin: tuple[float, float] | EnergyBin | None,
+        mass_bin: tuple[float, float] | MassBin | None,
+    ) -> list[KinematicBin]:
+        """Resolve the ordered list of kinematic bins to scan over.
+
+        Results may span multiple bins e.g. 3 t bins x 2 energy bins x 10 mass bins. To
+        plot as a function of one kinematic variable, the other two must be fixed to a
+        single bin each. We only need to do this though if more than one unscanned bin
+        is available. For example, if the results span 3 t bins and 2 energy bins, but
+        only 1 mass bin, then we can plot as a function of t without needing to fix the
+        mass bin, but would need to fix the energy bin.
+
+        Args:
+            kin_variable (str): The kinematic variable to scan over ("m", "t", "e").
+                Any other value is treated as a column name in the 'data' dataframe, and
+                will be used as the x-axis. The given t-bin/energy-bin/mass-bin will be
+                used to select the appropriate bin to plot from.
+            t_bin (tuple[float, float] | TBin | None): Optional fixed t bin.
+            energy_bin (tuple[float, float] | EnergyBin | None): Optional fixed energy
+                bin.
+            mass_bin (tuple[float, float] | MassBin | None): Optional fixed mass bin.
+
+        Returns:
+            list[KinematicBin]: The ordered list of kinematic bins to scan over.
+
+        Raises:
+            ValueError: If a bin is given for the dimension being scanned over, or if
+                multiple bins are present on a non-scanned dimension, leaving an
+                ambiguous plot range.
+        """
+        if kin_variable == "m":
+            if mass_bin is not None:
+                raise ValueError(
+                    "Cannot specify a mass bin when scanning over mass. "
+                    "Please leave mass_bin as None."
+                )
+            return self.results.mass_kinematic_bins(t_bin=t_bin, energy_bin=energy_bin)
+        elif kin_variable == "t":
+            if t_bin is not None:
+                raise ValueError(
+                    "Cannot specify a t bin when scanning over t. "
+                    "Please leave t_bin as None."
+                )
+            return self.results.t_kinematic_bins(
+                mass_bin=mass_bin, energy_bin=energy_bin
+            )
+        elif kin_variable == "e":
+            if energy_bin is not None:
+                raise ValueError(
+                    "Cannot specify an energy bin when scanning over energy. "
+                    "Please leave energy_bin as None."
+                )
+            return self.results.energy_kinematic_bins(t_bin=t_bin, mass_bin=mass_bin)
+
+        # arbitrary 'data' column case
+        results = self.results
+        if any(b is not None for b in [t_bin, energy_bin, mass_bin]):
+            results = self.results.filter_by_kinematic_bins(
+                t_bins=t_bin, energy_bins=energy_bin, mass_bins=mass_bin
+            )
+        return sorted(results.kinematic_bins)
+
+    def _scan_dataframes(
+        self,
+        columns: tuple[str, ...] | list[str],
+        kin_variable: str = "m",
+        t_bin: tuple[float, float] | TBin | None = None,
+        energy_bin: tuple[float, float] | EnergyBin | None = None,
+        mass_bin: tuple[float, float] | MassBin | None = None,
+        indices: list[int] | None = None,
+    ) -> tuple[pd.DataFrame, pd.DataFrame, str]:
+        """Get the fit and data dataframes for a scan across a kinematic variable.
+
+        Helper to plot any set of columns (e.g. coherent sums, amplitudes, etc.) as a
+        function of a kinematic variable (mass, t, energy, etc.). This will resolve the
+        appropriate kinematic bins to scan over, and return the fit and data dataframes
+        with the relevant columns for the scan, as well as the x-axis label.
+
+        Args:
+            columns (tuple[str, ...] | list[str]): The columns to extract from the fit
+                dataframe for plotting. Corresponding error columns (e.g. "column_err")
+                will also be extracted.
+            kin_variable (str): The kinematic variable to scan over ("m", "t", "e").
+                Any other value is treated as a column name in the 'data' dataframe, and
+                will be used as the x-axis. The given t-bin/energy-bin/mass-bin will be
+                used to select the appropriate bin to plot from.
+            t_bin (tuple[float, float] | TBin | None): Optional fixed t bin.
+            energy_bin (tuple[float, float] | EnergyBin | None): Optional fixed energy
+                bin.
+            mass_bin (tuple[float, float] | MassBin | None): Optional fixed mass bin.
+            indices (list[int] | None): Optional list of indices to select specific
+                bins. If None, all bins will be used.
+
+        Returns:
+            tuple[pd.DataFrame, pd.DataFrame, str]: The fit dataframe (requested columns
+            and errors), the data dataframe (resolved kinematic variable renamed to
+            "x_center" and a "bin_width" column added), and a LaTeX formatted axis label
+            for the kinematic variable. Both are ordered along the scan dimension and
+            indexed by row position.
+
+        Raises:
+            KeyError: If kin_variable cannot be resolved to a known shorthand or column
+                name in the 'data' dataframe.
+            ValueError: If a bin is given for the dimension being scanned over, or if
+                multiple bins are present on a non-scanned dimension, leaving an
+                ambiguous plot range.
+
+        Todo:
+            - dont always want to use low_col high_col for bin width, and center for
+                x_center. For example, for t I want to use t_avg and t_rms as
+                x_center and bin_width, respectively. This should be resolved in the
+                _resolve_kin_variable() method, and the returned values used here.
+        """
+        center_col, low_col, high_col, x_label = self._resolve_kin_variable(
+            kin_variable
+        )
+
+        kinematic_bins = self._resolve_scan_bins(
+            kin_variable, t_bin, energy_bin, mass_bin
+        )
+        if indices is not None:
+            kinematic_bins = [kinematic_bins[i] for i in indices]
+        bin_ids = [kb.bin_id for kb in kinematic_bins]
+        if not bin_ids:
+            raise ValueError(
+                "No kinematic bins found for the specified scan. Please check the "
+                "provided t_bin, energy_bin, and mass_bin arguments."
+            )
+
+        # bootstrap fits replace fit errors, if available
+        fit_columns = list(columns)
+        if self.results.bootstrap is not None:
+            raise NotImplementedError(
+                "Replacing column errors by bootstrap std() not yet implemented"
+            )
+        else:
+            fit_columns.extend([f"{col}_err" for col in columns])
+
+        fit_df = (
+            self.results.fit.set_index("bin_id", drop=False)
+            .loc[bin_ids, fit_columns]
+            .reset_index(drop=True)
+        )
+
+        data_columns = [
+            center_col,
+            "events",
+            "events_err",
+            "ac_events",
+            "ac_events_err",
+        ]
+        for edge_col in [low_col, high_col]:
+            if edge_col is not None:
+                data_columns.append(edge_col)
+        data_df = (
+            self.results.data.set_index("bin_id", drop=False)
+            .loc[bin_ids, data_columns]
+            .rename(columns={center_col: "x_center"})
+            .reset_index(drop=True)
+        )
+
+        if low_col is not None and high_col is not None:
+            data_df["bin_width"] = data_df[high_col] - data_df[low_col]
+        else:
+            data_df["bin_width"] = np.nan
+
+        return fit_df, data_df, x_label
