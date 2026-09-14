@@ -328,9 +328,7 @@ class ScanPlotter(BasePWAPlotter):
                 )
         plot_columns = [amp for amp, _ in parsed_amps]
         if fractional:
-            plot_columns.extend(
-                ["intensity", "intensity_err", "ac_intensity", "ac_intensity_err"]
-            )
+            plot_columns.extend(["intensity", "ac_intensity"])
         fit_df, data_df, x_label = self._scan_dataframes(
             plot_columns, kin_variable, t_bin, energy_bin, mass_bin, indices
         )
