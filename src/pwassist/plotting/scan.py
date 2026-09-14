@@ -328,7 +328,9 @@ class ScanPlotter(BasePWAPlotter):
                 )
         plot_columns = [amp for amp, _ in parsed_amps]
         if fractional:
-            plot_columns.append("intensity")
+            plot_columns.extend(
+                ["intensity", "intensity_err", "ac_intensity", "ac_intensity_err"]
+            )
         fit_df, data_df, x_label = self._scan_dataframes(
             plot_columns, kin_variable, t_bin, energy_bin, mass_bin, indices
         )
@@ -353,7 +355,9 @@ class ScanPlotter(BasePWAPlotter):
         kwargs = default_kwargs
 
         y_label = (
-            "Fit Fraction" if fractional else f"Events / {data_df["bin_width"].mean()}"
+            "Fit Fraction"
+            if fractional
+            else rf"Events / {data_df['bin_width'].mean():.3f} GeV"
         )
 
         with self._style():
