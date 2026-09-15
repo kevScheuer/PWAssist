@@ -360,24 +360,6 @@ class ScanPlotter(BasePWAPlotter):
         sorted_cols = sorted(col_values, key=_numeric_sort_key)
         nrows, ncols = len(sorted_rows), len(sorted_cols)
 
-        if axs is None:
-            fig, axs = plt.subplots(
-                nrows=nrows,
-                ncols=ncols,
-                sharey=sharey,
-                squeeze=False,
-                figsize=(4 * ncols, 3 * nrows),
-                layout="constrained",
-            )
-        else:
-            axs = np.asarray(axs)
-            try:
-                axs = axs.reshape(nrows, ncols)
-            except ValueError:
-                raise IndexError(
-                    f"Provided axes shape {axs.shape} does not match expected "
-                    f"shape ({nrows}, {ncols}) based on the number of amplitudes."
-                )
         plot_columns = [amp for amp, _ in parsed_amps]
         if fractional:
             plot_columns.extend(["intensity", "ac_intensity"])
@@ -412,6 +394,24 @@ class ScanPlotter(BasePWAPlotter):
             )
 
         with self._style():
+            if axs is None:
+                fig, axs = plt.subplots(
+                    nrows=nrows,
+                    ncols=ncols,
+                    sharey=sharey,
+                    squeeze=False,
+                    figsize=(4 * ncols, 3 * nrows),
+                    layout="constrained",
+                )
+            else:
+                axs = np.asarray(axs)
+                try:
+                    axs = axs.reshape(nrows, ncols)
+                except ValueError:
+                    raise IndexError(
+                        f"Provided axes shape {axs.shape} does not match expected "
+                        f"shape ({nrows}, {ncols}) based on the number of amplitudes."
+                    )
             for row_idx, row_key in enumerate(sorted_rows):
                 row_label = self.results.parser.sum_to_latex(
                     row_group_key, "".join(row_key)
