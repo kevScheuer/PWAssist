@@ -19,10 +19,15 @@ _NEGATIVE_REFLECTIVITY_CHARS = frozenset({"n", "m", "-"})
 _L_ORDER = "SPDFGHIKLM"
 
 # Shorthand kinematic variables and their axis labels
-_KIN_VARIABLE_LABELS: dict[str, str] = {
+_KIN_VARIABLE_XLABELS: dict[str, str] = {
     "m": r"Mass $(GeV)$",
     "t": r"$-t$ $(GeV^2)$",
     "e": r"Beam Energy $(GeV)$",
+}
+_KIN_VARIABLE_YLABELS: dict[str, str] = {
+    "m": r"Events / NUM $(GeV)$",  # replace NUM with bin width in functions
+    "t": r"Events / NUM $(GeV^2)$",
+    "e": r"Events / NUM $(GeV)$",
 }
 
 
@@ -72,6 +77,7 @@ class ScanPlotter(BasePWAPlotter):
         sum_label: str,
         data_legend: str = "GlueX-I Data",
         kin_variable: str = "m",
+        stat: Literal["edges", "avg"] = "edges",
         t_bin: tuple[float, float] | TBin | None = None,
         energy_bin: tuple[float, float] | EnergyBin | None = None,
         mass_bin: tuple[float, float] | MassBin | None = None,
@@ -95,6 +101,9 @@ class ScanPlotter(BasePWAPlotter):
             kin_variable (str): Shorthand ("m", "t", "e") or exact 'data' dataframe
                 column name for the kinematic variable to plot against. Default to 'm'
                 (mass).
+            stat (Literal['edges', 'avg']): Whether x-value/error is from the bin center
+                and (high-low)/2 'edges' (default) or from the actual bin average and
+                rms of the underlying data.
             t_bin (tuple[float, float] | TBin | None): Fixes the t bin to plot from if
                 the results span multiple t bins. If only 1 t bin is available,
                 specification is unnecessary. Defaults to None.
@@ -112,8 +121,9 @@ class ScanPlotter(BasePWAPlotter):
                 to customize the plot appearance.
 
         Raises:
-            KeyError: If the specified sum_label is not found in the coherent sums.
-                Prints available sum labels.
+            KeyError: If the specified sum_label is not found in the coherent sums, or
+                or if stat='avg' but the requested corresponding columns are not present
+                in the 'data' dataframe.
             ValueError: If a bin is given for the dimension being scanned over, or
                 if multiple bins are present on a non-scammed dimension, leaving an
                 ambiguous plot range.
@@ -124,8 +134,8 @@ class ScanPlotter(BasePWAPlotter):
                 f" Available sum labels: {list(self.results.coherent_sums.keys())}"
             )
         coherent_sums = self.results.coherent_sums[sum_label]
-        fit_df, data_df, x_label = self._scan_dataframes(
-            coherent_sums, kin_variable, t_bin, energy_bin, mass_bin, indices
+        fit_df, data_df, x_label, y_label = self._scan_dataframes(
+            coherent_sums, kin_variable, stat, t_bin, energy_bin, mass_bin, indices
         )
 
         # default to Dark2 colormap, and cycle if more columns than colors
@@ -158,7 +168,7 @@ class ScanPlotter(BasePWAPlotter):
 
             ax.errorbar(
                 x=data_df["x_center"],
-                xerr=data_df["bin_width"] / 2.0,
+                xerr=data_df["x_err"],
                 y=unumpy.nominal_values(data_points),
                 yerr=unumpy.std_devs(data_points),
                 label=data_legend,
@@ -170,10 +180,9 @@ class ScanPlotter(BasePWAPlotter):
             # plot each coherent sum with error bars
             for sum_idx, coh_sum in enumerate(coherent_sums):
                 label = self.results.parser.sum_to_latex(sum_label, coh_sum)
-
                 ax.errorbar(
                     x=data_df["x_center"],
-                    xerr=data_df["bin_width"] / 2.0,
+                    xerr=data_df["x_err"],
                     y=fit_df[coh_sum],
                     yerr=fit_df[f"{coh_sum}_err"],
                     label=label,
@@ -184,7 +193,7 @@ class ScanPlotter(BasePWAPlotter):
                 )
 
             ax.set_xlabel(x_label)
-            ax.set_ylabel(rf"Events / {data_df['bin_width'].mean():.3f} GeV")
+            ax.set_ylabel(y_label)
             ax.set_ylim(bottom=0)
             ax.legend()
 
@@ -196,6 +205,7 @@ class ScanPlotter(BasePWAPlotter):
         sharey: bool = False,
         reflectivity: Literal["positive", "negative", "all"] = "all",
         kin_variable: str = "m",
+        stat: Literal["edges", "avg"] = "edges",
         t_bin: tuple[float, float] | TBin | None = None,
         energy_bin: tuple[float, float] | EnergyBin | None = None,
         mass_bin: tuple[float, float] | MassBin | None = None,
@@ -222,6 +232,9 @@ class ScanPlotter(BasePWAPlotter):
             kin_variable (str): Shorthand ("m", "t", "e") or exact 'data' dataframe
                 column name for the kinematic variable to plot against.
                 Defaults to "m" (mass).
+            stat (Literal['edges', 'avg']): Whether x-value/error is from the bin center
+                and (high-low)/2 'edges' (default) or from the actual bin average and
+                rms of the underlying data.
             t_bin (tuple[float, float] | TBin | None): Fixes the t bin to plot from if
                 the results span multiple t bins. If only 1 t bin is available,
                 specification is unnecessary. Defaults to None.
@@ -329,8 +342,8 @@ class ScanPlotter(BasePWAPlotter):
         plot_columns = [amp for amp, _ in parsed_amps]
         if fractional:
             plot_columns.extend(["intensity", "ac_intensity"])
-        fit_df, data_df, x_label = self._scan_dataframes(
-            plot_columns, kin_variable, t_bin, energy_bin, mass_bin, indices
+        fit_df, data_df, x_label, y_label = self._scan_dataframes(
+            plot_columns, kin_variable, stat, t_bin, energy_bin, mass_bin, indices
         )
 
         # default styling
@@ -352,11 +365,12 @@ class ScanPlotter(BasePWAPlotter):
             default_kwargs[refl].update(kwargs.get(refl, {}) if kwargs else {})
         kwargs = default_kwargs
 
-        y_label = (
-            "Fit Fraction"
-            if fractional
-            else rf"Events / {data_df['bin_width'].mean():.3f} GeV"
-        )
+        if fractional:
+            y_label = (
+                y_label.replace("Events", "Fit Fraction")
+                if "Events" in y_label
+                else "Fit Fraction"
+            )
 
         with self._style():
             for row_idx, row_key in enumerate(sorted_rows):
@@ -407,7 +421,7 @@ class ScanPlotter(BasePWAPlotter):
 
                         ax.errorbar(
                             x=data_df["x_center"],
-                            xerr=data_df["bin_width"] / 2.0,
+                            xerr=data_df["x_err"],
                             y=y,
                             yerr=yerr,
                             label=self.results.parser.to_latex(amp),
@@ -617,52 +631,96 @@ class ScanPlotter(BasePWAPlotter):
     # ----------------------------------------------------------------------------------
 
     def _resolve_kin_variable(
-        self, kin_variable: str
-    ) -> tuple[str, str | None, str | None, str]:
+        self,
+        kin_variable: str,
+        stat: Literal["edges", "avg"] = "edges",
+    ) -> tuple[str | None, str | None, str | None, str | None, str, str]:
         """Resolve a shorthand or column name to 'data' dataframe column.
 
         Args:
             kin_variable (str): A known shorthand ("m", "t", "e") or exact name of a
                 column in the 'data' dataframe to use as the x-axis values.
-
+            stat (Literal['edges', 'avg']): Whether x-value/error is from the bin center
+                and (high-low)/2 'edges' (default) or from the actual bin average and
+                rms of the underlying data.
         Returns:
-            tuple[str, str | None, str | None, str]: Central value column name,
-                the low-edge column name (if available), the high-edge column name (if
-                available), and a LaTeX formatted axis label.
+            tuple[str | None, str | None, str | None, str | None, str, str]: Central
+                value column name (None if no dedicated "_center" column), the low-edge
+                column name (if available), the high-edge column name (if available),
+                and LaTeX formatted x,y axis label.
 
         Raises:
-            KeyError: If kin_variable cannot be resolved.
+            KeyError: If kin_variable cannot be resolved, or for stat='edges' that
+                there aren't enough columns to compute one, in the 'data' dataframe.
+                Also if stat='avg' is requested but the corresponding
+                <kin_variable>_<avg/rms> columns are not available.
+            ValueError: If stat is not 'edges' or 'avg'
         """
 
+        if stat not in ("edges", "avg"):
+            raise ValueError(f"stat must be 'edges' or 'avg', got '{stat}'")
+
         columns = self.results.data.columns
-        if kin_variable in _KIN_VARIABLE_LABELS:
-            center = (
-                f"{kin_variable}_center"
-                if f"{kin_variable}_center" in columns
-                else f"{kin_variable}_avg"
-            )
+        if kin_variable in _KIN_VARIABLE_XLABELS:
+            x_label = _KIN_VARIABLE_XLABELS[kin_variable]
+            y_label = _KIN_VARIABLE_YLABELS[kin_variable]
+
             low = f"{kin_variable}_low" if f"{kin_variable}_low" in columns else None
             high = f"{kin_variable}_high" if f"{kin_variable}_high" in columns else None
-            label = _KIN_VARIABLE_LABELS[kin_variable]
+            bin_width = (
+                self.results.data[high] - self.results.data[low]
+                if (low is not None and high is not None)
+                else None
+            )
+            if bin_width is not None and (
+                (bin_width.stdev() / bin_width.mean()) < 0.01
+            ):
+                # if relative standard deviation of the bin width is within 1%, we can
+                # reasonably assume that we have a constant bin width to label the
+                # y-axis with
+                y_label = y_label.replace("NUM", f"{bin_width.mean()}")
+            else:
+                # bin width is either unknown or variable, so cut down y_label to just
+                # "Events"
+                y_label = y_label.split("/")[0]
+
+            if stat == "avg":
+                center, rms = f"{kin_variable}_avg", f"{kin_variable}_rms"
+                if center not in columns or rms not in columns:
+                    raise KeyError(
+                        f"stat='avg' requires '{center}' and '{rms}' columns in the"
+                        f" data dataframe for kin_variable='{kin_variable}', but at"
+                        f" least one was not found. Available columns:"
+                        f" {list(columns)}"
+                    )
+                return center, None, None, rms, x_label, y_label
+
+            # stat == 'edges': prefers a dedicated "<kin_variable>_center" column,
+            # but will otherwise compute midpoint from low/high columns. Falls back to
+            # <kin_variable>_avg as a last resort.
+            if f"{kin_variable}_center" in columns:
+                center: str | None = f"{kin_variable}_center"
+            elif low is not None and high is not None:
+                center = None  # computed as (high-low)/2 in _scan_dataframes
+            elif f"{kin_variable}_avg" in columns:
+                center = f"{kin_variable}_avg"
+            else:
+                raise KeyError(
+                    f"Could not resolve a center for kin_variable '{kin_variable}' with"
+                    f" stat='edges': no '{kin_variable}'_center,"
+                    f" '{kin_variable}_low/high pair, and no '{kin_variable}_avg'"
+                    f" column were found. Available columns {list(columns)}"
+                )
+            return center, low, high, None, x_label, y_label
+
         elif kin_variable in columns:
-            center = kin_variable
-            low = None
-            high = None
-            label = kin_variable
+            return kin_variable, None, None, None, kin_variable, kin_variable
         else:
             raise KeyError(
                 f"kin_variable '{kin_variable}' cannot be resolved. Must be one of "
-                f"{list(_KIN_VARIABLE_LABELS.keys())} or a column in the 'data' "
+                f"{list(_KIN_VARIABLE_XLABELS.keys())} or a column in the 'data' "
                 f"dataframe: {list(columns)}"
             )
-
-        if center not in columns:
-            raise KeyError(
-                f"Resolved center column '{center}' not found in 'data' dataframe. "
-                f"Available columns: {list(columns)}"
-            )
-
-        return center, low, high, label
 
     def _resolve_scan_bins(
         self,
@@ -734,11 +792,12 @@ class ScanPlotter(BasePWAPlotter):
         self,
         columns: tuple[str, ...] | list[str],
         kin_variable: str = "m",
+        stat: Literal["edges", "avg"] = "edges",
         t_bin: tuple[float, float] | TBin | None = None,
         energy_bin: tuple[float, float] | EnergyBin | None = None,
         mass_bin: tuple[float, float] | MassBin | None = None,
         indices: list[int] | None = None,
-    ) -> tuple[pd.DataFrame, pd.DataFrame, str]:
+    ) -> tuple[pd.DataFrame, pd.DataFrame, str, str]:
         """Get the fit and data dataframes for a scan across a kinematic variable.
 
         Helper to plot any set of columns (e.g. coherent sums, amplitudes, etc.) as a
@@ -754,6 +813,9 @@ class ScanPlotter(BasePWAPlotter):
                 Any other value is treated as a column name in the 'data' dataframe, and
                 will be used as the x-axis. The given t-bin/energy-bin/mass-bin will be
                 used to select the appropriate bin to plot from.
+            stat (Literal['edges', 'avg']): Whether x-value/error is from the bin center
+                and (high-low)/2 'edges' (default) or from the actual bin average and
+                rms of the underlying data.
             t_bin (tuple[float, float] | TBin | None): Optional fixed t bin.
             energy_bin (tuple[float, float] | EnergyBin | None): Optional fixed energy
                 bin.
@@ -762,10 +824,10 @@ class ScanPlotter(BasePWAPlotter):
                 bins. If None, all bins will be used.
 
         Returns:
-            tuple[pd.DataFrame, pd.DataFrame, str]: The fit dataframe (requested columns
-            and errors), the data dataframe (resolved kinematic variable renamed to
-            "x_center" and a "bin_width" column added), and a LaTeX formatted axis label
-            for the kinematic variable. Both are ordered along the scan dimension and
+            tuple[pd.DataFrame, pd.DataFrame, str, str]: The fit dataframe (requested
+            columns and errors), the data dataframe (resolved kinematic variable renamed
+            to "x_center" and "x_err"), and LaTeX formatted x-y axis labels for the
+            kinematic variable. Both dataframes are ordered along the scan dimension and
             indexed by row position.
 
         Raises:
@@ -774,15 +836,9 @@ class ScanPlotter(BasePWAPlotter):
             ValueError: If a bin is given for the dimension being scanned over, or if
                 multiple bins are present on a non-scanned dimension, leaving an
                 ambiguous plot range.
-
-        Todo:
-            - dont always want to use low_col high_col for bin width, and center for
-                x_center. For example, for t I want to use t_avg and t_rms as
-                x_center and bin_width, respectively. This should be resolved in the
-                _resolve_kin_variable() method, and the returned values used here.
         """
-        center_col, low_col, high_col, x_label = self._resolve_kin_variable(
-            kin_variable
+        center_col, low_col, high_col, rms_col, x_label, y_label = (
+            self._resolve_kin_variable(kin_variable, stat)
         )
 
         kinematic_bins = self._resolve_scan_bins(
@@ -819,19 +875,25 @@ class ScanPlotter(BasePWAPlotter):
             "ac_events",
             "ac_events_err",
         ]
-        for edge_col in [low_col, high_col]:
-            if edge_col is not None:
-                data_columns.append(edge_col)
+        for extra_col in (center_col, low_col, high_col, rms_col):
+            if extra_col is not None:
+                data_columns.append(extra_col)
         data_df = (
             self.results.data.set_index("bin_id", drop=False)
             .loc[bin_ids, data_columns]
-            .rename(columns={center_col: "x_center"})
             .reset_index(drop=True)
         )
-
-        if low_col is not None and high_col is not None:
-            data_df["bin_width"] = data_df[high_col] - data_df[low_col]
+        if center_col is not None:
+            data_df = data_df.rename(columns={center_col: "x_center"})
         else:
-            data_df["bin_width"] = np.nan
+            # no dedicated center column, use the midpoint of the bin edges instead
+            data_df["x_center"] = (data_df[low_col] + data_df[high_col]) / 2.0
 
-        return fit_df, data_df, x_label
+        if rms_col is not None:
+            data_df["x_err"] = data_df[rms_col]
+        elif low_col is not None and high_col is not None:
+            data_df["x_err"] = (data_df[high_col] - data_df[low_col]) / 2.0
+        else:
+            data_df["x_err"] = np.nan
+
+        return fit_df, data_df, x_label, y_label
