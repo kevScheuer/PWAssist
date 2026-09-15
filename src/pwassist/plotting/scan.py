@@ -673,7 +673,7 @@ class ScanPlotter(BasePWAPlotter):
                 else None
             )
             if bin_width is not None and (
-                (bin_width.stdev() / bin_width.mean()) < 0.01
+                (np.std(bin_width) / np.mean(bin_width)) < 0.01
             ):
                 # if relative standard deviation of the bin width is within 1%, we can
                 # reasonably assume that we have a constant bin width to label the
