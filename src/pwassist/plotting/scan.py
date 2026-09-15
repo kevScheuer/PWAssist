@@ -76,6 +76,7 @@ class ScanPlotter(BasePWAPlotter):
         self,
         sum_label: str,
         data_legend: str = "GlueX-I Data",
+        fractional: bool = False,
         kin_variable: str = "m",
         stat: Literal["edges", "avg"] = "edges",
         t_bin: tuple[float, float] | TBin | None = None,
@@ -85,12 +86,13 @@ class ScanPlotter(BasePWAPlotter):
         ax: matplotlib.axes.Axes | None = None,
         kwargs: dict[str, Any] | None = None,
     ) -> matplotlib.axes.Axes:
-        """Plot coherent sum group across the bins with data points.
+        """Plot coherent sum group across the bins.
 
         A sum group is defined by the quantum numbers that the sum groups and the
         amplitude naming scheme. For example, in the `JLme` scheme, one can plot all
         the available `JLe` coherent sums, or those that sum over the spin-projection
-        `m`.
+        `m`. If not plotting as fit fractions (fractional='false'), then data points
+        are also plotted.
 
         Args:
             sum_label (str): The label of the coherent sum group to plot. See the
@@ -98,6 +100,8 @@ class ScanPlotter(BasePWAPlotter):
                 sum groups and the amplitudes that belong to each group.
             data_legend (str): The legend label for the data points. Defaults to
                 "GlueX-I Data".
+            fractional (bool): Whether to plot the sums as a fraction of the
+                total intensity. Defaults to False.
             kin_variable (str): Shorthand ("m", "t", "e") or exact 'data' dataframe
                 column name for the kinematic variable to plot against. Default to 'm'
                 (mass).
@@ -134,8 +138,14 @@ class ScanPlotter(BasePWAPlotter):
                 f" Available sum labels: {list(self.results.coherent_sums.keys())}"
             )
         coherent_sums = self.results.coherent_sums[sum_label]
+
+        plot_columns = (
+            list(coherent_sums) + ["intensity", "ac_intensity"]
+            if fractional
+            else coherent_sums
+        )
         fit_df, data_df, x_label, y_label = self._scan_dataframes(
-            coherent_sums, kin_variable, stat, t_bin, energy_bin, mass_bin, indices
+            plot_columns, kin_variable, stat, t_bin, energy_bin, mass_bin, indices
         )
 
         # default to Dark2 colormap, and cycle if more columns than colors
@@ -150,6 +160,13 @@ class ScanPlotter(BasePWAPlotter):
         default_kwargs.update(kwargs or {})
         kwargs = default_kwargs
 
+        if fractional:
+            y_label = (
+                y_label.replace("Events", "Fit Fraction")
+                if "Events" in y_label
+                else "Fit Fraction"
+            )
+
         with self._style():
             fig, ax = (
                 plt.subplots(layout="constrained")
@@ -157,34 +174,56 @@ class ScanPlotter(BasePWAPlotter):
                 else (ax.get_figure(), ax)
             )
 
-            # plot the data points with error bars, using the appropriate events column
-            # based on whether the results are acceptance-corrected or not
-            if self.results.is_acc_corrected:
-                data_points = unumpy.uarray(
-                    data_df["ac_events"], data_df["ac_events_err"]
-                )
-            else:
-                data_points = unumpy.uarray(data_df["events"], data_df["events_err"])
+            if not fractional:
+                # plot the data points with error bars, using the appropriate events
+                # column based on whether the results are acceptance-corrected or not
+                if self.results.is_acc_corrected:
+                    data_points = unumpy.uarray(
+                        data_df["ac_events"], data_df["ac_events_err"]
+                    )
+                else:
+                    data_points = unumpy.uarray(
+                        data_df["events"], data_df["events_err"]
+                    )
 
-            ax.errorbar(
-                x=data_df["x_center"],
-                xerr=data_df["x_err"],
-                y=unumpy.nominal_values(data_points),
-                yerr=unumpy.std_devs(data_points),
-                label=data_legend,
-                marker=".",
-                linestyle="",
-                color="black",
-            )
+                ax.errorbar(
+                    x=data_df["x_center"],
+                    xerr=data_df["x_err"],
+                    y=unumpy.nominal_values(data_points),
+                    yerr=unumpy.std_devs(data_points),
+                    label=data_legend,
+                    marker=".",
+                    linestyle="",
+                    color="black",
+                )
 
             # plot each coherent sum with error bars
             for sum_idx, coh_sum in enumerate(coherent_sums):
                 label = self.results.parser.sum_to_latex(sum_label, coh_sum)
+
+                if fractional:
+                    intensity = (
+                        unumpy.uarray(
+                            fit_df["ac_intensity"], fit_df["ac_intensity_err"]
+                        )
+                        if self.results.is_acc_corrected
+                        else unumpy.uarray(fit_df["intensity"], fit_df["intensity_err"])
+                    )
+                    y = (
+                        unumpy.uarray(fit_df[coh_sum], fit_df[f"{coh_sum}_err"])
+                        / intensity
+                    )
+                    y_vals = unumpy.nominal_values(y)
+                    y_errs = unumpy.std_devs(y)
+                else:
+                    y_vals = fit_df[coh_sum]
+                    y_errs = fit_df[f"{coh_sum}_err"]
+
                 ax.errorbar(
                     x=data_df["x_center"],
                     xerr=data_df["x_err"],
-                    y=fit_df[coh_sum],
-                    yerr=fit_df[f"{coh_sum}_err"],
+                    y=y_vals,
+                    yerr=y_errs,
                     label=label,
                     marker=kwargs["marker"][sum_idx],
                     linestyle=kwargs["linestyle"][sum_idx],
