@@ -678,7 +678,7 @@ class ScanPlotter(BasePWAPlotter):
                 # if relative standard deviation of the bin width is within 1%, we can
                 # reasonably assume that we have a constant bin width to label the
                 # y-axis with
-                y_label = y_label.replace("NUM", f"{bin_width.mean()}")
+                y_label = y_label.replace("NUM", f"{bin_width.mean():.3f}")
             else:
                 # bin width is either unknown or variable, so cut down y_label to just
                 # "Events"
@@ -869,7 +869,6 @@ class ScanPlotter(BasePWAPlotter):
         )
 
         data_columns = [
-            center_col,
             "events",
             "events_err",
             "ac_events",
