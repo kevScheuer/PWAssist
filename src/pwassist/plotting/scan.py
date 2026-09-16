@@ -681,13 +681,13 @@ class ScanPlotter(BasePWAPlotter):
         )
 
         successful_fits = (
-            df.loc[df["eMatrixStatus"] == 3 & df["lastMinuitCommandStatus"] == 0]
+            df.loc[(df["eMatrixStatus"] == 3) & (df["lastMinuitCommandStatus"] == 0)]
             .groupby("bin_id")
             .size()
             .to_numpy()
         )
         bad_eMatrix_fits = (
-            df.loc[df["eMatrixStatus"] != 3 & df["lastMinuitCommandStatus"] == 0]
+            df.loc[(df["eMatrixStatus"] != 3) & (df["lastMinuitCommandStatus"] == 0)]
             .groupby("bin_id")
             .size()
             .to_numpy()
