@@ -1,9 +1,12 @@
+from typing import Any
+
 import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
 
+from pwassist.io.binning import EnergyBin, MassBin, TBin
 from pwassist.plotting.base import BasePWAPlotter
 
 
@@ -11,26 +14,49 @@ class BinPlotter(BasePWAPlotter):
     """Plotter for analyzing a single bin of data, e.g. mass, t, etc."""
 
     def corr_matrix(
-        self, bin_idx: int, ax: matplotlib.axes.Axes | None = None
+        self,
+        t_bin: tuple[float, float] | TBin | None = None,
+        energy_bin: tuple[float, float] | EnergyBin | None = None,
+        mass_bin: tuple[float, float] | MassBin | None = None,
+        indices: list[int] | None = None,
+        ax: matplotlib.axes.Axes | None = None,
+        kwargs: dict[str, Any] | None = None,
     ) -> matplotlib.axes.Axes:
         """Plot the correlation matrix of the fit parameters for a single bin.
 
         Args:
-            bin_idx (int): The index of the bin to plot.
+            t_bin (tuple[float, float] | TBin | None): Fixes the t bin to plot from if
+                the results span multiple t bins. If only 1 t bin is available,
+                specification is unnecessary. Defaults to None.
+            energy_bin (tuple[float,float] | EnergyBin | None): Fixes the beam energy
+                bin to plot from if the results span multiple energy bins. If only 1
+                energy bin is available, specification is unnecessary. Defaults to None.
+            mass_bin (tuple[float,float] | EnergyBin | None): Fixes the mass bin to plot
+                from if the results span multiple mass bins. If only 1 mass bin is
+                available, specification is unnecessary. Defaults to None.
+            indices (list[int]): Optional list of positions within the resolved
+                kinematic bin to select specific bins. Defaults to None.
             ax (matplotlib.axes.Axes | None): Optional axes to plot on. If None, a new
                 figure and axes will be created.
+            kwargs (dict[str, Any] | None): Optional dictionary of keyword arguments
+                to customize the plot appearance.
         Returns:
             matplotlib.axes.Axes: The axes object containing the correlation matrix plot
         """
 
-        # TODO: determine bin_id of fit_result associated with correlation df bin_id
-        # then get the correlation matrix for that bin_id from the fit_result
-
-        if ax is None:
-            fig, ax = plt.subplots(figsize=(8, 6))
+        default_kwargs = {}
+        default_kwargs.update(kwargs or {})
+        kwargs = default_kwargs
 
         with self._style():
+            fig, ax = (
+                plt.subplots(layout="constrained")
+                if ax is None
+                else (ax.get_figure(), ax)
+            )
+
             # TODO: plot corr matrix
+
             pass
 
         return ax
