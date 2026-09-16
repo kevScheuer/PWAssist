@@ -30,6 +30,12 @@ _KIN_VARIABLE_YLABELS: dict[str, str] = {
     "e": r"Events / NUM $(GeV)$",
 }
 
+# Results dataframes that share the same fit-parameter naming convention (<parameter>
+# and <parameter>_err columns). The 'fit', 'randomized', and 'bootstrap' frames all have
+# this shape, of one row per fit. The 'correlation'/'covariance'/'norm_int' frames are
+# matrix-shaped, with one row per parameter/amplitude, not following this convention.
+_FIT_LIKE_FRAMES = frozenset({"fit", "randomized", "bootstrap"})
+
 
 def _numeric_sort_key(value: str) -> float:
     """Numeric ordering for quantum-number character or string.
@@ -145,7 +151,13 @@ class ScanPlotter(BasePWAPlotter):
             else coherent_sums
         )
         fit_df, data_df, x_label, y_label = self._scan_dataframes(
-            plot_columns, kin_variable, stat, t_bin, energy_bin, mass_bin, indices
+            columns=plot_columns,
+            kin_variable=kin_variable,
+            stat=stat,
+            t_bin=t_bin,
+            energy_bin=energy_bin,
+            mass_bin=mass_bin,
+            indices=indices,
         )
 
         # default to Dark2 colormap, and cycle if more columns than colors
@@ -364,7 +376,13 @@ class ScanPlotter(BasePWAPlotter):
         if fractional:
             plot_columns.extend(["intensity", "ac_intensity"])
         fit_df, data_df, x_label, y_label = self._scan_dataframes(
-            plot_columns, kin_variable, stat, t_bin, energy_bin, mass_bin, indices
+            columns=plot_columns,
+            kin_variable=kin_variable,
+            stat=stat,
+            t_bin=t_bin,
+            energy_bin=energy_bin,
+            mass_bin=mass_bin,
+            indices=indices,
         )
 
         # default styling
@@ -592,24 +610,47 @@ class ScanPlotter(BasePWAPlotter):
 
     def convergence_rate(
         self,
+        kin_variable: str = "m",
+        stat: Literal["edges", "avg"] = "edges",
+        t_bin: tuple[float, float] | TBin | None = None,
+        energy_bin: tuple[float, float] | EnergyBin | None = None,
+        mass_bin: tuple[float, float] | MassBin | None = None,
         indices: list[int] | None = None,
         ax: matplotlib.axes.Axes | None = None,
         kwargs: dict[str, Any] | None = None,
     ) -> matplotlib.axes.Axes:
-        """Plot the convergence rate of the fit across the mass bins.
+        """Plot the convergence rate of the fit across bins.
 
         Requires randomized fits to be in the results. Plots the percentage of
-        successful, failed, and converged-with-bad-error-matrix fits across the mass
-        bins. This can be useful for diagnosing issues with the fit and understanding
-        the stability of the fit across the mass range.
+        successful, failed, and converged-with-bad-error-matrix fits across the selected
+        kinematic bins. This can be useful for diagnosing issues with the fit and
+        understanding the stability of the fit across the mass range.
 
         Args:
-            indices (list[int] | None): Optional list of indices to select specific mass
-                bins. If None, all bins will be plotted.
+            kin_variable (str): Shorthand ("m", "t", "e") or exact 'data' dataframe
+                column name for the kinematic variable to plot against. Default to 'm'
+                (mass).
+            stat (Literal['edges', 'avg']): Whether x-value/error is from the bin center
+                and (high-low)/2 'edges' (default) or from the actual bin average and
+                rms of the underlying data.
+            t_bin (tuple[float, float] | TBin | None): Fixes the t bin to plot from if
+                the results span multiple t bins. If only 1 t bin is available,
+                specification is unnecessary. Defaults to None.
+            energy_bin (tuple[float,float] | EnergyBin | None): Fixes the beam energy
+                bin to plot from if the results span multiple energy bins. If only 1
+                energy bin is available, specification is unnecessary. Defaults to None.
+            mass_bin (tuple[float,float] | MassBin | None): Fixes the mass bin to plot
+                from if the results span multiple mass bins. If only 1 mass bin is
+                available, specification is unnecessary. Defaults to None.
+            indices (list[int] | None): Optional list of positions within the resolved
+                kinematic bin to select specific bins. Defaults to None.
             ax (matplotlib.axes.Axes | None): Optional axes to plot on. If None, a new
                 figure and axes will be created.
             kwargs (dict[str, Any] | None): Optional dictionary of keyword arguments
-                to customize the plot appearance.
+                to customize the plot appearance. Organized per fit status type as
+                'successful', 'bad error matrix', 'failed', so given value lists should
+                be in the same ordering e.g. "labels" : ["Success", "Bad Error",
+                "Failed"].
         Returns:
             matplotlib.axes.Axes: The axes object containing the convergence rate plot.
         Raises:
@@ -619,13 +660,68 @@ class ScanPlotter(BasePWAPlotter):
         if self.results.randomized is None:
             raise KeyError("Randomized fits are required to plot convergence rate.")
 
-        if ax is None:
-            fig, ax = plt.subplots(
-                layout="constrained",
+        fit_status_columns = ["eMatrixStatus", "lastMinuitCommandStatus"]
+
+        df, data_df, x_label, _ = self._scan_dataframes(
+            columns=fit_status_columns,
+            kin_variable=kin_variable,
+            stat=stat,
+            t_bin=t_bin,
+            energy_bin=energy_bin,
+            mass_bin=mass_bin,
+            indices=indices,
+        )
+
+        successful_fits = (
+            df.loc[df["eMatrixStatus"] == 3 & df["lastMinuitCommandStatus"] == 0]
+            .groupby("bin_id")
+            .size()
+            .to_numpy()
+        )
+        bad_eMatrix_fits = (
+            df.loc[df["eMatrixStatus"] != 3 & df["lastMinuitCommandStatus"] == 0]
+            .groupby("bin_id")
+            .size()
+            .to_numpy()
+        )
+        failed_fits = (
+            df.loc[df["lastMinuitCommandStatus"] != 0]
+            .groupby("bin_id")
+            .size()
+            .to_numpy()
+        )
+
+        default_kwargs = {
+            "colors": ["tab:blue", "tab:orange", "tab:red"],
+            "labels": ["Success", "Inaccurate Errors", "Failed"],
+        }
+        default_kwargs.update(kwargs or {})
+        kwargs = default_kwargs
+
+        with self._style():
+            fig, ax = (
+                plt.subplots(layout="constrained")
+                if ax is None
+                else (ax.get_figure(), ax)
             )
 
-        # TODO: determine each rate as percentage of total fits, and plot as stacked
-        # bar chart with appropriate labels and legend.
+            bottom = np.zeros(len(successful_fits))
+            for i, fit_status in enumerate(
+                [successful_fits, bad_eMatrix_fits, failed_fits]
+            ):
+                ax.bar(
+                    data_df["x_center"],
+                    fit_status,
+                    width=0.5,
+                    label=kwargs["labels"][i],
+                    color=kwargs["colors"][i],
+                )
+                bottom += fit_status
+
+            ax.set_xlabel(x_label)
+            ax.set_ylabel(r"# of fits")
+            ax.set_ylim(bottom=0)
+            ax.legend()
 
         return ax
 
@@ -829,7 +925,10 @@ class ScanPlotter(BasePWAPlotter):
 
     def _scan_dataframes(
         self,
-        columns: tuple[str, ...] | list[str],
+        columns: tuple[str, ...] | list[str] | None = None,
+        frame: Literal[
+            "fit", "correlation", "covariance", "norm_int", "randomized", "bootstrap"
+        ] = "fit",
         kin_variable: str = "m",
         stat: Literal["edges", "avg"] = "edges",
         t_bin: tuple[float, float] | TBin | None = None,
@@ -837,17 +936,27 @@ class ScanPlotter(BasePWAPlotter):
         mass_bin: tuple[float, float] | MassBin | None = None,
         indices: list[int] | None = None,
     ) -> tuple[pd.DataFrame, pd.DataFrame, str, str]:
-        """Get the fit and data dataframes for a scan across a kinematic variable.
+        """Get a results dataframe and 'data' dataframe over a kinematic variable scan
 
-        Helper to plot any set of columns (e.g. coherent sums, amplitudes, etc.) as a
-        function of a kinematic variable (mass, t, energy, etc.). This will resolve the
-        appropriate kinematic bins to scan over, and return the fit and data dataframes
-        with the relevant columns for the scan, as well as the x-axis label.
+        Every plot in this class needs two things: the set of kinematic bins to scan
+        over, resolved and ordered along 'kin_variable' (see '_resolve_scan_bins'), and
+        rows from one of the 'result' dataframes restricted to those bins. This does
+        both, for any of the 'results.fit', '.correlation', ... . Fit, randomized, and
+        bootstrap dataframes share the same per-quantity "<col>"/"<col>_err" convention,
+        so those columns are automatically appended. Matrix-like results (norm-int,
+        covariance, etc.) use 'columns' as-is.
+
+        Unlike 'fit' or 'data' frames, the other frames have several rows per bin. These
+        returned frames always keep a "bin_id" column so those rows stay identifiable.
 
         Args:
-            columns (tuple[str, ...] | list[str]): The columns to extract from the fit
-                dataframe for plotting. Corresponding error columns (e.g. "column_err")
-                will also be extracted.
+            columns (tuple[str, ...] | list[str] | None): The columns to include from
+                'frame'. For 'fit'/'randomized'/'bootstrap' frames, the "_err"
+                companions are automatically added. If None (default) all columns are
+                included.
+            frame (Literal['fit', 'correlation', 'covariance', 'norm_int', 'randomized'
+                'bootstrap']): Which 'results' dataframe to pull 'columns' from.
+                Defaults to 'fit'.
             kin_variable (str): The kinematic variable to scan over ("m", "t", "e").
                 Any other value is treated as a column name in the 'data' dataframe, and
                 will be used as the x-axis. The given t-bin/energy-bin/mass-bin will be
@@ -859,22 +968,26 @@ class ScanPlotter(BasePWAPlotter):
             energy_bin (tuple[float, float] | EnergyBin | None): Optional fixed energy
                 bin.
             mass_bin (tuple[float, float] | MassBin | None): Optional fixed mass bin.
-            indices (list[int] | None): Optional list of indices to select specific
-                bins. If None, all bins will be used.
+            indices (list[int] | None): Optional list of indices, within the resolved
+                and sorted scan, to select specific bins. If None, all bins will be
+                used.
 
         Returns:
-            tuple[pd.DataFrame, pd.DataFrame, str, str]: The fit dataframe (requested
-            columns and errors), the data dataframe (resolved kinematic variable renamed
-            to "x_center" and "x_err"), and LaTeX formatted x-y axis labels for the
-            kinematic variable. Both dataframes are ordered along the scan dimension and
-            indexed by row position.
-
+            tuple[pd.DataFrame, pd.DataFrame, str, str]: The requested 'frame's rows
+            (restricted to the resolve bins, 'bin_id' retained, grouped/ordered to match
+            the scan), the 'data' dataframe (kinematic variable renamed to 'x_center'
+            and 'x_err', 'bin_id' retained) and LaTeX formatted x-y axis labels for the
+            kinematic variable.
         Raises:
             KeyError: If kin_variable cannot be resolved to a known shorthand or column
-                name in the 'data' dataframe.
+                name in the 'data' dataframe, or requested 'frame' is not available.
             ValueError: If a bin is given for the dimension being scanned over, or if
                 multiple bins are present on a non-scanned dimension, leaving an
                 ambiguous plot range.
+
+        Todo:
+            - this can potentially be extended to the bin.py plotter as well, and thus
+                moved into the base class.
         """
         center_col, low_col, high_col, rms_col, x_label, y_label = (
             self._resolve_kin_variable(kin_variable, stat)
@@ -892,20 +1005,27 @@ class ScanPlotter(BasePWAPlotter):
                 "provided t_bin, energy_bin, and mass_bin arguments."
             )
 
+        requested_frame = getattr(self.results, frame, None)
+        if requested_frame is None:
+            raise KeyError(
+                f"results.{frame} is not available (is None). Make sure the results"
+                f" bundle actually includes {frame} data"
+            )
+
         # bootstrap fits replace fit errors, if available
-        fit_columns = list(columns)
-        if self.results.bootstrap is not None:
+        if frame == "fit" and self.results.bootstrap is not None:
             raise NotImplementedError(
                 "Replacing column errors by bootstrap std() not yet implemented"
             )
-        else:
-            fit_columns.extend([f"{col}_err" for col in columns])
 
-        fit_df = (
-            self.results.fit.set_index("bin_id", drop=False)
-            .loc[bin_ids, fit_columns]
-            .reset_index(drop=True)
-        )
+        if columns is None:
+            frame_columns = [c for c in requested_frame.columns if c != "bin_id"]
+        elif frame in _FIT_LIKE_FRAMES:
+            frame_columns = list(columns) + [f"{col}_err" for col in columns]
+        else:
+            frame_columns = list(columns)
+
+        value_df = self._select_by_bin_id(requested_frame, bin_ids, frame_columns)
 
         data_columns = [
             "events",
@@ -916,11 +1036,7 @@ class ScanPlotter(BasePWAPlotter):
         for extra_col in (center_col, low_col, high_col, rms_col):
             if extra_col is not None:
                 data_columns.append(extra_col)
-        data_df = (
-            self.results.data.set_index("bin_id", drop=False)
-            .loc[bin_ids, data_columns]
-            .reset_index(drop=True)
-        )
+        data_df = self._select_by_bin_id(self.results.data, bin_ids, data_columns)
         if center_col is not None:
             data_df = data_df.rename(columns={center_col: "x_center"})
         else:
@@ -934,4 +1050,36 @@ class ScanPlotter(BasePWAPlotter):
         else:
             data_df["x_err"] = np.nan
 
-        return fit_df, data_df, x_label, y_label
+        return value_df, data_df, x_label, y_label
+
+    def _select_by_bin_id(
+        self, frame: pd.DataFrame, bin_ids: list[str], columns: list[str]
+    ) -> pd.DataFrame:
+        """Select and order rows of results dataframe by resolved bin_ids
+
+        'fit' and 'data' have one row per kinematic bin, but 'randomized' and
+        'bootstrap' have many (one row per fit, many fits per bin). 'Correlation',
+        'covariance', and 'norm_int' frames are matrices, with one row per
+        fit/amplitude, and many rows per bin. This method selects by kinematic bin_id,
+        keeping the original ordering of many rows per bin.
+
+        Args:
+            frame (pd.DataFrame): Dataframe to select from. Must have a "bin_id" column.
+            bin_ids (list[str]): Resolved, ordered bin_ids to select and order by.
+            columns (list[str]): Columns to keep, in addition to "bin_id", which is kept
+                to keep rows identifiable.
+
+        Returns:
+            pd.DataFrame: Selected rows with 'bin_id' retained as the first column.
+
+        Raises:
+            KeyError: If "bin_id" is not a column in 'frame'
+        """
+        if "bin_id" not in frame.columns:
+            raise KeyError(
+                "Expected a 'bin_id' column to select kinematic bins by, but was not"
+                f" found. Available columns: {list(frame.columns)}"
+            )
+        ordered_columns = ["bin_id"] + [c for c in columns if c != "bin_id"]
+        selected = frame.set_index("bin_id", drop=False).loc[bin_ids, ordered_columns]
+        return selected.reset_index(drop=True)
