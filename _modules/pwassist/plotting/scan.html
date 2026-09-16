@@ -1,0 +1,1609 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pwassist.plotting.scan &#8212; PWAssist  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=4418a689" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pwassist/plotting/scan';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">PWAssist  documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.io.catalog.html">pwassist.io.catalog</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.BootstrapFile.html">pwassist.io.catalog.BootstrapFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.Catalog.html">pwassist.io.catalog.Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.CorrelationFile.html">pwassist.io.catalog.CorrelationFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.CovarianceFile.html">pwassist.io.catalog.CovarianceFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.DataFile.html">pwassist.io.catalog.DataFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.FitFile.html">pwassist.io.catalog.FitFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.NormIntFile.html">pwassist.io.catalog.NormIntFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.RandomizedFile.html">pwassist.io.catalog.RandomizedFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.catalog.ResultsFile.html">pwassist.io.catalog.ResultsFile</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.io.binning.html">pwassist.io.binning</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.binning.BinBundle.html">pwassist.io.binning.BinBundle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.binning.BinCollection.html">pwassist.io.binning.BinCollection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.binning.EnergyBin.html">pwassist.io.binning.EnergyBin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.binning.KinematicBin.html">pwassist.io.binning.KinematicBin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.binning.MassBin.html">pwassist.io.binning.MassBin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.io.binning.TBin.html">pwassist.io.binning.TBin</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.preprocessing.preprocessor.html">pwassist.preprocessing.preprocessor</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.preprocessing.preprocessor.FunctionStep.html">pwassist.preprocessing.preprocessor.FunctionStep</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.preprocessing.preprocessor.PreprocessReport.html">pwassist.preprocessing.preprocessor.PreprocessReport</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.preprocessing.preprocessor.PreprocessStep.html">pwassist.preprocessing.preprocessor.PreprocessStep</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.preprocessing.preprocessor.Preprocessor.html">pwassist.preprocessing.preprocessor.Preprocessor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.preprocessing.preprocessor.ProcessedBin.html">pwassist.preprocessing.preprocessor.ProcessedBin</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.core.result.html">pwassist.core.result</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.core.result.Results.html">pwassist.core.result.Results</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.parser.html">pwassist.parser</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.parser.AmplitudeParser.html">pwassist.parser.AmplitudeParser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.parser.NamingScheme.html">pwassist.parser.NamingScheme</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.parser.ParsedAmplitude.html">pwassist.parser.ParsedAmplitude</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.parser.SchemeDef.html">pwassist.parser.SchemeDef</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.plotting.base.html">pwassist.plotting.base</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.plotting.base.BasePWAPlotter.html">pwassist.plotting.base.BasePWAPlotter</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.plotting.factory.html">pwassist.plotting.factory</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.plotting.factory.FactoryPlotter.html">pwassist.plotting.factory.FactoryPlotter</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.plotting.scan.html">pwassist.plotting.scan</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.plotting.scan.ScanPlotter.html">pwassist.plotting.scan.ScanPlotter</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.pipeline.pipeline.html">pwassist.pipeline.pipeline</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.pipeline.pipeline.Pipeline.html">pwassist.pipeline.pipeline.Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.pipeline.pipeline.PipelineConfig.html">pwassist.pipeline.pipeline.PipelineConfig</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.pipeline.pipeline.PipelineReport.html">pwassist.pipeline.pipeline.PipelineReport</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pwassist.cli.html">pwassist.cli</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.cli.build_parser.html">pwassist.cli.build_parser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pwassist.cli.main.html">pwassist.cli.main</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/kevScheuer/PWAssist" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/kevScheuer/PWAssist/issues/new?title=Issue%20on%20page%20%2F_modules/pwassist/plotting/scan.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pwassist.plotting.scan</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.axes</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">uncertainties</span><span class="w"> </span><span class="kn">import</span> <span class="n">ufloat</span><span class="p">,</span> <span class="n">unumpy</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pwassist.io.binning</span><span class="w"> </span><span class="kn">import</span> <span class="n">EnergyBin</span><span class="p">,</span> <span class="n">KinematicBin</span><span class="p">,</span> <span class="n">MassBin</span><span class="p">,</span> <span class="n">TBin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pwassist.parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">SCHEMES</span><span class="p">,</span> <span class="n">NamingScheme</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pwassist.plotting.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BasePWAPlotter</span>
+
+<span class="c1"># Different naming schemes use different reflectivity characters</span>
+<span class="n">_POSITIVE_REFLECTIVITY_CHARS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">})</span>
+<span class="n">_NEGATIVE_REFLECTIVITY_CHARS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">})</span>
+
+<span class="c1"># Ordering of orbital angular momentum letters</span>
+<span class="n">_L_ORDER</span> <span class="o">=</span> <span class="s2">&quot;SPDFGHIKLM&quot;</span>
+
+<span class="c1"># Shorthand kinematic variables and their axis labels</span>
+<span class="n">_KIN_VARIABLE_XLABELS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;m&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;Mass $(GeV)$&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;t&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$-t$ $(GeV^2)$&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;e&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;Beam Energy $(GeV)$&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">_KIN_VARIABLE_YLABELS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;m&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;Events / NUM $(GeV)$&quot;</span><span class="p">,</span>  <span class="c1"># replace NUM with bin width in functions</span>
+    <span class="s2">&quot;t&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;Events / NUM $(GeV^2)$&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;e&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;Events / NUM $(GeV)$&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1"># Results dataframes that share the same fit-parameter naming convention (&lt;parameter&gt;</span>
+<span class="c1"># and &lt;parameter&gt;_err columns). The &#39;fit&#39;, &#39;randomized&#39;, and &#39;bootstrap&#39; frames all have</span>
+<span class="c1"># this shape, of one row per fit. The &#39;correlation&#39;/&#39;covariance&#39;/&#39;norm_int&#39; frames are</span>
+<span class="c1"># matrix-shaped, with one row per parameter/amplitude, not following this convention.</span>
+<span class="n">_FIT_LIKE_FRAMES</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;fit&quot;</span><span class="p">,</span> <span class="s2">&quot;randomized&quot;</span><span class="p">,</span> <span class="s2">&quot;bootstrap&quot;</span><span class="p">})</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_numeric_sort_key</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Numeric ordering for quantum-number character or string.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        value (str): Quantum-number string to derive sort key from</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        float: for sorting the string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">_L_ORDER</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">_L_ORDER</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+
+    <span class="n">sign_map</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;p&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">and</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">sign_map</span> <span class="ow">and</span> <span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">or</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()):</span>
+        <span class="n">magnitude</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="k">if</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">else</span> <span class="mf">1.0</span>
+        <span class="k">return</span> <span class="n">sign_map</span><span class="p">[</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">*</span> <span class="n">magnitude</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_format_spin_projection</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Render spin-projection as a signed integer string</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        m (str): spin-projection e.g. &quot;-1&quot;, &quot;+0&quot;, &quot;p2&quot;, &quot;m&quot;, etc.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        str: signed integer e.g. &quot;m1&quot; -&gt; &quot;-1&quot;, or original if uninterpretable</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sign_map</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;p&quot;</span><span class="p">:</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">:</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="s2">&quot;-&quot;</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">m</span> <span class="ow">and</span> <span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">sign_map</span><span class="p">:</span>
+        <span class="n">digits</span> <span class="o">=</span> <span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="ow">or</span> <span class="s2">&quot;0&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">sign_map</span><span class="p">[</span><span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="si">}{</span><span class="n">digits</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">return</span> <span class="n">m</span>
+
+
+<div class="viewcode-block" id="ScanPlotter">
+<a class="viewcode-back" href="../../../api/pwassist.plotting.scan.ScanPlotter.html#pwassist.plotting.scan.ScanPlotter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ScanPlotter</span><span class="p">(</span><span class="n">BasePWAPlotter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Plotter for all results that scan across a range of bins, e.g. mass, t, etc.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ScanPlotter.coherent_sum">
+<a class="viewcode-back" href="../../../api/pwassist.plotting.scan.ScanPlotter.html#pwassist.plotting.scan.ScanPlotter.coherent_sum">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">coherent_sum</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sum_label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">data_legend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;GlueX-I Data&quot;</span><span class="p">,</span>
+        <span class="n">fractional</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">kin_variable</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span>
+        <span class="n">stat</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;edges&quot;</span><span class="p">,</span> <span class="s2">&quot;avg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;edges&quot;</span><span class="p">,</span>
+        <span class="n">t_bin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">TBin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">energy_bin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">EnergyBin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">mass_bin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">MassBin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">indices</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">ax</span><span class="p">:</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">Axes</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">Axes</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot coherent sum group across the bins.</span>
+
+<span class="sd">        A sum group is defined by the quantum numbers that the sum groups and the</span>
+<span class="sd">        amplitude naming scheme. For example, in the `JLme` scheme, one can plot all</span>
+<span class="sd">        the available `JLe` coherent sums, or those that sum over the spin-projection</span>
+<span class="sd">        `m`. If not plotting as fit fractions (fractional=&#39;false&#39;), then data points</span>
+<span class="sd">        are also plotted.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sum_label (str): The label of the coherent sum group to plot. See the</span>
+<span class="sd">                `coherent_sums` member of the `Results` class for a list of available</span>
+<span class="sd">                sum groups and the amplitudes that belong to each group.</span>
+<span class="sd">            data_legend (str): The legend label for the data points. Defaults to</span>
+<span class="sd">                &quot;GlueX-I Data&quot;.</span>
+<span class="sd">            fractional (bool): Whether to plot the sums as a fraction of the</span>
+<span class="sd">                total intensity. Defaults to False.</span>
+<span class="sd">            kin_variable (str): Shorthand (&quot;m&quot;, &quot;t&quot;, &quot;e&quot;) or exact &#39;data&#39; dataframe</span>
+<span class="sd">                column name for the kinematic variable to plot against. Default to &#39;m&#39;</span>
+<span class="sd">                (mass).</span>
+<span class="sd">            stat (Literal[&#39;edges&#39;, &#39;avg&#39;]): Whether x-value/error is from the bin center</span>
+<span class="sd">                and (high-low)/2 &#39;edges&#39; (default) or from the actual bin average and</span>
+<span class="sd">                rms of the underlying data.</span>
+<span class="sd">            t_bin (tuple[float, float] | TBin | None): Fixes the t bin to plot from if</span>
+<span class="sd">                the results span multiple t bins. If only 1 t bin is available,</span>
+<span class="sd">                specification is unnecessary. Defaults to None.</span>
+<span class="sd">            energy_bin (tuple[float,float] | EnergyBin | None): Fixes the beam energy</span>
+<span class="sd">                bin to plot from if the results span multiple energy bins. If only 1</span>
+<span class="sd">                energy bin is available, specification is unnecessary. Defaults to None.</span>
+<span class="sd">            mass_bin (tuple[float,float] | MassBin | None): Fixes the mass bin to plot</span>
+<span class="sd">                from if the results span multiple mass bins. If only 1 mass bin is</span>
+<span class="sd">                available, specification is unnecessary. Defaults to None.</span>
+<span class="sd">            indices (list[int] | None): Optional list of positions within the resolved</span>
+<span class="sd">                kinematic bin to select specific bins. Defaults to None.</span>
+<span class="sd">            ax (matplotlib.axes.Axes | None): Optional axes to plot on. If None, a new</span>
+<span class="sd">                figure and axes will be created.</span>
+<span class="sd">            kwargs (dict[str, Any] | None): Optional dictionary of keyword arguments</span>
+<span class="sd">                to customize the plot appearance.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: If the specified sum_label is not found in the coherent sums, or</span>
+<span class="sd">                or if stat=&#39;avg&#39; but the requested corresponding columns are not present</span>
+<span class="sd">                in the &#39;data&#39; dataframe.</span>
+<span class="sd">            ValueError: If a bin is given for the dimension being scanned over, or</span>
+<span class="sd">                if multiple bins are present on a non-scammed dimension, leaving an</span>
+<span class="sd">                ambiguous plot range.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sum_label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">coherent_sums</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Sum label &#39;</span><span class="si">{</span><span class="n">sum_label</span><span class="si">}</span><span class="s2">&#39; not found in coherent sums.&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot; Available sum labels: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">coherent_sums</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="n">coherent_sums</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">coherent_sums</span><span class="p">[</span><span class="n">sum_label</span><span class="p">]</span>
+
+        <span class="n">plot_columns</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="n">coherent_sums</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;intensity&quot;</span><span class="p">,</span> <span class="s2">&quot;ac_intensity&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">fractional</span>
+            <span class="k">else</span> <span class="n">coherent_sums</span>
+        <span class="p">)</span>
+        <span class="n">fit_df</span><span class="p">,</span> <span class="n">data_df</span><span class="p">,</span> <span class="n">x_label</span><span class="p">,</span> <span class="n">y_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scan_dataframes</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="n">plot_columns</span><span class="p">,</span>
+            <span class="n">kin_variable</span><span class="o">=</span><span class="n">kin_variable</span><span class="p">,</span>
+            <span class="n">stat</span><span class="o">=</span><span class="n">stat</span><span class="p">,</span>
+            <span class="n">t_bin</span><span class="o">=</span><span class="n">t_bin</span><span class="p">,</span>
+            <span class="n">energy_bin</span><span class="o">=</span><span class="n">energy_bin</span><span class="p">,</span>
+            <span class="n">mass_bin</span><span class="o">=</span><span class="n">mass_bin</span><span class="p">,</span>
+            <span class="n">indices</span><span class="o">=</span><span class="n">indices</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># default to Dark2 colormap, and cycle if more columns than colors</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s2">&quot;Dark2&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">colors</span>  <span class="c1"># type: ignore</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">islice</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">cycle</span><span class="p">(</span><span class="n">colors</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">coherent_sums</span><span class="p">)))</span>
+        <span class="n">default_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;marker&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;.&quot;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">coherent_sums</span><span class="p">))],</span>
+            <span class="s2">&quot;linestyle&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&quot;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">coherent_sums</span><span class="p">))],</span>
+            <span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.7</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">coherent_sums</span><span class="p">))],</span>
+            <span class="s2">&quot;colors&quot;</span><span class="p">:</span> <span class="n">colors</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">default_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span> <span class="ow">or</span> <span class="p">{})</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="n">default_kwargs</span>
+
+        <span class="k">if</span> <span class="n">fractional</span><span class="p">:</span>
+            <span class="n">y_label</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">y_label</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;Events&quot;</span><span class="p">,</span> <span class="s2">&quot;Fit Fraction&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">&quot;Events&quot;</span> <span class="ow">in</span> <span class="n">y_label</span>
+                <span class="k">else</span> <span class="s2">&quot;Fit Fraction&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_style</span><span class="p">():</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">layout</span><span class="o">=</span><span class="s2">&quot;constrained&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_figure</span><span class="p">(),</span> <span class="n">ax</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">fractional</span><span class="p">:</span>
+                <span class="c1"># plot the data points with error bars, using the appropriate events</span>
+                <span class="c1"># column based on whether the results are acceptance-corrected or not</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">is_acc_corrected</span><span class="p">:</span>
+                    <span class="n">data_points</span> <span class="o">=</span> <span class="n">unumpy</span><span class="o">.</span><span class="n">uarray</span><span class="p">(</span>
+                        <span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;ac_events&quot;</span><span class="p">],</span> <span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;ac_events_err&quot;</span><span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">data_points</span> <span class="o">=</span> <span class="n">unumpy</span><span class="o">.</span><span class="n">uarray</span><span class="p">(</span>
+                        <span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;events&quot;</span><span class="p">],</span> <span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;events_err&quot;</span><span class="p">]</span>
+                    <span class="p">)</span>
+
+                <span class="n">ax</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span>
+                    <span class="n">x</span><span class="o">=</span><span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;x_center&quot;</span><span class="p">],</span>
+                    <span class="n">xerr</span><span class="o">=</span><span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;x_err&quot;</span><span class="p">],</span>
+                    <span class="n">y</span><span class="o">=</span><span class="n">unumpy</span><span class="o">.</span><span class="n">nominal_values</span><span class="p">(</span><span class="n">data_points</span><span class="p">),</span>
+                    <span class="n">yerr</span><span class="o">=</span><span class="n">unumpy</span><span class="o">.</span><span class="n">std_devs</span><span class="p">(</span><span class="n">data_points</span><span class="p">),</span>
+                    <span class="n">label</span><span class="o">=</span><span class="n">data_legend</span><span class="p">,</span>
+                    <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span>
+                    <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+                    <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="c1"># plot each coherent sum with error bars</span>
+            <span class="k">for</span> <span class="n">sum_idx</span><span class="p">,</span> <span class="n">coh_sum</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coherent_sums</span><span class="p">):</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">sum_to_latex</span><span class="p">(</span><span class="n">sum_label</span><span class="p">,</span> <span class="n">coh_sum</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">fractional</span><span class="p">:</span>
+                    <span class="n">intensity</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">unumpy</span><span class="o">.</span><span class="n">uarray</span><span class="p">(</span>
+                            <span class="n">fit_df</span><span class="p">[</span><span class="s2">&quot;ac_intensity&quot;</span><span class="p">],</span> <span class="n">fit_df</span><span class="p">[</span><span class="s2">&quot;ac_intensity_err&quot;</span><span class="p">]</span>
+                        <span class="p">)</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">is_acc_corrected</span>
+                        <span class="k">else</span> <span class="n">unumpy</span><span class="o">.</span><span class="n">uarray</span><span class="p">(</span><span class="n">fit_df</span><span class="p">[</span><span class="s2">&quot;intensity&quot;</span><span class="p">],</span> <span class="n">fit_df</span><span class="p">[</span><span class="s2">&quot;intensity_err&quot;</span><span class="p">])</span>
+                    <span class="p">)</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">unumpy</span><span class="o">.</span><span class="n">uarray</span><span class="p">(</span><span class="n">fit_df</span><span class="p">[</span><span class="n">coh_sum</span><span class="p">],</span> <span class="n">fit_df</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">coh_sum</span><span class="si">}</span><span class="s2">_err&quot;</span><span class="p">])</span>
+                        <span class="o">/</span> <span class="n">intensity</span>
+                    <span class="p">)</span>
+                    <span class="n">y_vals</span> <span class="o">=</span> <span class="n">unumpy</span><span class="o">.</span><span class="n">nominal_values</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+                    <span class="n">y_errs</span> <span class="o">=</span> <span class="n">unumpy</span><span class="o">.</span><span class="n">std_devs</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">y_vals</span> <span class="o">=</span> <span class="n">fit_df</span><span class="p">[</span><span class="n">coh_sum</span><span class="p">]</span>
+                    <span class="n">y_errs</span> <span class="o">=</span> <span class="n">fit_df</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">coh_sum</span><span class="si">}</span><span class="s2">_err&quot;</span><span class="p">]</span>
+
+                <span class="n">ax</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span>
+                    <span class="n">x</span><span class="o">=</span><span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;x_center&quot;</span><span class="p">],</span>
+                    <span class="n">xerr</span><span class="o">=</span><span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;x_err&quot;</span><span class="p">],</span>
+                    <span class="n">y</span><span class="o">=</span><span class="n">y_vals</span><span class="p">,</span>
+                    <span class="n">yerr</span><span class="o">=</span><span class="n">y_errs</span><span class="p">,</span>
+                    <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+                    <span class="n">marker</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;marker&quot;</span><span class="p">][</span><span class="n">sum_idx</span><span class="p">],</span>
+                    <span class="n">linestyle</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;linestyle&quot;</span><span class="p">][</span><span class="n">sum_idx</span><span class="p">],</span>
+                    <span class="n">alpha</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">][</span><span class="n">sum_idx</span><span class="p">],</span>
+                    <span class="n">color</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;colors&quot;</span><span class="p">][</span><span class="n">sum_idx</span><span class="p">],</span>
+                <span class="p">)</span>
+
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">x_label</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">y_label</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">ax</span></div>
+
+
+<div class="viewcode-block" id="ScanPlotter.amplitudes">
+<a class="viewcode-back" href="../../../api/pwassist.plotting.scan.ScanPlotter.html#pwassist.plotting.scan.ScanPlotter.amplitudes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">amplitudes</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">fractional</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">sharey</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">reflectivity</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;positive&quot;</span><span class="p">,</span> <span class="s2">&quot;negative&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span>
+        <span class="n">kin_variable</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span>
+        <span class="n">stat</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;edges&quot;</span><span class="p">,</span> <span class="s2">&quot;avg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;edges&quot;</span><span class="p">,</span>
+        <span class="n">t_bin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">TBin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">energy_bin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">EnergyBin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">mass_bin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">MassBin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">indices</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">axs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot a grid of amplitudes, organized by spin (rows) and projection (columns)</span>
+
+<span class="sd">        This plot will create a grid of all amplitudes plotted as a function of the</span>
+<span class="sd">        selected kinematic variable, with the rows corresponding to the</span>
+<span class="sd">        spin+parity+angular momenta combo (J^P L) and the columns corresponding to the</span>
+<span class="sd">        spin-projection m. Any quantum numbers unavailable due to the naming scheme are</span>
+<span class="sd">        dropped. Reflectivities are plotted together in the same plot, with the option</span>
+<span class="sd">        to select only positive or negative reflectivities.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            fractional (bool): Whether to plot the amplitudes as a fraction of the</span>
+<span class="sd">                total intensity. Defaults to False.</span>
+<span class="sd">            sharey (bool): Whether to share the y-axis across all amplitude plots.</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            reflectivity (Literal[&quot;positive&quot;, &quot;negative&quot;, &quot;all&quot;]): Which reflectivity</span>
+<span class="sd">                amplitudes to plot. Defaults to &quot;all&quot;.</span>
+<span class="sd">            kin_variable (str): Shorthand (&quot;m&quot;, &quot;t&quot;, &quot;e&quot;) or exact &#39;data&#39; dataframe</span>
+<span class="sd">                column name for the kinematic variable to plot against.</span>
+<span class="sd">                Defaults to &quot;m&quot; (mass).</span>
+<span class="sd">            stat (Literal[&#39;edges&#39;, &#39;avg&#39;]): Whether x-value/error is from the bin center</span>
+<span class="sd">                and (high-low)/2 &#39;edges&#39; (default) or from the actual bin average and</span>
+<span class="sd">                rms of the underlying data.</span>
+<span class="sd">            t_bin (tuple[float, float] | TBin | None): Fixes the t bin to plot from if</span>
+<span class="sd">                the results span multiple t bins. If only 1 t bin is available,</span>
+<span class="sd">                specification is unnecessary. Defaults to None.</span>
+<span class="sd">            energy_bin (tuple[float,float] | EnergyBin | None): Fixes the beam energy</span>
+<span class="sd">                bin to plot from if the results span multiple energy bins. If only 1</span>
+<span class="sd">                energy bin is available, specification is unnecessary. Defaults to None.</span>
+<span class="sd">            mass_bin (tuple[float,float] | EnergyBin | None): Fixes the mass bin to plot</span>
+<span class="sd">                from if the results span multiple mass bins. If only 1 mass bin is</span>
+<span class="sd">                available, specification is unnecessary. Defaults to None.</span>
+<span class="sd">            indices (list[int] | None): Optional list of positions within the resolved</span>
+<span class="sd">                kinematic bin to select specific bins. Defaults to None.</span>
+<span class="sd">            axs (np.ndarray | None): Optional array of axes to plot on. If None, a new</span>
+<span class="sd">                figure and axes will be created. Note that one must be careful that the</span>
+<span class="sd">                axes shape matches the expected shape.</span>
+<span class="sd">            kwargs (dict[str, Any] | None): Optional dictionary of keyword arguments</span>
+<span class="sd">                to customize the plot appearance. Recognized keys are &quot;positive&quot; and</span>
+<span class="sd">                &quot;negative&quot; mapping to a dict of matplotlib &#39;errorbar&#39; kwargs that</span>
+<span class="sd">                override the defaults for the respective reflectivity amplitudes.</span>
+<span class="sd">                e.g. {&quot;positive&quot;: {&quot;color&quot;: &quot;red&quot;}, &quot;negative&quot;: {&quot;color&quot;: &quot;blue&quot;}}.</span>
+<span class="sd">                Defaults to None.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np.ndarray: The array of axes objects containing the amplitude plots.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the reflectivity argument is not one of &quot;positive&quot;,</span>
+<span class="sd">                &quot;negative&quot;, or &quot;all&quot;. If no naming scheme could be determined from the</span>
+<span class="sd">                amplitudes, or if a bin is given for the dimension being scanned over,</span>
+<span class="sd">                or if multiple bins are present along a non-scanned dimension, leaving</span>
+<span class="sd">                an ambiguous plot range.</span>
+<span class="sd">            IndexError: If the provided axes shape does not match the expected shape</span>
+<span class="sd">                based on the number of amplitudes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">reflectivity</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;positive&quot;</span><span class="p">,</span> <span class="s2">&quot;negative&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Invalid reflectivity value: </span><span class="si">{</span><span class="n">reflectivity</span><span class="si">}</span><span class="s2">. Must be one of &quot;</span>
+                <span class="s2">&quot;&#39;positive&#39;, &#39;negative&#39;, or &#39;all&#39;.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">amps</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">amplitudes</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">amps</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;No amplitudes found in the results to plot.&quot;</span><span class="p">)</span>
+        <span class="c1"># resolve naming scheme from the amplitudes (common across all, so select one)</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">parser</span>
+        <span class="n">scheme</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">requested_scheme</span>
+        <span class="k">if</span> <span class="n">scheme</span> <span class="o">==</span> <span class="n">NamingScheme</span><span class="o">.</span><span class="n">AUTO</span><span class="p">:</span>
+            <span class="n">scheme</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">infer_naming_scheme</span><span class="p">(</span><span class="n">amps</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">scheme</span> <span class="o">==</span> <span class="n">NamingScheme</span><span class="o">.</span><span class="n">AUTO</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Could not determine naming scheme from amplitudes.&quot;</span><span class="p">)</span>
+        <span class="n">scheme_def</span> <span class="o">=</span> <span class="n">SCHEMES</span><span class="p">[</span><span class="n">scheme</span><span class="p">]</span>
+
+        <span class="c1"># Determine the row and column quantum numbers based on the naming scheme.</span>
+        <span class="n">row_quantum_numbers</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+            <span class="n">qn</span> <span class="k">for</span> <span class="n">qn</span> <span class="ow">in</span> <span class="n">scheme_def</span><span class="o">.</span><span class="n">single_amplitudes</span> <span class="k">if</span> <span class="n">qn</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="s2">&quot;e&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">row_group_key</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">row_quantum_numbers</span><span class="p">)</span>
+
+        <span class="n">parsed_amps</span> <span class="o">=</span> <span class="p">[(</span><span class="n">amp</span><span class="p">,</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_amplitude</span><span class="p">(</span><span class="n">amp</span><span class="p">))</span> <span class="k">for</span> <span class="n">amp</span> <span class="ow">in</span> <span class="n">amps</span><span class="p">]</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_keep</span><span class="p">(</span><span class="n">parsed</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">reflectivity</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">reflectivity</span> <span class="o">==</span> <span class="s2">&quot;positive&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">parsed</span><span class="o">.</span><span class="n">e</span> <span class="ow">in</span> <span class="n">_POSITIVE_REFLECTIVITY_CHARS</span>
+            <span class="k">return</span> <span class="n">parsed</span><span class="o">.</span><span class="n">e</span> <span class="ow">in</span> <span class="n">_NEGATIVE_REFLECTIVITY_CHARS</span>
+
+        <span class="n">parsed_amps</span> <span class="o">=</span> <span class="p">[(</span><span class="n">amp</span><span class="p">,</span> <span class="n">parsed</span><span class="p">)</span> <span class="k">for</span> <span class="n">amp</span><span class="p">,</span> <span class="n">parsed</span> <span class="ow">in</span> <span class="n">parsed_amps</span> <span class="k">if</span> <span class="n">_keep</span><span class="p">(</span><span class="n">parsed</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">parsed_amps</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No amplitudes found for reflectivity &#39;</span><span class="si">{</span><span class="n">reflectivity</span><span class="si">}</span><span class="s2">&#39;. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Available amplitudes: </span><span class="si">{</span><span class="n">amps</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">row_groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">col_values</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">amp</span><span class="p">,</span> <span class="n">parsed</span> <span class="ow">in</span> <span class="n">parsed_amps</span><span class="p">:</span>
+            <span class="n">row_key</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parsed</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">qn</span><span class="p">)</span> <span class="k">for</span> <span class="n">qn</span> <span class="ow">in</span> <span class="n">row_quantum_numbers</span><span class="p">)</span>
+            <span class="n">row_groups</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">row_key</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">amp</span><span class="p">,</span> <span class="n">parsed</span><span class="p">))</span>
+            <span class="n">col_values</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">parsed</span><span class="o">.</span><span class="n">m</span><span class="p">)</span>
+
+        <span class="n">sorted_rows</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="n">row_groups</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">rk</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_numeric_sort_key</span><span class="p">(</span><span class="n">qn</span><span class="p">)</span> <span class="k">for</span> <span class="n">qn</span> <span class="ow">in</span> <span class="n">rk</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">sorted_cols</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">col_values</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">_numeric_sort_key</span><span class="p">)</span>
+        <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_rows</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_cols</span><span class="p">)</span>
+
+        <span class="n">plot_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">amp</span> <span class="k">for</span> <span class="n">amp</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">parsed_amps</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">fractional</span><span class="p">:</span>
+            <span class="n">plot_columns</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;intensity&quot;</span><span class="p">,</span> <span class="s2">&quot;ac_intensity&quot;</span><span class="p">])</span>
+        <span class="n">fit_df</span><span class="p">,</span> <span class="n">data_df</span><span class="p">,</span> <span class="n">x_label</span><span class="p">,</span> <span class="n">y_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scan_dataframes</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="n">plot_columns</span><span class="p">,</span>
+            <span class="n">kin_variable</span><span class="o">=</span><span class="n">kin_variable</span><span class="p">,</span>
+            <span class="n">stat</span><span class="o">=</span><span class="n">stat</span><span class="p">,</span>
+            <span class="n">t_bin</span><span class="o">=</span><span class="n">t_bin</span><span class="p">,</span>
+            <span class="n">energy_bin</span><span class="o">=</span><span class="n">energy_bin</span><span class="p">,</span>
+            <span class="n">mass_bin</span><span class="o">=</span><span class="n">mass_bin</span><span class="p">,</span>
+            <span class="n">indices</span><span class="o">=</span><span class="n">indices</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># default styling</span>
+        <span class="n">default_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;positive&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;marker&quot;</span><span class="p">:</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;linestyle&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span>
+                <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="s2">&quot;tab:red&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;negative&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;marker&quot;</span><span class="p">:</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;linestyle&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span>
+                <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="s2">&quot;tab:blue&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">refl</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;positive&quot;</span><span class="p">,</span> <span class="s2">&quot;negative&quot;</span><span class="p">):</span>
+            <span class="n">default_kwargs</span><span class="p">[</span><span class="n">refl</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">refl</span><span class="p">,</span> <span class="p">{})</span> <span class="k">if</span> <span class="n">kwargs</span> <span class="k">else</span> <span class="p">{})</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="n">default_kwargs</span>
+
+        <span class="k">if</span> <span class="n">fractional</span><span class="p">:</span>
+            <span class="n">y_label</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">y_label</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;Events&quot;</span><span class="p">,</span> <span class="s2">&quot;Fit Fraction&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">&quot;Events&quot;</span> <span class="ow">in</span> <span class="n">y_label</span>
+                <span class="k">else</span> <span class="s2">&quot;Fit Fraction&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">max_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># for resetting y_lim later</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_style</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">axs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
+                    <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span>
+                    <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+                    <span class="n">sharey</span><span class="o">=</span><span class="n">sharey</span><span class="p">,</span>
+                    <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">ncols</span><span class="p">,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">nrows</span><span class="p">),</span>
+                    <span class="n">layout</span><span class="o">=</span><span class="s2">&quot;constrained&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">axs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">axs</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">axs</span> <span class="o">=</span> <span class="n">axs</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Provided axes shape </span><span class="si">{</span><span class="n">axs</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> does not match expected &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;shape (</span><span class="si">{</span><span class="n">nrows</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">ncols</span><span class="si">}</span><span class="s2">) based on the number of amplitudes.&quot;</span>
+                    <span class="p">)</span>
+            <span class="k">for</span> <span class="n">row_idx</span><span class="p">,</span> <span class="n">row_key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sorted_rows</span><span class="p">):</span>
+                <span class="n">row_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">sum_to_latex</span><span class="p">(</span>
+                    <span class="n">row_group_key</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">row_key</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">col_idx</span><span class="p">,</span> <span class="n">col_value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sorted_cols</span><span class="p">):</span>
+                    <span class="n">ax</span> <span class="o">=</span> <span class="n">axs</span><span class="p">[</span><span class="n">row_idx</span><span class="p">,</span> <span class="n">col_idx</span><span class="p">]</span>
+                    <span class="n">amps_here</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">parsed</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">amp</span><span class="p">,</span> <span class="n">parsed</span> <span class="ow">in</span> <span class="n">row_groups</span><span class="p">[</span><span class="n">row_key</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">parsed</span><span class="o">.</span><span class="n">m</span> <span class="o">==</span> <span class="n">col_value</span>
+                    <span class="p">]</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">amps_here</span><span class="p">:</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+                        <span class="k">continue</span>
+
+                    <span class="c1"># plot positive reflectivity first</span>
+                    <span class="n">amps_here</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span>
+                        <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">e</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_POSITIVE_REFLECTIVITY_CHARS</span>
+                    <span class="p">)</span>
+                    <span class="k">for</span> <span class="n">amp</span><span class="p">,</span> <span class="n">parsed</span> <span class="ow">in</span> <span class="n">amps_here</span><span class="p">:</span>
+                        <span class="n">refl_kind</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="s2">&quot;positive&quot;</span>
+                            <span class="k">if</span> <span class="n">parsed</span><span class="o">.</span><span class="n">e</span> <span class="ow">in</span> <span class="n">_POSITIVE_REFLECTIVITY_CHARS</span>
+                            <span class="k">else</span> <span class="s2">&quot;negative&quot;</span>
+                        <span class="p">)</span>
+
+                        <span class="k">if</span> <span class="n">fractional</span><span class="p">:</span>
+                            <span class="n">values</span> <span class="o">=</span> <span class="n">unumpy</span><span class="o">.</span><span class="n">uarray</span><span class="p">(</span><span class="n">fit_df</span><span class="p">[</span><span class="n">amp</span><span class="p">],</span> <span class="n">fit_df</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">amp</span><span class="si">}</span><span class="s2">_err&quot;</span><span class="p">])</span>
+                            <span class="n">intensity</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="n">unumpy</span><span class="o">.</span><span class="n">uarray</span><span class="p">(</span>
+                                    <span class="n">fit_df</span><span class="p">[</span><span class="s2">&quot;ac_intensity&quot;</span><span class="p">],</span> <span class="n">fit_df</span><span class="p">[</span><span class="s2">&quot;ac_intensity_err&quot;</span><span class="p">]</span>
+                                <span class="p">)</span>
+                                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">is_acc_corrected</span>
+                                <span class="k">else</span> <span class="n">unumpy</span><span class="o">.</span><span class="n">uarray</span><span class="p">(</span>
+                                    <span class="n">fit_df</span><span class="p">[</span><span class="s2">&quot;intensity&quot;</span><span class="p">],</span> <span class="n">fit_df</span><span class="p">[</span><span class="s2">&quot;intensity_err&quot;</span><span class="p">]</span>
+                                <span class="p">)</span>
+                            <span class="p">)</span>
+
+                            <span class="n">fraction</span> <span class="o">=</span> <span class="n">values</span> <span class="o">/</span> <span class="n">intensity</span>
+
+                            <span class="n">y</span> <span class="o">=</span> <span class="n">unumpy</span><span class="o">.</span><span class="n">nominal_values</span><span class="p">(</span><span class="n">fraction</span><span class="p">)</span>
+                            <span class="n">yerr</span> <span class="o">=</span> <span class="n">unumpy</span><span class="o">.</span><span class="n">std_devs</span><span class="p">(</span><span class="n">fraction</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">y</span> <span class="o">=</span> <span class="n">fit_df</span><span class="p">[</span><span class="n">amp</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+                            <span class="n">yerr</span> <span class="o">=</span> <span class="n">fit_df</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">amp</span><span class="si">}</span><span class="s2">_err&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+
+                        <span class="n">max_value</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_value</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="n">y</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">)</span>
+
+                        <span class="n">ax</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span>
+                            <span class="n">x</span><span class="o">=</span><span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;x_center&quot;</span><span class="p">],</span>
+                            <span class="n">xerr</span><span class="o">=</span><span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;x_err&quot;</span><span class="p">],</span>
+                            <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span>
+                            <span class="n">yerr</span><span class="o">=</span><span class="n">yerr</span><span class="p">,</span>
+                            <span class="n">label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">to_latex</span><span class="p">(</span><span class="n">amp</span><span class="p">),</span>
+                            <span class="o">**</span><span class="n">kwargs</span><span class="p">[</span><span class="n">refl_kind</span><span class="p">],</span>
+                        <span class="p">)</span>
+
+                    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span>
+                        <span class="sa">rf</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">row_label</span><span class="si">}</span><span class="s2">, $m=</span><span class="si">{</span><span class="n">_format_spin_projection</span><span class="p">(</span><span class="n">col_value</span><span class="p">)</span><span class="si">}</span><span class="s2">$&quot;</span><span class="p">,</span>
+                        <span class="n">fontsize</span><span class="o">=</span><span class="s2">&quot;small&quot;</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="s2">&quot;x-small&quot;</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">row_idx</span> <span class="o">==</span> <span class="n">nrows</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">x_label</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">col_idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">y_label</span><span class="p">)</span>
+
+        <span class="c1"># adjust y limits after plotting if using common axis</span>
+        <span class="k">if</span> <span class="n">sharey</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">axs</span><span class="o">.</span><span class="n">flatten</span><span class="p">():</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="n">max_value</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">axs</span></div>
+
+
+<div class="viewcode-block" id="ScanPlotter.interference">
+<a class="viewcode-back" href="../../../api/pwassist.plotting.scan.ScanPlotter.html#pwassist.plotting.scan.ScanPlotter.interference">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">interference</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">amp1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">amp2</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">indices</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">amp1_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">amp2_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">amp_ax</span><span class="p">:</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">Axes</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">phase_ax</span><span class="p">:</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">Axes</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot two amplitudes and their interference phase as a function of mass.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            amp1 (str): The label of the first amplitude to plot.</span>
+<span class="sd">            amp2 (str): The label of the second amplitude to plot.</span>
+<span class="sd">            indices (list[int] | None): Optional list of indices to select specific mass</span>
+<span class="sd">                bins. If None, all bins will be plotted.</span>
+<span class="sd">            amp1_kwargs (dict[str, Any] | None): Optional dictionary of keyword</span>
+<span class="sd">                arguments to customize the appearance of the first amplitude plot.</span>
+<span class="sd">            amp2_kwargs (dict[str, Any] | None): Optional dictionary of keyword</span>
+<span class="sd">                arguments to customize the appearance of the second amplitude plot.</span>
+<span class="sd">            amp_ax (matplotlib.axes.Axes | None): Optional axes to plot the amplitudes</span>
+<span class="sd">                on. If None, a new figure and axes will be created.</span>
+<span class="sd">            phase_ax (matplotlib.axes.Axes | None): Optional axes to plot the phase</span>
+<span class="sd">                difference on. If None, a new figure and axes will be created.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            np.ndarray: The array of axes objects containing the amplitude and phase</span>
+<span class="sd">                difference plots.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: If either phase is not in the fit results.</span>
+<span class="sd">            ValueError: If only one of amp_ax or phase_ax is provided, but not both</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">amp1</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">fit</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Amplitude &#39;</span><span class="si">{</span><span class="n">amp1</span><span class="si">}</span><span class="s2">&#39; not found in fit results. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Available amplitudes: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">fit</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">amp2</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">fit</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Amplitude &#39;</span><span class="si">{</span><span class="n">amp2</span><span class="si">}</span><span class="s2">&#39; not found in fit results. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Available amplitudes: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">fit</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">amp_ax</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">phase_ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
+                <span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">gridspec_kw</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;wspace&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;hspace&quot;</span><span class="p">:</span> <span class="mf">0.07</span><span class="p">},</span>
+                <span class="n">height_ratios</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="n">layout</span><span class="o">=</span><span class="s2">&quot;constrained&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">amp_ax</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">phase_ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Both amp_ax and phase_ax must be provided if one is specified.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">axs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">amp_ax</span><span class="p">,</span> <span class="n">phase_ax</span><span class="p">])</span>
+
+        <span class="c1"># TODO: obtain the relevant dataframes, and plot their amplitude and phase</span>
+        <span class="c1"># differences on the appropriate axes. Use the provided kwargs for</span>
+        <span class="c1"># customization.</span>
+
+        <span class="k">return</span> <span class="n">axs</span></div>
+
+
+<div class="viewcode-block" id="ScanPlotter.model_matrix">
+<a class="viewcode-back" href="../../../api/pwassist.plotting.scan.ScanPlotter.html#pwassist.plotting.scan.ScanPlotter.model_matrix">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">model_matrix</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">indices</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">axs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the entire model behavior as a function of mass in a matrix of plots</span>
+
+<span class="sd">        The matrix is organized where the amplitudes are plotted on the diagonal,</span>
+<span class="sd">        grouped by reflectivity (similar to the amplitudes() method), and the</span>
+<span class="sd">        off-diagonal plots show the interference between the amplitudes. The upper</span>
+<span class="sd">        triangle is for the positive reflectivity amplitude interferences, and the</span>
+<span class="sd">        lower triangle for the negative reflectivity amplitude interferences.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            indices (list[int] | None): Optional list of indices to select specific mass</span>
+<span class="sd">                bins. If None, all bins will be plotted.</span>
+<span class="sd">            axs (np.ndarray | None): Optional array of axes to plot on. If None, a new</span>
+<span class="sd">                figure and axes will be created. Note that one must be careful that the</span>
+<span class="sd">                axes shape matches the expected shape.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            np.ndarray: The array of axes objects containing the amplitudes and</span>
+<span class="sd">                interference plots.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            IndexError: If the provided axes shape does not match the expected shape</span>
+<span class="sd">                based on the number of amplitudes and reflectivities.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">axs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># TODO: determine shape, reference amplitudes() method for guidance.</span>
+            <span class="n">nrows</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">ncols</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
+                <span class="n">nrows</span><span class="p">,</span>
+                <span class="n">ncols</span><span class="p">,</span>
+                <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">ncols</span><span class="p">,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">nrows</span><span class="p">),</span>
+                <span class="n">layout</span><span class="o">=</span><span class="s2">&quot;constrained&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># TODO: make sure to plot errorbars as smooth fill_between due to small plots</span>
+
+        <span class="k">return</span> <span class="n">axs</span>  <span class="c1"># type: ignore</span></div>
+
+
+<div class="viewcode-block" id="ScanPlotter.convergence_rate">
+<a class="viewcode-back" href="../../../api/pwassist.plotting.scan.ScanPlotter.html#pwassist.plotting.scan.ScanPlotter.convergence_rate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">convergence_rate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">kin_variable</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span>
+        <span class="n">stat</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;edges&quot;</span><span class="p">,</span> <span class="s2">&quot;avg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;edges&quot;</span><span class="p">,</span>
+        <span class="n">t_bin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">TBin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">energy_bin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">EnergyBin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">mass_bin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">MassBin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">indices</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">ax</span><span class="p">:</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">Axes</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">Axes</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the convergence rate of the fit across bins.</span>
+
+<span class="sd">        Requires randomized fits to be in the results. Plots the percentage of</span>
+<span class="sd">        successful, failed, and converged-with-bad-error-matrix fits across the selected</span>
+<span class="sd">        kinematic bins. This can be useful for diagnosing issues with the fit and</span>
+<span class="sd">        understanding the stability of the fit across the mass range.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            kin_variable (str): Shorthand (&quot;m&quot;, &quot;t&quot;, &quot;e&quot;) or exact &#39;data&#39; dataframe</span>
+<span class="sd">                column name for the kinematic variable to plot against. Default to &#39;m&#39;</span>
+<span class="sd">                (mass).</span>
+<span class="sd">            stat (Literal[&#39;edges&#39;, &#39;avg&#39;]): Whether x-value/error is from the bin center</span>
+<span class="sd">                and (high-low)/2 &#39;edges&#39; (default) or from the actual bin average and</span>
+<span class="sd">                rms of the underlying data.</span>
+<span class="sd">            t_bin (tuple[float, float] | TBin | None): Fixes the t bin to plot from if</span>
+<span class="sd">                the results span multiple t bins. If only 1 t bin is available,</span>
+<span class="sd">                specification is unnecessary. Defaults to None.</span>
+<span class="sd">            energy_bin (tuple[float,float] | EnergyBin | None): Fixes the beam energy</span>
+<span class="sd">                bin to plot from if the results span multiple energy bins. If only 1</span>
+<span class="sd">                energy bin is available, specification is unnecessary. Defaults to None.</span>
+<span class="sd">            mass_bin (tuple[float,float] | MassBin | None): Fixes the mass bin to plot</span>
+<span class="sd">                from if the results span multiple mass bins. If only 1 mass bin is</span>
+<span class="sd">                available, specification is unnecessary. Defaults to None.</span>
+<span class="sd">            indices (list[int] | None): Optional list of positions within the resolved</span>
+<span class="sd">                kinematic bin to select specific bins. Defaults to None.</span>
+<span class="sd">            ax (matplotlib.axes.Axes | None): Optional axes to plot on. If None, a new</span>
+<span class="sd">                figure and axes will be created.</span>
+<span class="sd">            kwargs (dict[str, Any] | None): Optional dictionary of keyword arguments</span>
+<span class="sd">                to customize the plot appearance. Organized per fit status type as</span>
+<span class="sd">                &#39;successful&#39;, &#39;bad error matrix&#39;, &#39;failed&#39;, so given value lists should</span>
+<span class="sd">                be in the same ordering e.g. &quot;labels&quot; : [&quot;Success&quot;, &quot;Bad Error&quot;,</span>
+<span class="sd">                &quot;Failed&quot;].</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            matplotlib.axes.Axes: The axes object containing the convergence rate plot.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: If randomized fits are not available in the results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">randomized</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Randomized fits are required to plot convergence rate.&quot;</span><span class="p">)</span>
+
+        <span class="n">fit_status_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;eMatrixStatus&quot;</span><span class="p">,</span> <span class="s2">&quot;lastMinuitCommandStatus&quot;</span><span class="p">]</span>
+
+        <span class="n">df</span><span class="p">,</span> <span class="n">data_df</span><span class="p">,</span> <span class="n">x_label</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scan_dataframes</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="n">fit_status_columns</span><span class="p">,</span>
+            <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;randomized&quot;</span><span class="p">,</span>
+            <span class="n">kin_variable</span><span class="o">=</span><span class="n">kin_variable</span><span class="p">,</span>
+            <span class="n">stat</span><span class="o">=</span><span class="n">stat</span><span class="p">,</span>
+            <span class="n">t_bin</span><span class="o">=</span><span class="n">t_bin</span><span class="p">,</span>
+            <span class="n">energy_bin</span><span class="o">=</span><span class="n">energy_bin</span><span class="p">,</span>
+            <span class="n">mass_bin</span><span class="o">=</span><span class="n">mass_bin</span><span class="p">,</span>
+            <span class="n">indices</span><span class="o">=</span><span class="n">indices</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">successful_fits</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;bin_id&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;eMatrixStatus&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;lastMinuitCommandStatus&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">bad_eMatrix_fits</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;bin_id&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;eMatrixStatus&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;lastMinuitCommandStatus&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">failed_fits</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;bin_id&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">apply</span><span class="p">((</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;lastMinuitCommandStatus&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()))</span>
+            <span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="n">max_length</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">successful_fits</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">bad_eMatrix_fits</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_fits</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">max_length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;No labelled fit statuses could be found, check validity of the&quot;</span>
+                <span class="s2">&quot; randomized dataframe&quot;</span>
+            <span class="p">)</span>
+        <span class="n">successful_fits</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">max_length</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">successful_fits</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">successful_fits</span>
+        <span class="p">)</span>
+        <span class="n">bad_eMatrix_fits</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">max_length</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bad_eMatrix_fits</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">bad_eMatrix_fits</span>
+        <span class="p">)</span>
+        <span class="n">failed_fits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">max_length</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_fits</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">failed_fits</span>
+
+        <span class="n">default_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;colors&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tab:blue&quot;</span><span class="p">,</span> <span class="s2">&quot;tab:orange&quot;</span><span class="p">,</span> <span class="s2">&quot;tab:red&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;labels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Success&quot;</span><span class="p">,</span> <span class="s2">&quot;Inaccurate Errors&quot;</span><span class="p">,</span> <span class="s2">&quot;Failed&quot;</span><span class="p">],</span>
+        <span class="p">}</span>
+        <span class="n">default_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span> <span class="ow">or</span> <span class="p">{})</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="n">default_kwargs</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_style</span><span class="p">():</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">layout</span><span class="o">=</span><span class="s2">&quot;constrained&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_figure</span><span class="p">(),</span> <span class="n">ax</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="n">bottom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">successful_fits</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fit_status</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">successful_fits</span><span class="p">,</span> <span class="n">bad_eMatrix_fits</span><span class="p">,</span> <span class="n">failed_fits</span><span class="p">]</span>
+            <span class="p">):</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
+                    <span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;x_center&quot;</span><span class="p">],</span>
+                    <span class="n">fit_status</span><span class="p">,</span>
+                    <span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;x_err&quot;</span><span class="p">],</span>
+                    <span class="n">label</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span>
+                    <span class="n">color</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;colors&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span>
+                    <span class="n">bottom</span><span class="o">=</span><span class="n">bottom</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">bottom</span> <span class="o">+=</span> <span class="n">fit_status</span>
+
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">x_label</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;# of fits&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">ax</span></div>
+
+
+<div class="viewcode-block" id="ScanPlotter.ridgeline">
+<a class="viewcode-back" href="../../../api/pwassist.plotting.scan.ScanPlotter.html#pwassist.plotting.scan.ScanPlotter.ridgeline">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ridgeline</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">indices</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a ridgeline plot of the columns from the bootstrap distributions</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            columns (list[str]): _description_</span>
+<span class="sd">            indices (list[int] | None, optional): _description_. Defaults to None.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np.ndarray: _description_</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: If the specified columns are not found in the bootstrap dataframe,</span>
+<span class="sd">                or if the bootstrap dataframe is not available in the results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">bootstrap</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="s2">&quot;Bootstrap distributions are required to create a ridgeline plot.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">bootstrap</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Column &#39;</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">&#39; not found in bootstrap distributions. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Available columns: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">bootstrap</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+        <span class="c1"># TODO: replace with joypy.joyplot, ridgeplot, seaborn, or similar library</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">axs</span></div>
+
+
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+    <span class="c1"># Helpers</span>
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_kin_variable</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">kin_variable</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">stat</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;edges&quot;</span><span class="p">,</span> <span class="s2">&quot;avg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;edges&quot;</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Resolve a shorthand or column name to &#39;data&#39; dataframe column.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            kin_variable (str): A known shorthand (&quot;m&quot;, &quot;t&quot;, &quot;e&quot;) or exact name of a</span>
+<span class="sd">                column in the &#39;data&#39; dataframe to use as the x-axis values.</span>
+<span class="sd">            stat (Literal[&#39;edges&#39;, &#39;avg&#39;]): Whether x-value/error is from the bin center</span>
+<span class="sd">                and (high-low)/2 &#39;edges&#39; (default) or from the actual bin average and</span>
+<span class="sd">                rms of the underlying data.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple[str | None, str | None, str | None, str | None, str, str]: Central</span>
+<span class="sd">                value column name (None if no dedicated &quot;_center&quot; column), the low-edge</span>
+<span class="sd">                column name (if available), the high-edge column name (if available),</span>
+<span class="sd">                and LaTeX formatted x,y axis label.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: If kin_variable cannot be resolved, or for stat=&#39;edges&#39; that</span>
+<span class="sd">                there aren&#39;t enough columns to compute one, in the &#39;data&#39; dataframe.</span>
+<span class="sd">                Also if stat=&#39;avg&#39; is requested but the corresponding</span>
+<span class="sd">                &lt;kin_variable&gt;_&lt;avg/rms&gt; columns are not available.</span>
+<span class="sd">            ValueError: If stat is not &#39;edges&#39; or &#39;avg&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">stat</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;edges&quot;</span><span class="p">,</span> <span class="s2">&quot;avg&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;stat must be &#39;edges&#39; or &#39;avg&#39;, got &#39;</span><span class="si">{</span><span class="n">stat</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+        <span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span>
+        <span class="k">if</span> <span class="n">kin_variable</span> <span class="ow">in</span> <span class="n">_KIN_VARIABLE_XLABELS</span><span class="p">:</span>
+            <span class="n">x_label</span> <span class="o">=</span> <span class="n">_KIN_VARIABLE_XLABELS</span><span class="p">[</span><span class="n">kin_variable</span><span class="p">]</span>
+            <span class="n">y_label</span> <span class="o">=</span> <span class="n">_KIN_VARIABLE_YLABELS</span><span class="p">[</span><span class="n">kin_variable</span><span class="p">]</span>
+
+            <span class="n">low</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">kin_variable</span><span class="si">}</span><span class="s2">_low&quot;</span> <span class="k">if</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">kin_variable</span><span class="si">}</span><span class="s2">_low&quot;</span> <span class="ow">in</span> <span class="n">columns</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">high</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">kin_variable</span><span class="si">}</span><span class="s2">_high&quot;</span> <span class="k">if</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">kin_variable</span><span class="si">}</span><span class="s2">_high&quot;</span> <span class="ow">in</span> <span class="n">columns</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">bin_width</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">high</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">low</span><span class="p">]</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">low</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">high</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">bin_width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">bin_width</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">bin_width</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mf">0.01</span>
+            <span class="p">):</span>
+                <span class="c1"># if relative standard deviation of the bin width is within 1%, we can</span>
+                <span class="c1"># reasonably assume that we have a constant bin width to label the</span>
+                <span class="c1"># y-axis with</span>
+                <span class="n">y_label</span> <span class="o">=</span> <span class="n">y_label</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;NUM&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">bin_width</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># bin width is either unknown or variable, so cut down y_label to just</span>
+                <span class="c1"># &quot;Events&quot;</span>
+                <span class="n">y_label</span> <span class="o">=</span> <span class="n">y_label</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">stat</span> <span class="o">==</span> <span class="s2">&quot;avg&quot;</span><span class="p">:</span>
+                <span class="n">center</span><span class="p">,</span> <span class="n">rms</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">kin_variable</span><span class="si">}</span><span class="s2">_avg&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">kin_variable</span><span class="si">}</span><span class="s2">_rms&quot;</span>
+                <span class="k">if</span> <span class="n">center</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">columns</span> <span class="ow">or</span> <span class="n">rms</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;stat=&#39;avg&#39; requires &#39;</span><span class="si">{</span><span class="n">center</span><span class="si">}</span><span class="s2">&#39; and &#39;</span><span class="si">{</span><span class="n">rms</span><span class="si">}</span><span class="s2">&#39; columns in the&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot; data dataframe for kin_variable=&#39;</span><span class="si">{</span><span class="n">kin_variable</span><span class="si">}</span><span class="s2">&#39;, but at&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot; least one was not found. Available columns:&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">return</span> <span class="n">center</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">rms</span><span class="p">,</span> <span class="n">x_label</span><span class="p">,</span> <span class="n">y_label</span>
+
+            <span class="c1"># stat == &#39;edges&#39;: prefers a dedicated &quot;&lt;kin_variable&gt;_center&quot; column,</span>
+            <span class="c1"># but will otherwise compute midpoint from low/high columns. Falls back to</span>
+            <span class="c1"># &lt;kin_variable&gt;_avg as a last resort.</span>
+            <span class="k">if</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">kin_variable</span><span class="si">}</span><span class="s2">_center&quot;</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+                <span class="n">center</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">kin_variable</span><span class="si">}</span><span class="s2">_center&quot;</span>
+            <span class="k">elif</span> <span class="n">low</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">high</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">center</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># computed as (high-low)/2 in _scan_dataframes</span>
+            <span class="k">elif</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">kin_variable</span><span class="si">}</span><span class="s2">_avg&quot;</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+                <span class="n">center</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">kin_variable</span><span class="si">}</span><span class="s2">_avg&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Could not resolve a center for kin_variable &#39;</span><span class="si">{</span><span class="n">kin_variable</span><span class="si">}</span><span class="s2">&#39; with&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot; stat=&#39;edges&#39;: no &#39;</span><span class="si">{</span><span class="n">kin_variable</span><span class="si">}</span><span class="s2">&#39;_center,&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot; &#39;</span><span class="si">{</span><span class="n">kin_variable</span><span class="si">}</span><span class="s2">_low/high pair, and no &#39;</span><span class="si">{</span><span class="n">kin_variable</span><span class="si">}</span><span class="s2">_avg&#39;&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot; column were found. Available columns </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">center</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">x_label</span><span class="p">,</span> <span class="n">y_label</span>
+
+        <span class="k">elif</span> <span class="n">kin_variable</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">kin_variable</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">kin_variable</span><span class="p">,</span> <span class="n">kin_variable</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;kin_variable &#39;</span><span class="si">{</span><span class="n">kin_variable</span><span class="si">}</span><span class="s2">&#39; cannot be resolved. Must be one of &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">_KIN_VARIABLE_XLABELS</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2"> or a column in the &#39;data&#39; &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;dataframe: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_scan_bins</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">kin_variable</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">t_bin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">TBin</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">energy_bin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">EnergyBin</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">mass_bin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">MassBin</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">KinematicBin</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Resolve the ordered list of kinematic bins to scan over.</span>
+
+<span class="sd">        Results may span multiple bins e.g. 3 t bins x 2 energy bins x 10 mass bins. To</span>
+<span class="sd">        plot as a function of one kinematic variable, the other two must be fixed to a</span>
+<span class="sd">        single bin each. We only need to do this though if more than one unscanned bin</span>
+<span class="sd">        is available. For example, if the results span 3 t bins and 2 energy bins, but</span>
+<span class="sd">        only 1 mass bin, then we can plot as a function of t without needing to fix the</span>
+<span class="sd">        mass bin, but would need to fix the energy bin.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            kin_variable (str): The kinematic variable to scan over (&quot;m&quot;, &quot;t&quot;, &quot;e&quot;).</span>
+<span class="sd">                Any other value is treated as a column name in the &#39;data&#39; dataframe, and</span>
+<span class="sd">                will be used as the x-axis. The given t-bin/energy-bin/mass-bin will be</span>
+<span class="sd">                used to select the appropriate bin to plot from.</span>
+<span class="sd">            t_bin (tuple[float, float] | TBin | None): Optional fixed t bin.</span>
+<span class="sd">            energy_bin (tuple[float, float] | EnergyBin | None): Optional fixed energy</span>
+<span class="sd">                bin.</span>
+<span class="sd">            mass_bin (tuple[float, float] | MassBin | None): Optional fixed mass bin.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list[KinematicBin]: The ordered list of kinematic bins to scan over.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If a bin is given for the dimension being scanned over, or if</span>
+<span class="sd">                multiple bins are present on a non-scanned dimension, leaving an</span>
+<span class="sd">                ambiguous plot range.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">kin_variable</span> <span class="o">==</span> <span class="s2">&quot;m&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">mass_bin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Cannot specify a mass bin when scanning over mass. &quot;</span>
+                    <span class="s2">&quot;Please leave mass_bin as None.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">mass_kinematic_bins</span><span class="p">(</span><span class="n">t_bin</span><span class="o">=</span><span class="n">t_bin</span><span class="p">,</span> <span class="n">energy_bin</span><span class="o">=</span><span class="n">energy_bin</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">kin_variable</span> <span class="o">==</span> <span class="s2">&quot;t&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">t_bin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Cannot specify a t bin when scanning over t. &quot;</span>
+                    <span class="s2">&quot;Please leave t_bin as None.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">t_kinematic_bins</span><span class="p">(</span>
+                <span class="n">mass_bin</span><span class="o">=</span><span class="n">mass_bin</span><span class="p">,</span> <span class="n">energy_bin</span><span class="o">=</span><span class="n">energy_bin</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">kin_variable</span> <span class="o">==</span> <span class="s2">&quot;e&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">energy_bin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Cannot specify an energy bin when scanning over energy. &quot;</span>
+                    <span class="s2">&quot;Please leave energy_bin as None.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">energy_kinematic_bins</span><span class="p">(</span><span class="n">t_bin</span><span class="o">=</span><span class="n">t_bin</span><span class="p">,</span> <span class="n">mass_bin</span><span class="o">=</span><span class="n">mass_bin</span><span class="p">)</span>
+
+        <span class="c1"># arbitrary &#39;data&#39; column case</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">b</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="p">[</span><span class="n">t_bin</span><span class="p">,</span> <span class="n">energy_bin</span><span class="p">,</span> <span class="n">mass_bin</span><span class="p">]):</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">filter_by_kinematic_bins</span><span class="p">(</span>
+                <span class="n">t_bins</span><span class="o">=</span><span class="n">t_bin</span><span class="p">,</span> <span class="n">energy_bins</span><span class="o">=</span><span class="n">energy_bin</span><span class="p">,</span> <span class="n">mass_bins</span><span class="o">=</span><span class="n">mass_bin</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">kinematic_bins</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_scan_dataframes</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">columns</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">frame</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span>
+            <span class="s2">&quot;fit&quot;</span><span class="p">,</span> <span class="s2">&quot;correlation&quot;</span><span class="p">,</span> <span class="s2">&quot;covariance&quot;</span><span class="p">,</span> <span class="s2">&quot;norm_int&quot;</span><span class="p">,</span> <span class="s2">&quot;randomized&quot;</span><span class="p">,</span> <span class="s2">&quot;bootstrap&quot;</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;fit&quot;</span><span class="p">,</span>
+        <span class="n">kin_variable</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span>
+        <span class="n">stat</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;edges&quot;</span><span class="p">,</span> <span class="s2">&quot;avg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;edges&quot;</span><span class="p">,</span>
+        <span class="n">t_bin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">TBin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">energy_bin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">EnergyBin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">mass_bin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">MassBin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">indices</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a results dataframe and &#39;data&#39; dataframe over a kinematic variable scan</span>
+
+<span class="sd">        Every plot in this class needs two things: the set of kinematic bins to scan</span>
+<span class="sd">        over, resolved and ordered along &#39;kin_variable&#39; (see &#39;_resolve_scan_bins&#39;), and</span>
+<span class="sd">        rows from one of the &#39;result&#39; dataframes restricted to those bins. This does</span>
+<span class="sd">        both, for any of the &#39;results.fit&#39;, &#39;.correlation&#39;, ... . Fit, randomized, and</span>
+<span class="sd">        bootstrap dataframes share the same per-quantity &quot;&lt;col&gt;&quot;/&quot;&lt;col&gt;_err&quot; convention,</span>
+<span class="sd">        so those columns are automatically appended. Matrix-like results (norm-int,</span>
+<span class="sd">        covariance, etc.) use &#39;columns&#39; as-is.</span>
+
+<span class="sd">        Unlike &#39;fit&#39; or &#39;data&#39; frames, the other frames have several rows per bin. These</span>
+<span class="sd">        returned frames always keep a &quot;bin_id&quot; column so those rows stay identifiable.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            columns (tuple[str, ...] | list[str] | None): The columns to include from</span>
+<span class="sd">                &#39;frame&#39;. For &#39;fit&#39;/&#39;randomized&#39;/&#39;bootstrap&#39; frames, the &quot;_err&quot;</span>
+<span class="sd">                companions are automatically added, if available. If None (default) all</span>
+<span class="sd">                columns are included.</span>
+<span class="sd">            frame (Literal[&#39;fit&#39;, &#39;correlation&#39;, &#39;covariance&#39;, &#39;norm_int&#39;, &#39;randomized&#39;</span>
+<span class="sd">                &#39;bootstrap&#39;]): Which &#39;results&#39; dataframe to pull &#39;columns&#39; from.</span>
+<span class="sd">                Defaults to &#39;fit&#39;.</span>
+<span class="sd">            kin_variable (str): The kinematic variable to scan over (&quot;m&quot;, &quot;t&quot;, &quot;e&quot;).</span>
+<span class="sd">                Any other value is treated as a column name in the &#39;data&#39; dataframe, and</span>
+<span class="sd">                will be used as the x-axis. The given t-bin/energy-bin/mass-bin will be</span>
+<span class="sd">                used to select the appropriate bin to plot from.</span>
+<span class="sd">            stat (Literal[&#39;edges&#39;, &#39;avg&#39;]): Whether x-value/error is from the bin center</span>
+<span class="sd">                and (high-low)/2 &#39;edges&#39; (default) or from the actual bin average and</span>
+<span class="sd">                rms of the underlying data.</span>
+<span class="sd">            t_bin (tuple[float, float] | TBin | None): Optional fixed t bin.</span>
+<span class="sd">            energy_bin (tuple[float, float] | EnergyBin | None): Optional fixed energy</span>
+<span class="sd">                bin.</span>
+<span class="sd">            mass_bin (tuple[float, float] | MassBin | None): Optional fixed mass bin.</span>
+<span class="sd">            indices (list[int] | None): Optional list of indices, within the resolved</span>
+<span class="sd">                and sorted scan, to select specific bins. If None, all bins will be</span>
+<span class="sd">                used.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple[pd.DataFrame, pd.DataFrame, str, str]: The requested &#39;frame&#39;s rows</span>
+<span class="sd">            (restricted to the resolve bins, &#39;bin_id&#39; retained, grouped/ordered to match</span>
+<span class="sd">            the scan), the &#39;data&#39; dataframe (kinematic variable renamed to &#39;x_center&#39;</span>
+<span class="sd">            and &#39;x_err&#39;, &#39;bin_id&#39; retained) and LaTeX formatted x-y axis labels for the</span>
+<span class="sd">            kinematic variable.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: If kin_variable cannot be resolved to a known shorthand or column</span>
+<span class="sd">                name in the &#39;data&#39; dataframe, or requested &#39;frame&#39; is not available.</span>
+<span class="sd">            ValueError: If a bin is given for the dimension being scanned over, or if</span>
+<span class="sd">                multiple bins are present on a non-scanned dimension, leaving an</span>
+<span class="sd">                ambiguous plot range.</span>
+
+<span class="sd">        Todo:</span>
+<span class="sd">            - this can potentially be extended to the bin.py plotter as well, and thus</span>
+<span class="sd">                moved into the base class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">center_col</span><span class="p">,</span> <span class="n">low_col</span><span class="p">,</span> <span class="n">high_col</span><span class="p">,</span> <span class="n">rms_col</span><span class="p">,</span> <span class="n">x_label</span><span class="p">,</span> <span class="n">y_label</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_kin_variable</span><span class="p">(</span><span class="n">kin_variable</span><span class="p">,</span> <span class="n">stat</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">kinematic_bins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_scan_bins</span><span class="p">(</span>
+            <span class="n">kin_variable</span><span class="p">,</span> <span class="n">t_bin</span><span class="p">,</span> <span class="n">energy_bin</span><span class="p">,</span> <span class="n">mass_bin</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">indices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">kinematic_bins</span> <span class="o">=</span> <span class="p">[</span><span class="n">kinematic_bins</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">]</span>
+        <span class="n">bin_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">kb</span><span class="o">.</span><span class="n">bin_id</span> <span class="k">for</span> <span class="n">kb</span> <span class="ow">in</span> <span class="n">kinematic_bins</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">bin_ids</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;No kinematic bins found for the specified scan. Please check the &quot;</span>
+                <span class="s2">&quot;provided t_bin, energy_bin, and mass_bin arguments.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">requested_frame</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">requested_frame</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;results.</span><span class="si">{</span><span class="n">frame</span><span class="si">}</span><span class="s2"> is not available (is None). Make sure the results&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot; bundle actually includes </span><span class="si">{</span><span class="n">frame</span><span class="si">}</span><span class="s2"> data&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># bootstrap fits replace fit errors, if available</span>
+        <span class="k">if</span> <span class="n">frame</span> <span class="o">==</span> <span class="s2">&quot;fit&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">bootstrap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;Replacing column errors by bootstrap std() not yet implemented&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">columns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">frame_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">requested_frame</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="s2">&quot;bin_id&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">_FIT_LIKE_FRAMES</span><span class="p">:</span>
+            <span class="n">frame_columns</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">_err&quot;</span>
+                <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span>
+                <span class="k">if</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">_err&quot;</span> <span class="ow">in</span> <span class="n">requested_frame</span><span class="o">.</span><span class="n">columns</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">frame_columns</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span>
+
+        <span class="n">value_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_by_bin_id</span><span class="p">(</span><span class="n">requested_frame</span><span class="p">,</span> <span class="n">bin_ids</span><span class="p">,</span> <span class="n">frame_columns</span><span class="p">)</span>
+
+        <span class="n">data_columns</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;events&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;events_err&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ac_events&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ac_events_err&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">extra_col</span> <span class="ow">in</span> <span class="p">(</span><span class="n">center_col</span><span class="p">,</span> <span class="n">low_col</span><span class="p">,</span> <span class="n">high_col</span><span class="p">,</span> <span class="n">rms_col</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">extra_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">data_columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extra_col</span><span class="p">)</span>
+        <span class="n">data_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_by_bin_id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">bin_ids</span><span class="p">,</span> <span class="n">data_columns</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">center_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">data_df</span> <span class="o">=</span> <span class="n">data_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">center_col</span><span class="p">:</span> <span class="s2">&quot;x_center&quot;</span><span class="p">})</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># no dedicated center column, use the midpoint of the bin edges instead</span>
+            <span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;x_center&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">data_df</span><span class="p">[</span><span class="n">low_col</span><span class="p">]</span> <span class="o">+</span> <span class="n">data_df</span><span class="p">[</span><span class="n">high_col</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.0</span>
+
+        <span class="k">if</span> <span class="n">rms_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;x_err&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_df</span><span class="p">[</span><span class="n">rms_col</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">low_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">high_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;x_err&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">data_df</span><span class="p">[</span><span class="n">high_col</span><span class="p">]</span> <span class="o">-</span> <span class="n">data_df</span><span class="p">[</span><span class="n">low_col</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;x_err&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="k">return</span> <span class="n">value_df</span><span class="p">,</span> <span class="n">data_df</span><span class="p">,</span> <span class="n">x_label</span><span class="p">,</span> <span class="n">y_label</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_select_by_bin_id</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">bin_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Select and order rows of results dataframe by resolved bin_ids</span>
+
+<span class="sd">        &#39;fit&#39; and &#39;data&#39; have one row per kinematic bin, but &#39;randomized&#39; and</span>
+<span class="sd">        &#39;bootstrap&#39; have many (one row per fit, many fits per bin). &#39;Correlation&#39;,</span>
+<span class="sd">        &#39;covariance&#39;, and &#39;norm_int&#39; frames are matrices, with one row per</span>
+<span class="sd">        fit/amplitude, and many rows per bin. This method selects by kinematic bin_id,</span>
+<span class="sd">        keeping the original ordering of many rows per bin.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            frame (pd.DataFrame): Dataframe to select from. Must have a &quot;bin_id&quot; column.</span>
+<span class="sd">            bin_ids (list[str]): Resolved, ordered bin_ids to select and order by.</span>
+<span class="sd">            columns (list[str]): Columns to keep, in addition to &quot;bin_id&quot;, which is kept</span>
+<span class="sd">                to keep rows identifiable.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: Selected rows with &#39;bin_id&#39; retained as the first column.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: If &quot;bin_id&quot; is not a column in &#39;frame&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;bin_id&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">frame</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="s2">&quot;Expected a &#39;bin_id&#39; column to select kinematic bins by, but was not&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot; found. Available columns: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="n">ordered_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;bin_id&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">columns</span> <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="s2">&quot;bin_id&quot;</span><span class="p">]</span>
+        <span class="n">selected</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;bin_id&quot;</span><span class="p">,</span> <span class="n">drop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">bin_ids</span><span class="p">,</span> <span class="n">ordered_columns</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">selected</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Kevin Scheuer
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
