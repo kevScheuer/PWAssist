@@ -411,7 +411,7 @@ class ScanPlotter(BasePWAPlotter):
                 else "Fit Fraction"
             )
 
-        max_value = 0.0  # for resetting y_lim later
+        max_value: float = 0.0  # for resetting y_lim later
 
         with self._style():
             if axs is None:
@@ -478,7 +478,7 @@ class ScanPlotter(BasePWAPlotter):
                             y = fit_df[amp].to_numpy()
                             yerr = fit_df[f"{amp}_err"].to_numpy()
 
-                        max_value = max(max_value, y)
+                        max_value = max(max_value, y.max() + y.max() * 0.1)
 
                         ax.errorbar(
                             x=data_df["x_center"],
@@ -501,9 +501,10 @@ class ScanPlotter(BasePWAPlotter):
                     if col_idx == 0:
                         ax.set_ylabel(y_label)
 
-        # if sharey=True, adjust y_lims
-        for ax in axs:
-            ax.set_ylim(top=max_value)
+        # adjust y limits after plotting if using common axis
+        if sharey:
+            for ax in axs.flatten():
+                ax.set_ylim(top=max_value)
 
         return axs
 
@@ -672,6 +673,7 @@ class ScanPlotter(BasePWAPlotter):
 
         df, data_df, x_label, _ = self._scan_dataframes(
             columns=fit_status_columns,
+            frame="randomized",
             kin_variable=kin_variable,
             stat=stat,
             t_bin=t_bin,
@@ -681,23 +683,46 @@ class ScanPlotter(BasePWAPlotter):
         )
 
         successful_fits = (
-            df.loc[(df["eMatrixStatus"] == 3) & (df["lastMinuitCommandStatus"] == 0)]
-            .groupby("bin_id")
-            .size()
+            df.groupby("bin_id")
+            .apply(
+                (
+                    lambda x: (
+                        (x["eMatrixStatus"] == 3) & (x["lastMinuitCommandStatus"] == 0)
+                    ).sum()
+                )
+            )
             .to_numpy()
         )
         bad_eMatrix_fits = (
-            df.loc[(df["eMatrixStatus"] != 3) & (df["lastMinuitCommandStatus"] == 0)]
-            .groupby("bin_id")
-            .size()
+            df.groupby("bin_id")
+            .apply(
+                (
+                    lambda x: (
+                        (x["eMatrixStatus"] != 3) & (x["lastMinuitCommandStatus"] == 0)
+                    ).sum()
+                )
+            )
             .to_numpy()
         )
         failed_fits = (
-            df.loc[df["lastMinuitCommandStatus"] != 0]
-            .groupby("bin_id")
-            .size()
+            df.groupby("bin_id")
+            .apply((lambda x: (x["lastMinuitCommandStatus"] != 0).sum()))
             .to_numpy()
         )
+
+        max_length = max(len(successful_fits), len(bad_eMatrix_fits), len(failed_fits))
+        if max_length == 0:
+            raise ValueError(
+                "No labelled fit statuses could be found, check validity of the"
+                " randomized dataframe"
+            )
+        successful_fits = (
+            np.zeros(max_length) if len(successful_fits) == 0 else successful_fits
+        )
+        bad_eMatrix_fits = (
+            np.zeros(max_length) if len(bad_eMatrix_fits) == 0 else bad_eMatrix_fits
+        )
+        failed_fits = np.zeros(max_length) if len(failed_fits) == 0 else failed_fits
 
         default_kwargs = {
             "colors": ["tab:blue", "tab:orange", "tab:red"],
@@ -720,9 +745,10 @@ class ScanPlotter(BasePWAPlotter):
                 ax.bar(
                     data_df["x_center"],
                     fit_status,
-                    width=0.5,
+                    data_df["x_err"],
                     label=kwargs["labels"][i],
                     color=kwargs["colors"][i],
+                    bottom=bottom,
                 )
                 bottom += fit_status
 
@@ -1030,7 +1056,9 @@ class ScanPlotter(BasePWAPlotter):
             frame_columns = [c for c in requested_frame.columns if c != "bin_id"]
         elif frame in _FIT_LIKE_FRAMES:
             frame_columns = list(columns) + [
-                f"{col}_err" for col in columns if f"{col}_err" in columns
+                f"{col}_err"
+                for col in columns
+                if f"{col}_err" in requested_frame.columns
             ]
         else:
             frame_columns = list(columns)
