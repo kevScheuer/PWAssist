@@ -411,6 +411,8 @@ class ScanPlotter(BasePWAPlotter):
                 else "Fit Fraction"
             )
 
+        max_value = 0.0  # for resetting y_lim later
+
         with self._style():
             if axs is None:
                 fig, axs = plt.subplots(
@@ -476,6 +478,8 @@ class ScanPlotter(BasePWAPlotter):
                             y = fit_df[amp].to_numpy()
                             yerr = fit_df[f"{amp}_err"].to_numpy()
 
+                        max_value = max(max_value, y)
+
                         ax.errorbar(
                             x=data_df["x_center"],
                             xerr=data_df["x_err"],
@@ -496,6 +500,10 @@ class ScanPlotter(BasePWAPlotter):
                         ax.set_xlabel(x_label)
                     if col_idx == 0:
                         ax.set_ylabel(y_label)
+
+        # if sharey=True, adjust y_lims
+        for ax in axs:
+            ax.set_ylim(top=max_value)
 
         return axs
 
@@ -952,8 +960,8 @@ class ScanPlotter(BasePWAPlotter):
         Args:
             columns (tuple[str, ...] | list[str] | None): The columns to include from
                 'frame'. For 'fit'/'randomized'/'bootstrap' frames, the "_err"
-                companions are automatically added. If None (default) all columns are
-                included.
+                companions are automatically added, if available. If None (default) all
+                columns are included.
             frame (Literal['fit', 'correlation', 'covariance', 'norm_int', 'randomized'
                 'bootstrap']): Which 'results' dataframe to pull 'columns' from.
                 Defaults to 'fit'.
@@ -1021,7 +1029,9 @@ class ScanPlotter(BasePWAPlotter):
         if columns is None:
             frame_columns = [c for c in requested_frame.columns if c != "bin_id"]
         elif frame in _FIT_LIKE_FRAMES:
-            frame_columns = list(columns) + [f"{col}_err" for col in columns]
+            frame_columns = list(columns) + [
+                f"{col}_err" for col in columns if f"{col}_err" in columns
+            ]
         else:
             frame_columns = list(columns)
 
