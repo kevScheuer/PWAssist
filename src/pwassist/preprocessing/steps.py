@@ -163,7 +163,12 @@ def check_error_columns(bundle: BinBundle) -> None:
 
 
 def align_phase_column_names(bundle: BinBundle) -> None:
-    """Make phase names consistent across fit, randomized, and bootstrap results"""
+    """Make phase names consistent across fit, randomized, and bootstrap results
+
+    The order of the names does matter, as it indicates how the phase difference was
+    requested from AmpTools. PD(amp1, amp2) == -1.0 * PD(amp2, amp2), and so we must
+    incur a sign flip if we flip the names.
+    """
     fit = bundle.fit
     if fit is None:
         return
@@ -177,11 +182,13 @@ def align_phase_column_names(bundle: BinBundle) -> None:
         for col in reversed_phase_cols:
             if col in bundle.randomized.frame.columns:
                 new_col = f"{col.split('_')[1]}_{col.split('_')[0]}"
+                bundle.randomized.frame[col] = bundle.randomized.frame[col] * -1.0
                 bundle.randomized.frame.rename(columns={col: new_col}, inplace=True)
     if bundle.bootstrap is not None:
         for col in reversed_phase_cols:
             if col in bundle.bootstrap.frame.columns:
                 new_col = f"{col.split('_')[1]}_{col.split('_')[0]}"
+                bundle.bootstrap.frame[col] = bundle.bootstrap.frame[col] * -1.0
                 bundle.bootstrap.frame.rename(columns={col: new_col}, inplace=True)
 
 
