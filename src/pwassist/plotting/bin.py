@@ -65,6 +65,7 @@ class BinPlotter(BasePWAPlotter):
         filtered_parameters = self._filter_production_coefficients(parameters)
         matrix = (
             value_df.set_index("parameter")
+            .loc[filtered_parameters]
             .reindex(columns=filtered_parameters)
             .to_numpy()
         )

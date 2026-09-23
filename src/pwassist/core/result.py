@@ -94,24 +94,21 @@ class Results:
 
         # We can infer whether reaction/sum names are constrained by counting the number
         # of "::" occurrences in the production coefficient columns.
-        for col in self.fit.columns:
-            if "_re" not in col or "_im" not in col:
-                continue
-            match col.count("::"):
-                case 0:  # labeled '<amplitude>_<part>'
-                    self._are_sums_constrained = True
-                    self._are_reactions_constrained = True
-                case 1:  # labeled '<sum>::<amplitude>_<part>'
-                    self._are_sums_constrained = False
-                    self._are_reactions_constrained = True
-                case 2:  # labeled '<reaction>::<sum>::<amplitude>_<part>'
-                    self.are_sums_constrained = False
-                    self.are_reactions_constrained = False
-                case _:
-                    raise ValueError(
-                        f"Unexpected format for production coefficient column"
-                        f" '{col}'"
-                    )
+        prod_coeff_cols = [c for c in self.fit.columns if "_re" in c or "_im" in c]
+        if any([c.count("::") > 2 for c in prod_coeff_cols]):
+            raise ValueError(f"Unexpected format for production coefficient columns")
+        elif any([c.count("::") == 2 for c in prod_coeff_cols]):
+            # labeled '<reaction>::<sum>::<amplitude>_<part>'
+            self.are_sums_constrained = False
+            self.are_reactions_constrained = False
+        elif any([c.count("::") == 1 for c in prod_coeff_cols]):
+            # labeled '<sum>::<amplitude>_<part>'
+            self.are_sums_constrained = False
+            self.are_reactions_constrained = True
+        else:
+            # labeled '<amplitude>_<part>'
+            self.are_sums_constrained = True
+            self.are_reactions_constrained = True
 
         return
 
