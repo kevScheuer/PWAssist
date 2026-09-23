@@ -23,10 +23,20 @@ class BinPlotter(BasePWAPlotter):
         energy_bin: tuple[float, float] | EnergyBin | None = None,
         mass_bin: tuple[float, float] | MassBin | None = None,
         indices: list[int] | None = None,
+        columns: list[str] | None = None,
+        exclude_columns: list[str] | None = None,
         ax: matplotlib.axes.Axes | None = None,
         kwargs: dict[str, Any] | None = None,
     ) -> matplotlib.axes.Axes:
         """Plot the correlation matrix of the fit parameters for a single bin.
+
+        This internally determines which parameters, specifically production
+        coefficients, are unique. In the correlation dataframe the production
+        coefficients are written in their 'full' amplitude form
+        '<reaction>::<sum>::<amplitude>_<part>', but they are often times constrained
+        across reactions and sums. To reduce the number of identical correlations being
+        reported for constrained cases, only those coefficients who are unique will be
+        plotted (assuming no explicit 'columns' were requested).
 
         Args:
             t_bin (tuple[float, float] | TBin | None): Fixes the t bin to plot from if
@@ -38,8 +48,14 @@ class BinPlotter(BasePWAPlotter):
             mass_bin (tuple[float,float] | EnergyBin | None): Fixes the mass bin to plot
                 from if the results span multiple mass bins. If only 1 mass bin is
                 available, specification is unnecessary. Defaults to None.
-            indices (list[int]): Optional list of positions within the resolved
+            indices (list[int] | None): Optional list of positions within the resolved
                 kinematic bin to select specific bins. Defaults to None.
+            columns (list[str] | None): Optional list of parameter columns to plot.
+                Defaults to None, so that all unique parameters are plotted.
+            exclude_columns (list[str] | None): Optional list of parameter columns to
+                exclude, as sometimes it is easier to remove a few columns from many,
+                than to explicitly request the many. Defaults to None, so that all
+                unique parameters are plotted.
             ax (matplotlib.axes.Axes | None): Optional axes to plot on. If None, a new
                 figure and axes will be created.
             kwargs (dict[str, Any] | None): Optional dictionary of keyword arguments
@@ -60,13 +76,26 @@ class BinPlotter(BasePWAPlotter):
                 f"Expected a 'parameter' column in the correlation dataframe, but it"
                 f" was not found. Available columns: {list(value_df.columns)}"
             )
+        if not columns:
+            parameters = self._filter_production_coefficients(
+                value_df["parameter"].tolist()
+            )
+            parameters = [
+                p
+                for p in parameters
+                if exclude_columns is None or p not in exclude_columns
+            ]
+        else:
+            parameters = [
+                p
+                for p in columns
+                if exclude_columns is None or p not in exclude_columns
+            ]
 
-        parameters = value_df["parameter"].tolist()
-        filtered_parameters = self._filter_production_coefficients(parameters)
         matrix = (
             value_df.set_index("parameter")
-            .loc[filtered_parameters]
-            .reindex(columns=filtered_parameters)
+            .loc[parameters]
+            .reindex(columns=parameters)
             .to_numpy()
         )
         labels = [
@@ -75,7 +104,7 @@ class BinPlotter(BasePWAPlotter):
                 self.results.are_reactions_constrained,
                 self.results.are_sums_constrained,
             )
-            for p in filtered_parameters
+            for p in parameters
         ]
 
         default_kwargs = {
@@ -288,7 +317,9 @@ class BinPlotter(BasePWAPlotter):
             else:
                 other_params.append(p)
 
-        unique_prod_coefficients = [c for c in self.results.fit.columns if "_re" in c]
+        unique_prod_coefficients = [
+            c for c in self.results.fit.columns if "_re" in c or "_im" in c
+        ]
         used_unique = []
         reduced_prod_coefficients = []
         for upc in unique_prod_coefficients:
