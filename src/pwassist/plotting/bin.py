@@ -62,8 +62,20 @@ class BinPlotter(BasePWAPlotter):
             )
 
         parameters = value_df["parameter"].tolist()
-        matrix = value_df.set_index("parameter").reindex(columns=parameters).to_numpy()
-        labels = [self._parameter_label(p) for p in parameters]
+        filtered_parameters = self._filter_production_coefficients(parameters)
+        matrix = (
+            value_df.set_index("parameter")
+            .reindex(columns=filtered_parameters)
+            .to_numpy()
+        )
+        labels = [
+            self._parameter_label(
+                p,
+                self.results._are_reactions_constrained,
+                self.results._are_sums_constrained,
+            )
+            for p in filtered_parameters
+        ]
 
         default_kwargs = {
             "cmap": "coolwarm",
@@ -239,30 +251,99 @@ class BinPlotter(BasePWAPlotter):
         )
         return value_df, kinematic_bin
 
-    def _parameter_label(self, parameter: str) -> str:
+    def _filter_production_coefficients(self, parameters: list[str]) -> list[str]:
+        """Removes production coefficients with duplicate information
+
+        Production coefficients are named
+        '<reaction>::<sum>::<amplitude>_re' or'<reaction>::<sum>::<amplitude>_im'. The
+        production coefficients in the fit dataframe already tell us which parts are
+        constrained e.g. columns named '<amplitude>_<part>' means reactions and sums
+        are constrained, while '<reaction>::<sum>::<amplitude>_<part>' means neither are
+        constrained and no duplicate information is present. This function removes those
+        production coefficients that will provide repeated information
+
+        If they are constrained across reactions or sums, then many will be duplicates
+        and unnecessarily plotted. This removes the duplicate parameters using result's
+        metadata to provide the minimum number of parameters needed.
+
+        For example, if 'pi1::sumA::my_amp' and 'pi2::sumB::my_amp' exists, and both
+        reactions and sums are constrained
+
+        Args:
+            parameters (list[str]): List of all AmpTools parameters from a fit,
+                including production coefficients
+
+        Returns:
+            list[str]: the minimum set of production coefficients needed to fully
+                describe the fit, and all other passed non-production coefficient
+                parameters
+        """
+
+        full_amplitudes = []
+        other_params = []
+        for p in parameters:
+            if "::" in p:
+                full_amplitudes.append(p)
+            else:
+                other_params.append(p)
+
+        unique_prod_coefficients = [c for c in self.results.fit.columns if "_re" in c]
+        used_unique = []
+        reduced_prod_coefficients = []
+        for upc in unique_prod_coefficients:
+            for fa in full_amplitudes:
+                if upc in fa:
+                    # the first full amplitude that contains the unique component is
+                    # added. All other full amplitudes therefore are repeats.
+                    reduced_prod_coefficients.append(fa)
+                    used_unique.append(upc)
+                    break
+            if upc not in used_unique:
+                raise KeyError(
+                    f"The production coefficient {upc} has no corresponding 'full'"
+                    " amplitude name"
+                )
+
+        return reduced_prod_coefficients + other_params
+
+    def _parameter_label(
+        self, parameter: str, drop_reaction_label: bool, drop_sum_label: bool
+    ) -> str:
         """Render a raw fit-parameter as a readable label.
 
-        Individual amplitude fit parameters are named '<amplitude>_re' or
-        '<amplitude>_im', with a specific naming convention for the amplitude. This
+        Individual production coefficients are named
+        '<reaction>::<sum>::<amplitude>_re' or'<reaction>::<sum>::<amplitude>_im'. This
         function will render the amplitude part in LaTeX via the results' parser and
-        label the Re/Im part. Parameters not fitting the pattern are returned as-is.
+        label the Re/Im part. The sum labels are dropped, as it is assumed
+        the amplitude name carries the necessary information. The reaction label can be
+        optionally kept, in the case that amplitudes are not constrained across
+        reactions. Non-production coefficients are returned as-is.
 
         Args:
             parameter (str): Raw fit-parameter name, as it appears in the 'parameter'
                 column of correlation/covariance dataframes.
+            drop_reaction_label (bool): the '<reaction>::' string is dropped
+            drop_sum_label (bool): the '<sum>::' string is dropped.
 
         Returns:
             str: A readable label for the parameter, or original string if the name
                 does not match the expected '<amplitude>_<part>' format
         """
-        base, sep, part = parameter.rpartition("_")
+        if "::" not in parameter:
+            return parameter
+
+        reaction, sum, amp_name = parameter.split("::")
+        reaction = "" if drop_reaction_label else f"{reaction}::"
+        sum = "" if drop_sum_label else f"{sum}::"
+
+        base, sep, part = amp_name.rpartition("_")
         if sep and part.lower() in _PARAMETER_PART_LABELS:
             try:
                 amp_label = self.results.parser.to_latex(base)
             except (ValueError, KeyError):
                 pass
             else:
-                return rf"$\{_PARAMETER_PART_LABELS[part.lower()]}$({amp_label})"
+                return rf"{reaction}{sum}$\{_PARAMETER_PART_LABELS[part.lower()]}$({amp_label})"
         return parameter
 
     def _bin_title(self, kinematic_bin: KinematicBin) -> str:

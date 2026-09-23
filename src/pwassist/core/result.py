@@ -43,12 +43,14 @@ class Results:
     coherent_sums: dict[str, tuple[str, ...]] = field(default_factory=dict, init=False)
     amplitudes: list[str] = field(default_factory=list, init=False)
     phase_differences: tuple[str, ...] = field(default_factory=tuple, init=False)
+    parser: AmplitudeParser = field(init=False)
+
+    _are_reactions_constrained: bool = field(init=False)
+    _are_sums_constrained: bool = field(init=False)
     _phase_difference_dict: dict[tuple[str, str], str] = field(
         default_factory=dict, init=False
     )
     _naming_scheme: str | None | NamingScheme = field(default=None)
-    parser: AmplitudeParser = field(init=False)
-
     _factory_plotter: FactoryPlotter | None = field(
         default=None, init=False, repr=False
     )
@@ -89,6 +91,22 @@ class Results:
         self.unique_energy_bins = frozenset(
             sorted(kb.energy_bin for kb in self.kinematic_bins)
         )
+
+        # We can infer whether reaction/sum names are constrained by counting the number
+        # of "::" occurrences in the production coefficient columns.
+        for col in self.fit.columns:
+            if "_re" not in col or "_im" not in col:
+                continue
+            match col.count("::"):
+                case 0:  # labeled '<amplitude>_<part>'
+                    self._are_sums_constrained = True
+                    self._are_reactions_constrained = True
+                case 1:  # labeled '<sum>::<amplitude>_<part>'
+                    self._are_sums_constrained = False
+                    self._are_reactions_constrained = True
+                case 2:  # labeled '<reaction>::<sum>::<amplitude>_<part>'
+                    self._are_sums_constrained = False
+                    self._are_reactions_constrained = False
 
         return
 
