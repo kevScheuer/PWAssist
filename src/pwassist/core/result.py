@@ -44,9 +44,9 @@ class Results:
     amplitudes: list[str] = field(default_factory=list, init=False)
     phase_differences: tuple[str, ...] = field(default_factory=tuple, init=False)
     parser: AmplitudeParser = field(init=False)
+    are_reactions_constrained: bool = False
+    are_sums_constrained: bool = False
 
-    _are_reactions_constrained: bool = field(init=False)
-    _are_sums_constrained: bool = field(init=False)
     _phase_difference_dict: dict[tuple[str, str], str] = field(
         default_factory=dict, init=False
     )
@@ -105,8 +105,13 @@ class Results:
                     self._are_sums_constrained = False
                     self._are_reactions_constrained = True
                 case 2:  # labeled '<reaction>::<sum>::<amplitude>_<part>'
-                    self._are_sums_constrained = False
-                    self._are_reactions_constrained = False
+                    self.are_sums_constrained = False
+                    self.are_reactions_constrained = False
+                case _:
+                    raise ValueError(
+                        f"Unexpected format for production coefficient column"
+                        f" '{col}'"
+                    )
 
         return
 

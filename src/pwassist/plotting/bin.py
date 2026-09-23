@@ -71,8 +71,8 @@ class BinPlotter(BasePWAPlotter):
         labels = [
             self._parameter_label(
                 p,
-                self.results._are_reactions_constrained,
-                self.results._are_sums_constrained,
+                self.results.are_reactions_constrained,
+                self.results.are_sums_constrained,
             )
             for p in filtered_parameters
         ]
