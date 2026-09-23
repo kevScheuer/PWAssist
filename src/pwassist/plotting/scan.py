@@ -70,7 +70,14 @@ def _format_spin_projection(m: str) -> str:
 
 
 class ScanPlotter(BasePWAPlotter):
-    """Plotter for all results that scan across a range of bins, e.g. mass, t, etc."""
+    """Plotter for all results that scan across a range of bins, e.g. mass, t, etc.
+
+    Most methods will have an optional 'kin_variable' that specifies with kinematic
+    quantity (mass, t, energy, or some other 'data' dataframe column) they want to
+    scan across. This is paired with a 'stat' argument determining the bin centroid
+    and edges, and optional t/energy/mass bin selections in case the results bundle
+    spans multiple bins for the non-plotted scan variable.
+    """
 
     def coherent_sum(
         self,
@@ -88,11 +95,11 @@ class ScanPlotter(BasePWAPlotter):
     ) -> matplotlib.axes.Axes:
         """Plot coherent sum group across the bins.
 
-        A sum group is defined by the quantum numbers that the sum groups and the
-        amplitude naming scheme. For example, in the `JLme` scheme, one can plot all
-        the available `JLe` coherent sums, or those that sum over the spin-projection
-        `m`. If not plotting as fit fractions (fractional='false'), then data points
-        are also plotted.
+        A sum group is defined by the quantum numbers that the sum groups together and
+        the amplitude naming scheme. For example, in the `JLme` scheme, one can plot all
+        the available `JLe` coherent sums i.e. those that sum over the spin-projection
+        `m`. If not plotting as fit fractions (fractional='false'), then data points are
+        also plotted.
 
         Args:
             sum_label (str): The label of the coherent sum group to plot. See the
