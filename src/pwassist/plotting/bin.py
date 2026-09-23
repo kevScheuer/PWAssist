@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 import matplotlib.axes
 import matplotlib.pyplot as plt
@@ -6,8 +6,12 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from pwassist.io.binning import EnergyBin, MassBin, TBin
+from pwassist.io.binning import EnergyBin, KinematicBin, MassBin, TBin
 from pwassist.plotting.base import BasePWAPlotter
+
+# fit-parameter name suffixes that get rendered as a readable "(Re)"/"(Im)" tag
+# rather than shown raw, e.g. "1S+0p_re" -> "$\Re(1S_{0}^{(+)})$"
+_PARAMETER_PART_LABELS = {"re": "Re", "im": "Im"}
 
 
 class BinPlotter(BasePWAPlotter):
@@ -39,12 +43,40 @@ class BinPlotter(BasePWAPlotter):
             ax (matplotlib.axes.Axes | None): Optional axes to plot on. If None, a new
                 figure and axes will be created.
             kwargs (dict[str, Any] | None): Optional dictionary of keyword arguments
-                to customize the plot appearance.
+                to customize the plot appearance. Passed directly to 'seaborn.heatmap'
         Returns:
             matplotlib.axes.Axes: The axes object containing the correlation matrix plot
         """
 
-        default_kwargs = {}
+        value_df, kinematic_bin = self._bin_dataframe(
+            frame="correlation",
+            t_bin=t_bin,
+            energy_bin=energy_bin,
+            mass_bin=mass_bin,
+            indices=indices,
+        )
+        if "parameter" not in value_df.columns:
+            raise KeyError(
+                f"Expected a 'parameter' column in the correlation dataframe, but it"
+                f" was not found. Available columns: {list(value_df.columns)}"
+            )
+
+        parameters = value_df["parameter"].tolist()
+        matrix = value_df.set_index("parameter").reindex(columns=parameters).to_numpy()
+        labels = [self._parameter_label(p) for p in parameters]
+
+        default_kwargs = {
+            "cmap": "coolwarm",
+            "vmin": -1.0,
+            "vmax": 1.0,
+            "center": 0.0,
+            "square": True,
+            "annot": len(parameters) <= 15,
+            "fmt": ".2f",
+            "cbar_kws": {"label": "Correlation"},
+            "xticklabels": labels,
+            "yticklabels": labels,
+        }
         default_kwargs.update(kwargs or {})
         kwargs = default_kwargs
 
@@ -55,9 +87,10 @@ class BinPlotter(BasePWAPlotter):
                 else (ax.get_figure(), ax)
             )
 
-            # TODO: plot corr matrix
-
-            pass
+            sns.heatmap(matrix, ax=ax, **kwargs)
+            ax.set_title(self._bin_title(kinematic_bin), fontsize="small")
+            ax.tick_params(axis="x", labelrotation=90)
+            ax.tick_params(axis="y", labelrotation=0)
 
         return ax
 
@@ -150,3 +183,104 @@ class BinPlotter(BasePWAPlotter):
         pg = sns.PairGrid(pd.DataFrame())
 
         return pg
+
+    # ----------------------------------------------------------------------------------
+    # Helpers
+    # ----------------------------------------------------------------------------------
+
+    def _bin_dataframe(
+        self,
+        columns: tuple[str, ...] | list[str] | None = None,
+        frame: Literal[
+            "fit", "correlation", "covariance", "norm_int", "randomized", "bootstrap"
+        ] = "fit",
+        t_bin: tuple[float, float] | TBin | None = None,
+        energy_bin: tuple[float, float] | EnergyBin | None = None,
+        mass_bin: tuple[float, float] | MassBin | None = None,
+        indices: list[int] | None = None,
+    ) -> tuple[pd.DataFrame, KinematicBin]:
+        """Select rows from one results dataframe for a single, resolve kinematic bin.
+
+        Single bin analog of 'ScanPlotter._scan_dataframes', where the same
+        bin-resolution and frame selection process occurs, but is resolved down to
+        one kinematic bin.
+
+        Args:
+            columns (tuple[str, ...] | list[str] | None, optional): Columns to include
+                from 'frame'. For 'fit'/'randomized'/'bootstrap' frames, the '_err'
+                companions are automatically added, if available. Defaults to None, so
+                all columns are included.
+            frame (Literal['fit', 'correlation', 'covariance', 'norm_int', 'randomized',
+                'bootstrap']): Which 'results' dataframe to pull 'columns' from.
+                Defaults to 'fit'.
+            t_bin (tuple[float, float] | TBin | None): Optional fixed t bin.
+                Unnecessary if results span only one t bin. Defaults to None.
+            energy_bin (tuple[float, float] | EnergyBin | None): Optional fixed energy
+                bin. Unnecessary if results span only one energy bin. Defaults to None.
+            mass_bin (tuple[float, float] | MassBin | None): Optional fixed mass bin.
+                Unnecessary if results span only one mass bin. Defaults to None.
+            indices (list[int] | None, optional): Optional list of positions within the
+                filtered, sorted list of kinematic bins to narrow down to a singular
+                bin. Defaults to None
+
+        Returns:
+            tuple[pd.DataFrame, KinematicBin]: The requested 'frame's rows for the
+                resolved bin ("bin_id" retained, though should be a constant since only
+                one bin should be returned), and the resolved KinematicBin itself.
+
+        Raises:
+            ValueError: If the given filters don't resolve to exactly one kinematic bin.
+            KeyError: If the requested frame is not available on 'results'.
+        """
+        kinematic_bin = self._resolve_single_bin(t_bin, energy_bin, mass_bin, indices)
+        requested_frame, frame_columns = self._frame_columns(frame, columns)
+        value_df = self._select_by_bin_id(
+            requested_frame, [kinematic_bin.bin_id], frame_columns
+        )
+        return value_df, kinematic_bin
+
+    def _parameter_label(self, parameter: str) -> str:
+        """Render a raw fit-parameter as a readable label.
+
+        Individual amplitude fit parameters are named '<amplitude>_re' or
+        '<amplitude>_im', with a specific naming convention for the amplitude. This
+        function will render the amplitude part in LaTeX via the results' parser and
+        label the Re/Im part. Parameters not fitting the pattern are returned as-is.
+
+        Args:
+            parameter (str): Raw fit-parameter name, as it appears in the 'parameter'
+                column of correlation/covariance dataframes.
+
+        Returns:
+            str: A readable label for the parameter, or original string if the name
+                does not match the expected '<amplitude>_<part>' format
+        """
+        base, sep, part = parameter.rpartition("_")
+        if sep and part.lower() in _PARAMETER_PART_LABELS:
+            try:
+                amp_label = self.results.parser.to_latex(base)
+            except (ValueError, KeyError):
+                pass
+            else:
+                return rf"$\{_PARAMETER_PART_LABELS[part.lower()]}$({amp_label})"
+        return parameter
+
+    def _bin_title(self, kinematic_bin: KinematicBin) -> str:
+        """Build a descriptive title from a single bin's mass/t/energy range.
+
+        Args:
+            kinematic_bin (KinematicBin): The kinematic bin to describe.
+
+        Returns:
+            str: A LaTeX-formatted title with the bin's mass, t, and energy ranges.
+        """
+        m, t, e = (
+            kinematic_bin.mass_bin,
+            kinematic_bin.t_bin,
+            kinematic_bin.energy_bin,
+        )
+        return (
+            rf"${m.low:.3f} < M < {m.high:.3f}\ GeV$,"
+            rf" ${t.low:.3f} < -t < {t.high:.3f}\ GeV^2$,"
+            rf" ${e.low:.2f} < E_{{\gamma}} < {e.high:.2f}\ GeV$,"
+        )

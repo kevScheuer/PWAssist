@@ -30,12 +30,6 @@ _KIN_VARIABLE_YLABELS: dict[str, str] = {
     "e": r"Events / NUM $(GeV)$",
 }
 
-# Results dataframes that share the same fit-parameter naming convention (<parameter>
-# and <parameter>_err columns). The 'fit', 'randomized', and 'bootstrap' frames all have
-# this shape, of one row per fit. The 'correlation'/'covariance'/'norm_int' frames are
-# matrix-shaped, with one row per parameter/amplitude, not following this convention.
-_FIT_LIKE_FRAMES = frozenset({"fit", "randomized", "bootstrap"})
-
 
 def _numeric_sort_key(value: str) -> float:
     """Numeric ordering for quantum-number character or string.
@@ -949,13 +943,10 @@ class ScanPlotter(BasePWAPlotter):
                 )
             return self.results.energy_kinematic_bins(t_bin=t_bin, mass_bin=mass_bin)
 
-        # arbitrary 'data' column case
-        results = self.results
-        if any(b is not None for b in [t_bin, energy_bin, mass_bin]):
-            results = self.results.filter_by_kinematic_bins(
-                t_bins=t_bin, energy_bins=energy_bin, mass_bins=mass_bin
-            )
-        return sorted(results.kinematic_bins)
+        # arbitrary 'data' column case: no per-axis results method exists to check for
+        # for ambiguity along an unknown axis, so this just applies whichever bins were
+        # given as a plain filter
+        return self._resolve_kinematic_bins(t_bin, energy_bin, mass_bin)
 
     def _scan_dataframes(
         self,
@@ -1018,10 +1009,6 @@ class ScanPlotter(BasePWAPlotter):
             ValueError: If a bin is given for the dimension being scanned over, or if
                 multiple bins are present on a non-scanned dimension, leaving an
                 ambiguous plot range.
-
-        Todo:
-            - this can potentially be extended to the bin.py plotter as well, and thus
-                moved into the base class.
         """
         center_col, low_col, high_col, rms_col, x_label, y_label = (
             self._resolve_kin_variable(kin_variable, stat)
@@ -1039,30 +1026,13 @@ class ScanPlotter(BasePWAPlotter):
                 "provided t_bin, energy_bin, and mass_bin arguments."
             )
 
-        requested_frame = getattr(self.results, frame, None)
-        if requested_frame is None:
-            raise KeyError(
-                f"results.{frame} is not available (is None). Make sure the results"
-                f" bundle actually includes {frame} data"
-            )
-
         # bootstrap fits replace fit errors, if available
         if frame == "fit" and self.results.bootstrap is not None:
             raise NotImplementedError(
                 "Replacing column errors by bootstrap std() not yet implemented"
             )
 
-        if columns is None:
-            frame_columns = [c for c in requested_frame.columns if c != "bin_id"]
-        elif frame in _FIT_LIKE_FRAMES:
-            frame_columns = list(columns) + [
-                f"{col}_err"
-                for col in columns
-                if f"{col}_err" in requested_frame.columns
-            ]
-        else:
-            frame_columns = list(columns)
-
+        requested_frame, frame_columns = self._frame_columns(frame, columns)
         value_df = self._select_by_bin_id(requested_frame, bin_ids, frame_columns)
 
         data_columns = [
@@ -1089,35 +1059,3 @@ class ScanPlotter(BasePWAPlotter):
             data_df["x_err"] = np.nan
 
         return value_df, data_df, x_label, y_label
-
-    def _select_by_bin_id(
-        self, frame: pd.DataFrame, bin_ids: list[str], columns: list[str]
-    ) -> pd.DataFrame:
-        """Select and order rows of results dataframe by resolved bin_ids
-
-        'fit' and 'data' have one row per kinematic bin, but 'randomized' and
-        'bootstrap' have many (one row per fit, many fits per bin). 'Correlation',
-        'covariance', and 'norm_int' frames are matrices, with one row per
-        fit/amplitude, and many rows per bin. This method selects by kinematic bin_id,
-        keeping the original ordering of many rows per bin.
-
-        Args:
-            frame (pd.DataFrame): Dataframe to select from. Must have a "bin_id" column.
-            bin_ids (list[str]): Resolved, ordered bin_ids to select and order by.
-            columns (list[str]): Columns to keep, in addition to "bin_id", which is kept
-                to keep rows identifiable.
-
-        Returns:
-            pd.DataFrame: Selected rows with 'bin_id' retained as the first column.
-
-        Raises:
-            KeyError: If "bin_id" is not a column in 'frame'
-        """
-        if "bin_id" not in frame.columns:
-            raise KeyError(
-                "Expected a 'bin_id' column to select kinematic bins by, but was not"
-                f" found. Available columns: {list(frame.columns)}"
-            )
-        ordered_columns = ["bin_id"] + [c for c in columns if c != "bin_id"]
-        selected = frame.set_index("bin_id", drop=False).loc[bin_ids, ordered_columns]
-        return selected.reset_index(drop=True)

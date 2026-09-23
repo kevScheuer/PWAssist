@@ -1,14 +1,22 @@
 import importlib.resources
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy.stats
 
+from pwassist.io.binning import EnergyBin, KinematicBin, MassBin, TBin
+
 if TYPE_CHECKING:
     from pwassist.core.result import Results
+
+# Results dataframes that share the same fit-parameter naming convention (<parameter>
+# and <parameter>_err columns). The 'fit', 'randomized', and 'bootstrap' frames all have
+# this shape, of one row per fit. The 'correlation'/'covariance'/'norm_int' frames are
+# matrix-shaped, with one row per parameter/amplitude, not following this convention.
+_FIT_LIKE_FRAMES = frozenset({"fit", "randomized", "bootstrap"})
 
 
 class BasePWAPlotter:
@@ -159,6 +167,155 @@ class BasePWAPlotter:
         if angles_rad.max() > np.pi:
             raise ValueError("Data must be within [-pi, pi]; check preprocessing.")
         return np.rad2deg(scipy.stats.circstd(angles_rad, low=0, high=np.pi))
+
+    def _resolve_kinematic_bins(
+        self,
+        t_bin: tuple[float, float] | TBin | None = None,
+        energy_bin: tuple[float, float] | EnergyBin | None = None,
+        mass_bin: tuple[float, float] | MassBin | None = None,
+        indices: list[int] | None = None,
+    ) -> list[KinematicBin]:
+        """Resolve the sorted list of kinematic bins matching the given filters
+
+        Args:
+            t_bin (tuple[float, float] | TBin | None, optional): Optional t bin filter.
+                Defaults to None.
+            energy_bin (tuple[float, float] | EnergyBin | None, optional): Optional
+                energy bin filter. Defaults to None.
+            mass_bin (tuple[float, float] | MassBin | None, optional): Optional mass
+                bin filter. Defaults to None.
+            indices (list[int] | None, optional): Optional list of positions within the
+                filtered, sorted list of kinematic bins to further select. Defaults to
+                None (all bins included).
+
+        Returns:
+            list[KinematicBin]: Resolved, sorted (and possibly index-selected) kinematic
+                bins.
+        """
+        results = self.results
+        if any(b is not None for b in (t_bin, energy_bin, mass_bin)):
+            results = results.filter_by_kinematic_bins(
+                t_bins=t_bin, energy_bins=energy_bin, mass_bins=mass_bin
+            )
+        kinematic_bins = sorted(results.kinematic_bins)
+        if indices is not None:
+            kinematic_bins = [kinematic_bins[i] for i in indices]
+        return kinematic_bins
+
+    def _resolve_single_bin(
+        self,
+        t_bin: tuple[float, float] | TBin | None = None,
+        energy_bin: tuple[float, float] | EnergyBin | None = None,
+        mass_bin: tuple[float, float] | MassBin | None = None,
+        indices: list[int] | None = None,
+    ) -> KinematicBin:
+        """Resolve exactly one kinematic bin from the given filters.
+
+        Used by the singular BinPlotter, to select one TEM bin. If multiple bins are
+        still present, optionally indices can resolve it to one.
+
+        Args:
+            t_bin (tuple[float, float] | TBin | None, optional): Fixes the t bin.
+            Unnecessary if results span only one t bin. Defaults to None.
+            energy_bin (tuple[float, float] | EnergyBin | None, optional): Fixes the
+                energy bin. Unnecessary if results span only one energy bin. Defaults to
+                None.
+            mass_bin (tuple[float, float] | MassBin | None, optional): Fixes the mass
+                bin. Unnecessary if results span only one mass bin. Defaults to None.
+            indices (list[int] | None, optional): Optional list of positions within the
+                filtered, sorted list of kinematic bins to narrow down to a singular
+                bin. Defaults to None
+
+        Returns:
+            KinematicBin: The single resolved kinematic bin
+        Raises:
+            ValueError: If zero, or more than one, kinematic bin matches the filters.
+        """
+        candidates = self._resolve_kinematic_bins(t_bin, energy_bin, mass_bin, indices)
+        if len(candidates) != 1:
+            raise ValueError(
+                f"Expected precisely one kinematic bin to be resolved, but"
+                f" {len(candidates)} matched the given filters:"
+                f" {[kb.bin_id for kb in candidates]}. Specify"
+                f" t_bin/energy_bin/mass_bin (with further optional index if necessary)"
+                f" to narrow down to a single bin."
+            )
+        return candidates[0]
+
+    def _frame_columns(
+        self,
+        frame: Literal[
+            "fit", "correlation", "covariance", "norm_int", "randomized", "bootstrap"
+        ],
+        columns: tuple[str, ...] | list[str] | None,
+    ) -> tuple[pd.DataFrame, list[str]]:
+        """Look up a results dataframe and resolve which columns to use.
+
+        'fit' / 'randomized' / 'bootstrap' frames share the same '<col>'/'<col>_err'
+        style column-name convention, so 'columns' gets their '_err' companions added
+        automatically (when available). The matrix-shaped frames (e.g. 'correlation')
+        use columns as-is.
+
+        Args:
+            frame (Literal['fit', 'correlation', 'covariance', 'norm_int',
+                'randomized', 'bootstrap']): Which `results` dataframe to look up.
+            columns (tuple[str, ...] | list[str] | None): The column names to include.
+                If None, every column is used.
+
+        Returns:
+            tuple[pd.DataFrame, list[str]]: The requested dataframe itself, and the
+                resolved list of column names to select from it.
+        """
+        requested_frame = getattr(self.results, frame, None)
+        if requested_frame is None:
+            raise KeyError(
+                f"results.{frame} is not available. Make sure the results bundle"
+                f" actually includes {frame} data."
+            )
+
+        if columns is None:
+            frame_columns = [c for c in requested_frame.columns if c != "bin_id"]
+        elif frame in _FIT_LIKE_FRAMES:
+            frame_columns = list(columns) + [
+                f"{col}_err"
+                for col in columns
+                if f"{col}_err" in requested_frame.columns
+            ]
+        else:
+            frame_columns = list(columns)
+        return requested_frame, frame_columns
+
+    def _select_by_bin_id(
+        self, frame: pd.DataFrame, bin_ids: list[str], columns: list[str]
+    ) -> pd.DataFrame:
+        """Select and order rows of results dataframe by resolved bin_ids
+
+        'fit' and 'data' have one row per kinematic bin, but 'randomized' and
+        'bootstrap' have many (one row per fit, many fits per bin). 'Correlation',
+        'covariance', and 'norm_int' frames are matrices, with one row per
+        fit/amplitude, and many rows per bin. This method selects by kinematic bin_id,
+        keeping the original ordering of many rows per bin.
+
+        Args:
+            frame (pd.DataFrame): Dataframe to select from. Must have a "bin_id" column.
+            bin_ids (list[str]): Resolved, ordered bin_ids to select and order by.
+            columns (list[str]): Columns to keep, in addition to "bin_id", which is kept
+                to keep rows identifiable.
+
+        Returns:
+            pd.DataFrame: Selected rows with 'bin_id' retained as the first column.
+
+        Raises:
+            KeyError: If "bin_id" is not a column in 'frame'
+        """
+        if "bin_id" not in frame.columns:
+            raise KeyError(
+                "Expected a 'bin_id' column to select kinematic bins by, but was not"
+                f" found. Available columns: {list(frame.columns)}"
+            )
+        ordered_columns = ["bin_id"] + [c for c in columns if c != "bin_id"]
+        selected = frame.set_index("bin_id", drop=False).loc[bin_ids, ordered_columns]
+        return selected.reset_index(drop=True)
 
     def _style(self):
         """Context manager to apply the current style for plotting"""
