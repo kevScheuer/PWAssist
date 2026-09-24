@@ -1033,14 +1033,10 @@ class ScanPlotter(BasePWAPlotter):
                 "provided t_bin, energy_bin, and mass_bin arguments."
             )
 
-        # bootstrap fits replace fit errors, if available
-        if frame == "fit" and self.results.bootstrap is not None:
-            raise NotImplementedError(
-                "Replacing column errors by bootstrap std() not yet implemented"
-            )
-
         requested_frame, frame_columns = self._frame_columns(frame, columns)
         value_df = self._select_by_bin_id(requested_frame, bin_ids, frame_columns)
+        if frame == "fit":
+            value_df = self._replace_errors_with_bootstrap(value_df)
 
         data_columns = [
             "events",

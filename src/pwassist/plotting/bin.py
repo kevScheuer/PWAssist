@@ -279,6 +279,8 @@ class BinPlotter(BasePWAPlotter):
         value_df = self._select_by_bin_id(
             requested_frame, [kinematic_bin.bin_id], frame_columns
         )
+        if frame == "fit":
+            value_df = self._replace_errors_with_bootstrap(value_df)
         return value_df, kinematic_bin
 
     def _filter_production_coefficients(self, parameters: list[str]) -> list[str]:

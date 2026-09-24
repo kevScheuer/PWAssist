@@ -129,21 +129,42 @@ class BasePWAPlotter:
     # ----------------------------------------------------------------------------------
     # Shared Helpers
     # ----------------------------------------------------------------------------------
-    def get_bootstrap_error(self, label: str) -> pd.Series:
-        """Get the bootstrap error for a given label from the fit dataframe."""
+    def get_bootstrap_uncertainty(
+        self, label: str, kinematic_bins: list[KinematicBin] | None = None
+    ) -> pd.Series:
+        """Get the uncertainty for a given label calculated from the bootstrap data
+
+        Args:
+            label (str): label that should match a column in the bootstrap dataframe
+            kinematic_bins (list[KinematicBin] | None, optional): Optional list of
+                kinematic bins to narrow the calculation down to. Defaults to None.
+
+        Raises:
+            KeyError: If bootstrap fits are unavailable, or label is not in the
+                bootstrap frame.
+
+        Returns:
+            pd.Series: Standard deviations of the bootstrap samples, indexed by
+                kinematic bin.
+        """
 
         if self.bootstrap is None:
-            raise ValueError("Bootstrap results are not available in the results.")
+            raise KeyError("Bootstrap results are not available in the results.")
 
         if label not in self.bootstrap.columns:
             raise KeyError(f"Label '{label}' not found in bootstrap results.")
 
-        grouped = self.bootstrap.groupby("bin_id")[label]
+        grouped = self.bootstrap.groupby("bin_id", sort=False)[label]
 
         if label in self.results.phase_differences:
-            return grouped.apply(self._circular_std)
+            uncertainty = grouped.apply(self._circular_std)
+        else:
+            uncertainty = grouped.std()  # Standard deviation as error estimate
 
-        return grouped.std()  # Standard deviation as error estimate
+        if kinematic_bins is not None:
+            bin_ids = [kinematic_bin.bin_id for kinematic_bin in kinematic_bins]
+            uncertainty = uncertainty.reindex(bin_ids)
+        return uncertainty
 
     def _circular_std(self, angles: pd.Series) -> float:
         """Calculate the circular standard deviation of a series of angles
@@ -158,6 +179,10 @@ class BasePWAPlotter:
         Returns:
             float: circular standard deviation in degrees. Returns NaN if the input
                 series is empty or contains only NaN values.
+
+        Note:
+            This automatically corrects for the sign ambiguity in the phase differences
+            by taking the absolute value before calculating.
         """
         angles = angles.dropna()
         if len(angles) == 0:
@@ -316,6 +341,30 @@ class BasePWAPlotter:
         ordered_columns = ["bin_id"] + [c for c in columns if c != "bin_id"]
         selected = frame.set_index("bin_id", drop=False).loc[bin_ids, ordered_columns]
         return selected.reset_index(drop=True)
+
+    def _replace_errors_with_bootstrap(self, frame: pd.DataFrame) -> pd.DataFrame:
+        """Replaces the 'frame's error columns by the bootstrap standard deviations
+
+        If no bootstrap dataframe is available, it silently returns the original frame.
+        This function is only really useful for the 'best' self.fit frame.
+
+        Args:
+            frame (pd.DataFrame): input dataframe
+
+        Returns:
+            pd.DataFrame: dataframe copy, with all '<param>_err' columns replaced by the
+                standard deviation of the bootstrap samples for <param>.
+        """
+        if self.bootstrap is None:
+            return frame
+
+        updated_frame = frame.copy()
+        bin_ids = frame["bin_id"]
+        for error_column in (c for c in frame.columns if c.endswith("_err")):
+            label = error_column.removesuffix("_err")
+            uncertainty = self.get_bootstrap_uncertainty(label)
+            updated_frame[error_column] = uncertainty.reindex(bin_ids).to_numpy()
+        return updated_frame
 
     def _style(self):
         """Context manager to apply the current style for plotting"""
