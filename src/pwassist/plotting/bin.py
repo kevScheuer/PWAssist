@@ -1,6 +1,7 @@
 from typing import Any, Literal
 
 import matplotlib.axes
+import matplotlib.colors
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -135,6 +136,197 @@ class BinPlotter(BasePWAPlotter):
             ax.tick_params(axis="y", labelrotation=0)
 
         return ax
+
+    def production_coefficients(
+        self,
+        source: Literal["randomized", "bootstrap"] = "randomized",
+        delta_lnL_threshold: float = np.inf,
+        ignore_failed_fits: bool = True,
+        ignore_bad_matrix: bool = True,
+        columns: list[str] | None = None,
+        t_bin: tuple[float, float] | TBin | None = None,
+        energy_bin: tuple[float, float] | EnergyBin | None = None,
+        mass_bin: tuple[float, float] | MassBin | None = None,
+        indices: list[int] | None = None,
+        axs: np.ndarray | None = None,
+        kwargs: dict[str, dict[str, Any]] | None = None,
+    ) -> np.ndarray:
+        """Real and imaginary components of production coefficients for many fits
+
+        Given a 'source' dataframe (randomized or bootstrap), each production
+        coefficient is individually plotted with its real and imaginary components as
+        a scatter plot, where all fits in a selected kinematic bin are plotted.
+
+        Args:
+            source (Literal['randomized', 'bootstrap'], optional): source dataframe to
+                pull fits from. Defaults to "randomized".
+            delta_lnL_threshold (float). Fits (i) with
+                Δ(-2lnL_i - -2lnL_min) < threshold will be plotted. Defaults to np.inf,
+                so all fits are included.
+            ignore_failed_fits (bool): Does not plot any fits with
+                lastMinuitCommandStatus != 0. Defaults to True.
+            ignore_bad_matrix (bool): Does not plot any fits with eMatrixStatus != 3.
+                Defaults to True.
+            columns (list[str] | None, optional): select production coefficient columns
+                to plot. Expects them to end with '_re' or '_im' parts. Defaults to
+                None.
+            t_bin (tuple[float, float] | TBin | None): Fixes the t bin to plot from if
+                the results span multiple t bins. If only 1 t bin is available,
+                specification is unnecessary. Defaults to None.
+            energy_bin (tuple[float,float] | EnergyBin | None): Fixes the beam energy
+                bin to plot from if the results span multiple energy bins. If only 1
+                energy bin is available, specification is unnecessary. Defaults to None.
+            mass_bin (tuple[float,float] | EnergyBin | None): Fixes the mass bin to plot
+                from if the results span multiple mass bins. If only 1 mass bin is
+                available, specification is unnecessary. Defaults to None.
+            indices (list[int] | None): Optional list of positions within the resolved
+                kinematic bin to select specific bins. Defaults to None.
+            axs (np.ndarray | None, optional): Optional array of axes to plot on. Ensure
+                that there are enough positions available for the number of production
+                coefficients to plot. Defaults to None.
+            kwargs (dict[str, dict[str], Any]] | None, optional): Optional dictionary of
+                keyword arguments, for each production coefficient, to customize plot
+                appearances. Recognizes 'amplitude' keys, which are the
+                '<amplitude>_<part>' components in production coefficients e.g.
+                '0S+1p_re'. The accompanying dict are the keyword arguments that will be
+                used for that amplitude's plot. Defaults to None.
+
+        Raises:
+            KeyError: If source dataframe unrecognized
+            ValueError: 'columns' does not have recognized production coefficient
+                format.
+
+        Returns:
+            np.ndarray: square array of production coefficient real and imaginary parts.
+        """
+
+        if source not in ("randomized", "bootstrap"):
+            raise KeyError(
+                "Expected 'source' to either be the 'randomized' or 'bootstrap'"
+                " dataframes."
+            )
+
+        value_df, kinematic_bin = self._bin_dataframe(
+            frame=source,
+            t_bin=t_bin,
+            energy_bin=energy_bin,
+            mass_bin=mass_bin,
+            indices=indices,
+        )
+        delta_lnL = self._delta_lnL(value_df["likelihood"])
+
+        # mask values according to function parameters
+        mask = delta_lnL <= delta_lnL_threshold
+        if ignore_failed_fits:
+            mask &= value_df["lastMinuitCommandStatus"] == 0
+        if ignore_bad_matrix:
+            mask &= value_df["eMatrixStatus"] == 3
+
+        value_df = value_df[mask]
+        delta_lnL = delta_lnL[mask]
+
+        if not columns:
+            columns = [
+                c for c in value_df.columns if c.endswith("_re") or c.endswith("_im")
+            ]
+        else:
+            for c in columns:
+                if not c.endswith("_re") and not c.endswith("_im"):
+                    raise ValueError(
+                        f"User provided columns '{c}' not a recognized production"
+                        " coefficient."
+                    )
+        columns = sorted(columns)
+
+        # pair all the re and im column names together (if present)
+        pairs: set[tuple[str, str]] = set()
+        for c in columns:
+            base, part = c.split("_")
+            if part == "re":
+                re_col = c
+                im_col = f"{base}_im" if f"{base}_im" in columns else ""
+            elif part == "im":
+                re_col = f"{base}_re" if f"{base}_re" in columns else ""
+                im_col = c
+            else:
+                raise ValueError("unrecognized production coefficient component")
+
+            pairs.add((re_col, im_col))
+
+        # map amplitude names to complex series
+        production_coeffs: dict[str, pd.Series[complex]] = {}
+        for pair in pairs:
+            base_amp_name = pair[0].split("_")[0] if pair[0] else pair[1].split("_")[0]
+            re_series: pd.Series[float] = (
+                value_df[pair[0]]
+                if pair[0]
+                else pd.Series(np.full(len(value_df[pair[1]]), 0.0, dtype=float))
+            )
+            im_series: pd.Series[float] = (
+                value_df[pair[1]]
+                if pair[1]
+                else pd.Series(np.full(len(value_df[pair[0]]), 0.0, dtype=float))
+            )
+            production_coeffs[base_amp_name] = re_series + 1j * im_series
+
+        # build colormap for delta(likelihoods)
+
+        cmap = plt.get_cmap("cividis")
+        norm = matplotlib.colors.Normalize(
+            vmin=np.min(delta_lnL), vmax=np.max(delta_lnL)
+        )
+        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+        sm.set_array([])
+
+        # ---Plot---
+        with self._style():
+            fig, axs = (
+                plt.subplots(
+                    int(np.ceil(np.sqrt(len(production_coeffs)))),
+                    int(np.ceil(np.sqrt(len(production_coeffs)))),
+                    layout="constrained",
+                )
+                if axs is None
+                else (axs[0, 0].gcf(), axs)
+            )
+            assert axs is not None
+
+            for i, (amp, series) in enumerate(production_coeffs.items()):
+                ax = axs.flatten()[i]
+
+                default_kwargs = {
+                    "c": np.asarray(delta_lnL),
+                    "cmap": cmap,
+                    "norm": norm,
+                    "s": 3,
+                }
+                if kwargs is not None and amp in kwargs:
+                    default_kwargs.update(kwargs[amp] or {})
+
+                complex_values = np.asarray(series, dtype=np.complex128)
+                ax.scatter(complex_values.real, complex_values.imag, **default_kwargs)
+                try:
+                    label = self.results.parser.to_latex(amp)
+                except ValueError:
+                    label = amp
+                ax.set_xlabel(rf"$\Re$({label})", loc="center")
+                ax.set_ylabel(rf"$\Im$({label})", loc="center")
+
+            # hide unused axes
+            for ax in axs.flatten()[len(production_coeffs) :]:
+                ax.set_visible(False)
+
+            fig.suptitle(self._bin_title(kinematic_bin))
+            fig.colorbar(
+                sm,
+                ax=axs,
+                location="right",
+                shrink=0.8,
+                pad=0.02,
+                label=r"$\Delta(-2\ln(\mathcal{L}))$",
+            )
+
+        return axs
 
     def randomized_summary(
         self,
@@ -395,7 +587,29 @@ class BinPlotter(BasePWAPlotter):
             kinematic_bin.energy_bin,
         )
         return (
-            rf"${m.low:.3f} < M < {m.high:.3f}\ GeV$,"
-            rf" ${t.low:.3f} < -t < {t.high:.3f}\ GeV^2$,"
+            rf"${t.low:.3f} < -t < {t.high:.3f}\ GeV^2$,"
             rf" ${e.low:.2f} < E_{{\gamma}} < {e.high:.2f}\ GeV$,"
+            rf" ${m.low:.3f} < M < {m.high:.3f}\ GeV$,"
         )
+
+    def _delta_lnL(
+        self, likelihoods: list[float] | pd.Series | np.ndarray
+    ) -> np.ndarray:
+        """Compute Δ(-2lnL_i - -2lnL_min)
+
+        Args:
+            likelihoods (list[float] | pd.Series | np.ndarray): set of likelihoods from
+                fit results
+
+        Returns:
+            np.ndarray: minimum likelihood subtracted from all elements.
+
+        Note:
+            This comparison is only valid for a set of likelihoods belonging to the same
+                fit model and underlying data.
+        """
+        if isinstance(likelihoods, pd.Series):
+            likelihoods = likelihoods.to_numpy()
+        elif isinstance(likelihoods, list):
+            likelihoods = np.array(likelihoods)
+        return likelihoods - np.min(likelihoods)
