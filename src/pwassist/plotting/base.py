@@ -61,14 +61,6 @@ class BasePWAPlotter:
     def bootstrap(self) -> pd.DataFrame | None:
         return self.results.bootstrap
 
-    @property
-    def _mass_centers(self) -> list[float]:
-        return self.results.get_mass_centers()
-
-    @property
-    def _mass_bin_width(self) -> float:
-        return self.results.get_average_mass_bin_width()
-
     # ----------------------------------------------------------------------------------
     # Style Management
     # ----------------------------------------------------------------------------------

@@ -363,7 +363,7 @@ class Results:
     # TODO: copy over get_significant_amplitudes / phases from old results class
 
     # ----------------------------------------------------------------------------------
-    # Data Queries
+    # Kinematic Bin Extraction
     # ----------------------------------------------------------------------------------
 
     def mass_kinematic_bins(
@@ -527,68 +527,6 @@ class Results:
             )
 
         return sorted(matching_kinematic_bins)
-
-    # TODO: many of these are possibly replaced by the new binning system, but is
-    # unclear for plotting purposes which one will be used. For now, keeping them, and
-    # will filter them as plotter is developed. They are likely replaced by the
-    # pd.Interval-based binning system.
-
-    def get_mass_centers(self) -> list[float]:
-        """Return the list of mass bin centers."""
-        return self.data["m_center"].astype(float).tolist()
-
-    def get_mass_edges(self) -> list[tuple[float, float]]:
-        """Return list of mass bin edges in (low, high) pairs"""
-        low_edges = self.data["m_low"].astype(float).tolist()
-        high_edges = self.data["m_high"].astype(float).tolist()
-        return list(zip(low_edges, high_edges))
-
-    def get_average_mass_bin_width(self) -> float:
-        """Return average mass bin width across all bins in the results."""
-        return (
-            self.data["m_high"].astype(float) - self.data["m_low"].astype(float)
-        ).mean()
-
-    def get_t_edges(self) -> list[tuple[float, float]]:
-        """Return list of t bin edges in (low, high) pairs"""
-        low_edges = self.data["t_low"].astype(float).tolist()
-        high_edges = self.data["t_high"].astype(float).tolist()
-        return list(zip(low_edges, high_edges))
-
-    def get_t_average(self) -> float:
-        """Return average t_avg value across all bins in the results.
-
-        Note: This assumes that the Result is constructed from a single t bin. If
-            multiple t bins are present, this will return the average of all t_avg
-            values, which may be undesired.
-        """
-        return float(self.data["t_avg"].mean())
-
-    def get_mass_indices(self, low: float, high: float) -> list[int]:
-        """Return list of indices for mass bins that fall within the specified range.
-
-        Args:
-            low (float): Lower bound of the mass range.
-            high (float): Upper bound of the mass range.
-        Returns:
-            list[int]: List of indices corresponding to mass bins within the range.
-        Todo:
-            - Right now this assumes that the data dataframe consists of only mass bins,
-                and so the fit df corresponds to the same indices. For t-binning or
-                other bins, we will need to devise some way of linking these together.
-        """
-        return self.data.index[
-            (self.data["m_center"] >= low) & (self.data["m_center"] <= high)
-        ].tolist()
-
-    def get_t_rms(self) -> float:
-        """Return RMS of t_avg values across all bins in the results.
-
-        Note: This assumes that the Result is constructed from a single t bin. If
-            multiple t bins are present, this will return the RMS of all t_avg
-            values, which may be undesired.
-        """
-        return float(self.data["t_rms"].mean())
 
     # ----------------------------------------------------------------------------------
     # Amplitude-based Queries
