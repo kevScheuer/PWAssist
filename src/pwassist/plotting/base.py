@@ -185,6 +185,38 @@ class BasePWAPlotter:
             raise ValueError("Data must be within [-pi, pi]; check preprocessing.")
         return np.rad2deg(scipy.stats.circstd(angles_rad, low=0, high=np.pi))
 
+    def _circular_residual(
+        self,
+        angle1: float,
+        angle2: float,
+        in_degrees: bool = True,
+        low: float = -180.0,
+        high: float = 180.0,
+    ) -> float:
+        """Calculates the residual between circular data
+
+        A residual for circular data (e.g. phase differences) needs to account for the
+        periodicity. The calculation is always in radians, for consistency. The input
+        parameters and returned value will be in degrees(radians) if in_degrees is
+        True(False).
+
+        Returns:
+            float: Minimum difference between the angles, periodicity accounted for
+        """
+        if in_degrees:
+            angle1 = np.deg2rad(angle1)
+            angle2 = np.deg2rad(angle2)
+            low = np.deg2rad(low)
+            high = np.deg2rad(high)
+
+        diff = angle1 - angle2
+        period = high - low
+        wrapped = min(diff, period - diff)
+        if in_degrees:
+            wrapped = np.rad2deg(wrapped)
+
+        return wrapped
+
     def _resolve_kinematic_bins(
         self,
         t_bin: tuple[float, float] | TBin | None = None,
