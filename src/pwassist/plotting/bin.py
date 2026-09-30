@@ -328,6 +328,141 @@ class BinPlotter(BasePWAPlotter):
 
         return axs
 
+    def likelihood_scatter(
+        self,
+        delta_lnL_threshold: float = np.inf,
+        ignore_failed_fits: bool = True,
+        ignore_bad_matrix: bool = True,
+        columns: list[str] | None = None,
+        t_bin: tuple[float, float] | TBin | None = None,
+        energy_bin: tuple[float, float] | EnergyBin | None = None,
+        mass_bin: tuple[float, float] | MassBin | None = None,
+        indices: list[int] | None = None,
+        axs: np.ndarray | None = None,
+        kwargs: dict[str, dict[str, Any]] | None = None,
+    ):
+
+        if self.randomized is None:
+            raise KeyError("No 'randomized' dataframe to plot results from")
+
+        value_df, kinematic_bin = self._bin_dataframe(
+            frame="randomized",
+            t_bin=t_bin,
+            energy_bin=energy_bin,
+            mass_bin=mass_bin,
+            indices=indices,
+        )
+        best_df, _ = self._bin_dataframe(  # 'best' fit values to compare against
+            frame="fit",
+            t_bin=t_bin,
+            energy_bin=energy_bin,
+            mass_bin=mass_bin,
+            indices=indices,
+        )
+        delta_lnL = self._delta_lnL(value_df["likelihood"])
+
+        # mask values according to function parameters
+        mask = delta_lnL <= delta_lnL_threshold
+        if ignore_failed_fits:
+            mask &= value_df["lastMinuitCommandStatus"] == 0
+        if ignore_bad_matrix:
+            mask &= value_df["eMatrixStatus"] == 3
+
+        value_df = value_df[mask]
+        delta_lnL = delta_lnL[mask]
+
+        # sort delta_lnL values for plots later
+        sort_idx = delta_lnL.argsort()
+        sorted_delta_lnL = delta_lnL[sort_idx]
+
+        # build colormap
+        cmap = plt.get_cmap("cividis")
+        norm = matplotlib.colors.Normalize(
+            vmin=np.min(delta_lnL), vmax=np.max(delta_lnL)
+        )
+        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+        sm.set_array([])
+
+        if not columns:
+            columns = list(self.results.amplitudes + self.results.phase_differences)
+        else:
+            missing_cols = [c for c in columns if c not in value_df.columns]
+            if missing_cols:
+                raise KeyError(
+                    f"The columns '{missing_cols}' do not exist. Available columns:"
+                    f" {value_df.columns}"
+                )
+
+        with self._style():
+            fig, axs = (
+                plt.subplots(
+                    int(np.ceil(np.sqrt(len(columns)))),
+                    int(np.ceil(np.sqrt(len(columns)))),
+                    layout="constrained",
+                )
+                if axs is None
+                else (axs[0, 0].gcf(), axs)
+            )
+            assert axs is not None
+
+            for i, par in enumerate(columns):
+                ax = axs.flatten()[i]
+
+                rand_par_val = value_df[par].to_numpy()
+                # match length of rand array
+                best_par_val = np.full(len(rand_par_val), best_df[par])
+
+                # calculate the Delta = best par - rand par
+                if par in self.results.phase_differences:
+                    vec_circ_res = np.vectorize(self._circular_residual)
+                    delta_par = vec_circ_res(best_par_val, rand_par_val)
+                else:
+                    delta_par = best_par_val - rand_par_val
+
+                # sort from low -> high delta_lnL
+                delta_par = delta_par[sort_idx]
+
+                # plot as function of the sorted indices, so that fits with similar
+                # likelihoods aren't overlapping, and we can check that parameters
+                # diverge as index increases (larger delta_lnL)
+                default_kwargs = {
+                    "c": np.asarray(delta_lnL),
+                    "cmap": cmap,
+                    "norm": norm,
+                    "s": 3,
+                }
+                if kwargs is not None and par in kwargs:
+                    default_kwargs.update(kwargs[par] or {})
+
+                ax.scatter(
+                    [j for j in range(len(delta_par))],
+                    delta_par,
+                    marker="o",
+                    **default_kwargs,
+                )
+
+                try:
+                    label = self.results.parser.to_latex(par)
+                except ValueError:
+                    label = par
+                ax.set_ylabel(rf"$\Delta$({label})", loc="center")
+
+            # hide unused axes
+            for ax in axs.flatten()[len(columns) :]:
+                ax.set_visible(False)
+
+            fig.suptitle(self._bin_title(kinematic_bin))
+            fig.colorbar(
+                sm,
+                ax=axs,
+                location="right",
+                shrink=0.8,
+                pad=0.02,
+                label=r"$\Delta(-2\ln(\mathcal{L}))$",
+            )
+
+        return axs
+
     def randomized_summary(
         self,
         bin_idx: int,
@@ -606,7 +741,11 @@ class BinPlotter(BasePWAPlotter):
 
         Note:
             This comparison is only valid for a set of likelihoods belonging to the same
-                fit model and underlying data.
+                fit model and underlying data. It also only returns the comparison with
+                the lowest likelihood, which does not uniquely identify the 'best' fit
+                parameters from the randomized dataframe, as multiple fits can have the
+                same likelihood but different parameters. Use the 'fit' dataframe  for
+                the 'best' parameters.
         """
         if isinstance(likelihoods, pd.Series):
             likelihoods = likelihoods.to_numpy()
