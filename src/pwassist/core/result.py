@@ -41,7 +41,7 @@ class Results:
 
     # Amplitude-based attributes
     coherent_sums: dict[str, tuple[str, ...]] = field(default_factory=dict, init=False)
-    amplitudes: list[str] = field(default_factory=list, init=False)
+    amplitudes: tuple[str, ...] = field(default_factory=tuple, init=False)
     phase_differences: tuple[str, ...] = field(default_factory=tuple, init=False)
     parser: AmplitudeParser = field(init=False)
     are_reactions_constrained: bool = False
@@ -64,7 +64,7 @@ class Results:
             self._naming_scheme, final_state_parity=self.final_state_parity
         )
 
-        self.amplitudes = self.parser.get_amplitudes(self.fit.columns.to_list())
+        self.amplitudes = tuple(self.parser.get_amplitudes(self.fit.columns.to_list()))
         if self.amplitudes is None or len(self.amplitudes) == 0:
             warnings.warn(
                 f"No amplitudes found in fit dataframe using naming scheme"
