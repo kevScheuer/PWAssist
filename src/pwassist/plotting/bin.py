@@ -340,7 +340,54 @@ class BinPlotter(BasePWAPlotter):
         indices: list[int] | None = None,
         axs: np.ndarray | None = None,
         kwargs: dict[str, dict[str, Any]] | None = None,
-    ):
+    ) -> np.ndarray:
+        """Scatterplot of randomized fits compared to the nominal, colored by likelihood
+
+        By default, this plots a grid of Δp, where p are the amplitudes and phase
+        differences, and Δ is calculated as the difference between the randomized fit
+        result and the nominal result from the 'fit' dataframe. Δp is on the y-axis,
+        while the x-axis is the index associated with the sorted Δ-2lnL values. This
+        allows one to view how the parameters converge (or don't) as the likelihood
+        approaches the best solution.
+
+        Args:
+            delta_lnL_threshold (float). Fits (i) with
+                Δ(-2lnL_i - -2lnL_min) < threshold will be plotted. Defaults to np.inf,
+                so all fits are included.
+            ignore_failed_fits (bool): Does not plot any fits with
+                lastMinuitCommandStatus != 0. Defaults to True.
+            ignore_bad_matrix (bool): Does not plot any fits with eMatrixStatus != 3.
+                Defaults to True.
+            columns (list[str] | None, optional): select results columns to plot.
+                Defaults to None, meaning all amplitude intensities and phase
+                differences will be plotted.
+            t_bin (tuple[float, float] | TBin | None): Fixes the t bin to plot from if
+                the results span multiple t bins. If only 1 t bin is available,
+                specification is unnecessary. Defaults to None.
+            energy_bin (tuple[float,float] | EnergyBin | None): Fixes the beam energy
+                bin to plot from if the results span multiple energy bins. If only 1
+                energy bin is available, specification is unnecessary. Defaults to None.
+            mass_bin (tuple[float,float] | EnergyBin | None): Fixes the mass bin to plot
+                from if the results span multiple mass bins. If only 1 mass bin is
+                available, specification is unnecessary. Defaults to None.
+            indices (list[int] | None): Optional list of positions within the resolved
+                kinematic bin to select specific bins. Defaults to None.
+            axs (np.ndarray | None, optional): Optional array of axes to plot on. Ensure
+                that there are enough positions available for the number of production
+                coefficients to plot. Defaults to None.
+            kwargs (dict[str, dict[str], Any]] | None, optional): Optional dictionary of
+                keyword arguments, for each column, to customize plot appearances. Keys
+                are the column string, and the accompanying dicts are the keyword
+                arguments that will be used for that amplitude's scatter plot. Defaults
+                to None.
+
+        Raises:
+            KeyError: if the 'randomized' dataframe is unavailable, or non-existent
+                columns are requested.
+
+        Returns:
+            np.ndarray: square array of scatter plots
+        """
 
         if self.randomized is None:
             raise KeyError("No 'randomized' dataframe to plot results from")
