@@ -720,29 +720,3 @@ class BinPlotter(BasePWAPlotter):
             rf" ${e.low:.2f} < E_{{\gamma}} < {e.high:.2f}\ GeV$,"
             rf" ${m.low:.3f} < M < {m.high:.3f}\ GeV$,"
         )
-
-    def _delta_lnL(
-        self, likelihoods: list[float] | pd.Series | np.ndarray
-    ) -> np.ndarray:
-        """Compute Δ(-2lnL_i - -2lnL_min)
-
-        Args:
-            likelihoods (list[float] | pd.Series | np.ndarray): set of likelihoods from
-                fit results
-
-        Returns:
-            np.ndarray: minimum likelihood subtracted from all elements.
-
-        Note:
-            This comparison is only valid for a set of likelihoods belonging to the same
-                fit model and underlying data. It also only returns the comparison with
-                the lowest likelihood, which does not uniquely identify the 'best' fit
-                parameters from the randomized dataframe, as multiple fits can have the
-                same likelihood but different parameters. Use the 'fit' dataframe  for
-                the 'best' parameters.
-        """
-        if isinstance(likelihoods, pd.Series):
-            likelihoods = likelihoods.to_numpy()
-        elif isinstance(likelihoods, list):
-            likelihoods = np.array(likelihoods)
-        return likelihoods - np.min(likelihoods)
