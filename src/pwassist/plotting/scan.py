@@ -661,10 +661,16 @@ class ScanPlotter(BasePWAPlotter):
                 'successful', 'bad error matrix', 'failed', so given value lists should
                 be in the same ordering e.g. "labels" : ["Success", "Bad Error",
                 "Failed"].
+
         Returns:
             matplotlib.axes.Axes: The axes object containing the convergence rate plot.
+
         Raises:
             KeyError: If randomized fits are not available in the results.
+
+        Todo:
+            - change this style to mimic this example
+                https://matplotlib.org/stable/gallery/lines_bars_and_markers/horizontal_barchart_distribution.html
         """
 
         if self.results.randomized is None:
