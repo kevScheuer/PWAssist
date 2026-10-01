@@ -760,6 +760,153 @@ class ScanPlotter(BasePWAPlotter):
 
         return ax
 
+    def likelihood_distribution(
+        self,
+        delta_lnL_groups: tuple[float, ...] | None = None,
+        kin_variable: str = "m",
+        stat: Literal["edges", "avg"] = "edges",
+        t_bin: tuple[float, float] | TBin | None = None,
+        energy_bin: tuple[float, float] | EnergyBin | None = None,
+        mass_bin: tuple[float, float] | MassBin | None = None,
+        indices: list[int] | None = None,
+        ax: matplotlib.axes.Axes | None = None,
+        kwargs: dict[str, Any] | None = None,
+    ) -> matplotlib.axes.Axes:
+        """Plot the number of fits that fall within a group of delta lnL ranges.
+
+        Each kinematic bin will plot len(delta_lnLgroups)-1 bars, where each bar
+        corresponds to the number of fits that fall within the delta lnL range defined
+        by the delta_lnL_groups. For example, if delta_lnL_groups = (0, 1, 5, np.inf) (
+        the default setting), then the first bar will be the number of fits with delta
+        lnL in (0, 1], and so on. The delta lnL is calculated as the difference between
+        a randomized fit's likelihood and the minimum likelihood in that bin.
+
+        Args:
+            delta_lnL_groups (tuple[float, ...] | None, optional): Groups of ranges to
+                count delta lnL within. Defaults to None.
+            kin_variable (str): Shorthand ("m", "t", "e") or exact 'data' dataframe
+                column name for the kinematic variable to plot against. Default to 'm'
+                (mass).
+            stat (Literal['edges', 'avg']): Whether x-value/error is from the bin center
+                and (high-low)/2 'edges' (default) or from the actual bin average and
+                rms of the underlying data.
+            t_bin (tuple[float, float] | TBin | None): Fixes the t bin to plot from if
+                the results span multiple t bins. If only 1 t bin is available,
+                specification is unnecessary. Defaults to None.
+            energy_bin (tuple[float,float] | EnergyBin | None): Fixes the beam energy
+                bin to plot from if the results span multiple energy bins. If only 1
+                energy bin is available, specification is unnecessary. Defaults to None.
+            mass_bin (tuple[float,float] | MassBin | None): Fixes the mass bin to plot
+                from if the results span multiple mass bins. If only 1 mass bin is
+                available, specification is unnecessary. Defaults to None.
+            indices (list[int] | None): Optional list of positions within the resolved
+                kinematic bin to select specific bins. Defaults to None.
+            ax (matplotlib.axes.Axes | None): Optional axes to plot on. If None, a new
+                figure and axes will be created.
+            kwargs (dict[str, Any] | None): Optional dictionary of keyword arguments
+                to customize the plot appearance. Passed directly to ax.grouped_bar()
+                call, so see that method for details. Defaults to None.
+
+        Raises:
+            KeyError: if no randomized fit results are available.
+
+        Returns:
+            matplotlib.axes.Axes: The axes object containing the likelihood distribution
+                plot.
+        """
+
+        if self.results.randomized is None:
+            raise KeyError(
+                "Randomized fits are required to plot the likelihood distribution."
+            )
+
+        df, data_df, x_label, _ = self._scan_dataframes(
+            columns=["likelihood"],
+            frame="randomized",
+            kin_variable=kin_variable,
+            stat=stat,
+            t_bin=t_bin,
+            energy_bin=energy_bin,
+            mass_bin=mass_bin,
+            indices=indices,
+        )
+
+        if delta_lnL_groups is None:
+            delta_lnL_groups = (0.0, 1.0, 5.0, np.inf)
+
+        # list of length N kinematic bins that tracks the number of fits that fall
+        # within the likelihood ranges indicated by delta_lnL_groups. Each entry is a
+        # tuple of length len(delta_lnL_groups)-1
+        grouped_counts: list[tuple[float, ...]] = []
+        percentages: list[tuple[float, ...]] = []  # similar, but % of total rand fits
+        for bin_id, group in df.groupby("bin_id"):
+            # Initialize counts for each likelihood range
+            counts = [0] * (len(delta_lnL_groups) - 1)
+            min_likelihood = np.min(group["likelihood"])
+            for _, row in group.iterrows():
+                delta_lnL = row["likelihood"] - min_likelihood
+                for i, upper_lim in enumerate(delta_lnL_groups[1:], start=1):
+                    lower_lim = delta_lnL_groups[i - 1]
+                    if delta_lnL <= upper_lim and delta_lnL > lower_lim:
+                        counts[i - 1] += 1
+
+            total_in_group = len(group)
+            if total_in_group > 0:
+                percentages.append(
+                    tuple(count / total_in_group * 100 for count in counts)
+                )
+            else:
+                percentages.append(tuple(0.0 for _ in counts))
+
+            grouped_counts.append(tuple(counts))
+
+        with self._style():
+            fig, ax = (
+                plt.subplots(layout="constrained")
+                if ax is None
+                else (ax.get_figure(), ax)
+            )
+
+            groups = {
+                rf"{delta_lnL_groups[i]} < $\Delta(-2ln\mathcal{{L}})$"
+                rf" $\leq$ {delta_lnL_groups[i + 1]}": [
+                    counts[i] for counts in grouped_counts
+                ]
+                for i in range(len(delta_lnL_groups) - 1)
+            }
+
+            default_kwargs = {
+                "colors": ["tab:blue", "tab:orange", "tab:red"],
+                "labels": list(groups.keys()),
+                "group_spacing": 1,
+            }
+            default_kwargs.update(kwargs or {})
+            kwargs = default_kwargs
+
+            plot = ax.grouped_bar(
+                heights=groups.values(),  # type: ignore
+                tick_labels=[f"{x:.3f}" for x in data_df["x_center"].to_list()],
+                **kwargs,
+            )
+
+            # label each bar with its percentage of fits in that likelihood range
+            for idx, container in enumerate(plot.bar_containers):  # type: ignore
+                ax.bar_label(
+                    container,
+                    labels=[
+                        f"{percentages[j][idx]:.1f}%" for j in range(len(percentages))
+                    ],
+                    label_type="edge",
+                    rotation=90,
+                )
+
+            ax.set_xlabel(x_label)
+            ax.set_ylabel(r"# of fits")
+            ax.set_ylim(bottom=0, top=ax.get_ylim()[1] * 1.25)  # add room for legend
+            ax.legend(ncols=int(np.ceil(np.sqrt(len(groups)))))
+
+        return ax
+
     def ridgeline(
         self,
         columns: list[str],
