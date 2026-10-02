@@ -323,41 +323,29 @@ class AmplitudeParser:
         )
         return [p for p in all_possible_phase_diffs if p in columns]
 
-    def to_latex(self, label: str) -> str:
+    def to_latex(self, label: str, group_key: str | None = None) -> str:
         """LaTeX string for a given amplitude or phase difference.
 
-        For coherent sums, use sum_to_latex, as a bare coherent sum string does not
-        carry enough info to identify its scheme.
+        Pass group_key for coherent sums, since a bare coherent sum string does not
+        carry enough information to identify its quantum numbers.
 
         Args:
-            label (str): the amplitude or phase difference label to convert to LaTeX
+            label (str): the amplitude, phase difference, or coherent sum label
+            group_key (str | None): key from get_coherent_sums() for coherent sums
         Returns:
             str: a $J^P L_m^{(e)}$ style LaTeX string for the amplitude or phase
                 difference
         """
+        if group_key is not None:
+            return self._sum_to_latex(label, group_key)
         if "_" in label:
             # phase difference
             a1, a2 = label.split("_", 1)
             return f"${self._amp_latex(a1)} - {self._amp_latex(a2)}$"
-        return f"${self._amp_latex(label)}$"
-
-    def sum_to_latex(self, group_key: str, sum_string: str) -> str:
-        """LaTeX string for a given coherent sum.
-
-        Args:
-            group_key (str): key from get_coherent_sums() output e.g. 'JL', 'e', etc.
-                Pass it alongside the sum_string to identify the naming scheme and
-                quantum numbers.
-            sum_string (str): the coherent sum string to convert to LaTeX
-
-        """
-        scheme, group = self._find_group(group_key)
-        scheme_def = SCHEMES[scheme]
-        raw = self._parse_group_from_string(sum_string, group)
-        parsed = self._apply_final_state_parity(
-            ParsedAmplitude(amp_name=sum_string, **raw), scheme_def
-        )
-        return f"${self._render(self._values_from_parsed(parsed))}$"
+        try:
+            return f"${self._amp_latex(label)}$"
+        except IndexError:
+            return f"${label}$"
 
     # ----------------------------------------------------------------------------------
     # Private Methods
@@ -560,6 +548,23 @@ class AmplitudeParser:
                 pos += 1
 
         return values
+
+    def _sum_to_latex(self, sum_string: str, group_key: str) -> str:
+        """LaTeX string for a given coherent sum.
+
+        Args:
+            sum_string (str): the coherent sum string to convert to LaTeX
+            group_key (str): key from get_coherent_sums() output e.g. 'JL', 'e', etc.
+                Pass it alongside the sum_string to identify the naming scheme and
+                quantum numbers.
+        """
+        scheme, group = self._find_group(group_key)
+        scheme_def = SCHEMES[scheme]
+        raw = self._parse_group_from_string(sum_string, group)
+        parsed = self._apply_final_state_parity(
+            ParsedAmplitude(amp_name=sum_string, **raw), scheme_def
+        )
+        return f"${self._render(self._values_from_parsed(parsed))}$"
 
     def _find_group(self, group_key: str) -> tuple[NamingScheme, tuple[str, ...]]:
         """Resolve a get_coherent_sums() dict key back to its scheme + group tuple."""
