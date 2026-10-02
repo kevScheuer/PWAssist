@@ -309,8 +309,8 @@ class BinPlotter(BasePWAPlotter):
                     label = self.results.parser.to_latex(amp)
                 except ValueError:
                     label = amp
-                ax.set_xlabel(rf"$\Re$({label})", loc="center")
-                ax.set_ylabel(rf"$\Im$({label})", loc="center")
+                ax.set_xlabel(rf"$\Re({label})$", loc="center")
+                ax.set_ylabel(rf"$\Im({label})$", loc="center")
 
             # hide unused axes
             for ax in axs.flatten()[len(production_coeffs) :]:
@@ -492,7 +492,7 @@ class BinPlotter(BasePWAPlotter):
                     label = self.results.parser.to_latex(par)
                 except ValueError:
                     label = par
-                ax.set_ylabel(rf"$\Delta$({label})", loc="center")
+                ax.set_ylabel(rf"$\Delta({label})$", loc="center")
 
             # hide unused axes
             for ax in axs.flatten()[len(columns) :]:
@@ -547,6 +547,165 @@ class BinPlotter(BasePWAPlotter):
 
         return pg
 
+    def bootstrap_convergence(
+        self,
+        min_samples: int = 10,
+        columns: list[str] | None = None,
+        exclude_columns: list[str] | None = None,
+        t_bin: tuple[float, float] | TBin | None = None,
+        energy_bin: tuple[float, float] | EnergyBin | None = None,
+        mass_bin: tuple[float, float] | MassBin | None = None,
+        indices: list[int] | None = None,
+        axs: np.ndarray | None = None,
+        kwargs: dict[str, Any] | None = None,
+    ) -> np.ndarray:
+        """Plot all parameters stdevs / MINUIT error as a function bootstrap fit #
+
+        This is a diagnostic plot to see if the bootstrap fit standard deviation (used
+        as the uncertainty estimate on the fit parameters) has converged as a function
+        of the number of bootstrap fits. If the stdev is still changing significantly
+        as the number of fits increases, then more fits are needed, or the distribution
+        should be examined for non-Gaussian behavior.
+
+        Args:
+            min_samples (int): Minimum number of bootstrap fits to start calculating
+                the standard deviation. Defaults to 10.
+            columns (list[str] | None): Optional list of parameter columns to plot.
+                Defaults to None, which plots all columns that have a corresponding
+                '<param>_err' column in the bootstrap dataframe (but not the
+                '<param>_err' columns themselves).
+            exclude_columns (list[str] | None): Optional list of parameter columns to
+                exclude from the plot. Defaults to None, which will exclude all
+                '<param>_err' columns.
+            t_bin (tuple[float, float] | TBin | None): Fixes the t bin to plot from if
+                the results span multiple t bins. If only 1 t bin is available,
+                specification is unnecessary. Defaults to None.
+            energy_bin (tuple[float,float] | EnergyBin | None): Fixes the beam energy
+                bin to plot from if the results span multiple energy bins. If only 1
+                energy bin is available, specification is unnecessary. Defaults to None.
+            mass_bin (tuple[float,float] | EnergyBin | None): Fixes the mass bin to plot
+                from if the results span multiple mass bins. If only 1 mass bin is
+                available, specification is unnecessary. Defaults to None.
+            indices (list[int] | None): Optional list of positions within the resolved
+                kinematic bin to select specific bins. Defaults to None.
+            ax (matplotlib.axes.Axes | None): Optional array of axes to plot on. Ensure
+                that there are enough positions available for the number of parameters
+                to plot. Defaults to None, creating a figure with hspace=0 and a shared
+                x-axis.
+            kwargs (dict[str, Any] | None): Optional dictionary of keyword arguments
+                to customize the plot appearance. Passed directly to all subplots.
+                Defaults to None.
+
+        Raises:
+            KeyError: if bootstrap fis are unavailable, or requested column is missing.
+
+        Returns:
+            matplotlib.axes.Axes: The axes object containing the plot.
+        """
+
+        if self.results.bootstrap is None:
+            raise KeyError(
+                "Bootstrap fit results are not available. Cannot plot convergence."
+            )
+
+        value_df, kinematic_bin = self._bin_dataframe(
+            frame="bootstrap",
+            t_bin=t_bin,
+            energy_bin=energy_bin,
+            mass_bin=mass_bin,
+            indices=indices,
+        )
+        best_df, _ = self._bin_dataframe(  # 'best' fit values to get MINUIT error from
+            frame="fit",
+            t_bin=t_bin,
+            energy_bin=energy_bin,
+            mass_bin=mass_bin,
+            indices=indices,
+            replace_errors_with_bootstrap=False,
+        )
+
+        if exclude_columns is None:
+            exclude_columns = [c for c in value_df.columns if c.endswith("_err")]
+
+        # remove any columns that are entirely NaN or zero (fixed parameter)
+        exclude_columns += [
+            c.removesuffix("_err")
+            for c in value_df.columns
+            if not value_df[c].to_numpy().any()
+        ]
+
+        if columns is None:
+            parameters = [
+                c
+                for c in value_df.columns
+                if c not in exclude_columns and f"{c}_err" in value_df.columns
+            ]
+        else:
+            missing_cols = [c for c in columns if c not in value_df.columns]
+            if missing_cols:
+                raise KeyError(
+                    f"The columns '{missing_cols}' do not exist. Available columns:"
+                    f" {value_df.columns}"
+                )
+            parameters = columns
+
+        with self._style():
+            if axs is None:
+                fig, axs = plt.subplots(
+                    len(parameters),
+                    1,
+                    sharex=True,
+                    figsize=(10, int(1.5 * len(parameters))),
+                )
+                fig.subplots_adjust(hspace=0)
+                fig.tight_layout()
+                fig.subplots_adjust(top=0.96)
+            else:
+                fig, axs = axs[0, 0].gcf(), axs
+
+            assert axs is not None
+
+            for idx, ax in enumerate(axs.flatten()):
+                par = parameters[idx]
+                best_par_err = best_df[f"{par}_err"].iloc[0]
+                # start at 10 bootstrap samples
+                if par in self.results.phase_differences:
+                    std_devs = (
+                        value_df[par]
+                        .expanding(min_periods=min_samples)
+                        .apply(lambda x: self._circular_std(x), raw=False)
+                    )
+                else:
+                    std_devs = value_df[par].expanding(min_periods=min_samples).std()
+
+                default_kwargs = {"legend": False}
+                default_kwargs.update(kwargs or {})
+
+                (std_devs / best_par_err).plot(ax=ax, **default_kwargs)
+                try:
+                    if any([par in v for v in self.results.coherent_sums.values()]):
+                        sum_label = next(
+                            k for k, v in self.results.coherent_sums.items() if par in v
+                        )
+                        label = rf"${self.results.parser.to_latex(par, sum_label)}$"
+                    else:
+                        label = rf"${self.results.parser.to_latex(par)}$"
+                except ValueError:
+                    label = par
+
+                ax.set_xlim(min_samples, len(value_df))
+                ax.set_ylabel(
+                    label,
+                    rotation=45,
+                    ha="right",
+                )
+                ax.set_xlabel("Number of Bootstrap Fits", loc="center")
+                ax.ticklabel_format(axis="x", useOffset=False, style="plain")
+
+            fig.suptitle(self._bin_title(kinematic_bin))
+
+        return axs
+
     # ----------------------------------------------------------------------------------
     # Helpers
     # ----------------------------------------------------------------------------------
@@ -561,6 +720,7 @@ class BinPlotter(BasePWAPlotter):
         energy_bin: tuple[float, float] | EnergyBin | None = None,
         mass_bin: tuple[float, float] | MassBin | None = None,
         indices: list[int] | None = None,
+        replace_errors_with_bootstrap: bool = True,
     ) -> tuple[pd.DataFrame, KinematicBin]:
         """Select rows from one results dataframe for a single, resolve kinematic bin.
 
@@ -585,6 +745,9 @@ class BinPlotter(BasePWAPlotter):
             indices (list[int] | None, optional): Optional list of positions within the
                 filtered, sorted list of kinematic bins to narrow down to a singular
                 bin. Defaults to None
+            replace_error_with_bootstrap (bool): If True, the 'fit' frame's '_err'
+                columns will be replaced with the bootstrap stdevs, if available.
+                Defaults to True.
 
         Returns:
             tuple[pd.DataFrame, KinematicBin]: The requested 'frame's rows for the
@@ -600,7 +763,7 @@ class BinPlotter(BasePWAPlotter):
         value_df = self._select_by_bin_id(
             requested_frame, [kinematic_bin.bin_id], frame_columns
         )
-        if frame == "fit":
+        if frame == "fit" and replace_errors_with_bootstrap:
             value_df = self._replace_errors_with_bootstrap(value_df)
         return value_df, kinematic_bin
 
@@ -698,7 +861,10 @@ class BinPlotter(BasePWAPlotter):
             except (ValueError, KeyError):
                 pass
             else:
-                return rf"{reaction}{sum}$\{_PARAMETER_PART_LABELS[part.lower()]}$({amp_label})"
+                return (
+                    rf"{reaction}{sum}"
+                    rf"$\{_PARAMETER_PART_LABELS[part.lower()]}({amp_label})$"
+                )
         return parameter
 
     def _bin_title(self, kinematic_bin: KinematicBin) -> str:
