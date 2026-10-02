@@ -333,19 +333,20 @@ class AmplitudeParser:
             label (str): the amplitude, phase difference, or coherent sum label
             group_key (str | None): key from get_coherent_sums() for coherent sums
         Returns:
-            str: a $J^P L_m^{(e)}$ style LaTeX string for the amplitude or phase
-                difference
+            str: a 'J^P L_m^{(e)}' style LaTeX string for the amplitude or phase
+                difference. Note that '$' symbols are not included, so you can wrap the
+                output in '$' or within a LaTeX environment as needed.
         """
         if group_key is not None:
             return self._sum_to_latex(label, group_key)
         if "_" in label:
             # phase difference
             a1, a2 = label.split("_", 1)
-            return f"${self._amp_latex(a1)} - {self._amp_latex(a2)}$"
+            return f"{self._amp_latex(a1)} - {self._amp_latex(a2)}"
         try:
-            return f"${self._amp_latex(label)}$"
+            return f"{self._amp_latex(label)}"
         except IndexError:
-            return f"${label}$"
+            return f"{label}"
 
     # ----------------------------------------------------------------------------------
     # Private Methods
@@ -564,7 +565,7 @@ class AmplitudeParser:
         parsed = self._apply_final_state_parity(
             ParsedAmplitude(amp_name=sum_string, **raw), scheme_def
         )
-        return f"${self._render(self._values_from_parsed(parsed))}$"
+        return f"{self._render(self._values_from_parsed(parsed))}"
 
     def _find_group(self, group_key: str) -> tuple[NamingScheme, tuple[str, ...]]:
         """Resolve a get_coherent_sums() dict key back to its scheme + group tuple."""

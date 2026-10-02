@@ -212,7 +212,7 @@ class ScanPlotter(BasePWAPlotter):
 
             # plot each coherent sum with error bars
             for sum_idx, coh_sum in enumerate(coherent_sums):
-                label = self.results.parser.to_latex(coh_sum, sum_label)
+                label = rf"{self.results.parser.to_latex(coh_sum, sum_label)}"
 
                 if fractional:
                     intensity = (
@@ -486,12 +486,12 @@ class ScanPlotter(BasePWAPlotter):
                             xerr=data_df["x_err"],
                             y=y,
                             yerr=yerr,
-                            label=self.results.parser.to_latex(amp),
+                            label=rf"${self.results.parser.to_latex(amp)}$",
                             **kwargs[refl_kind],
                         )
 
                     ax.set_title(
-                        rf"{row_label}, $m={_format_spin_projection(col_value)}$",
+                        rf"${row_label}$, $m={_format_spin_projection(col_value)}$",
                         fontsize="small",
                     )
                     ax.set_ylim(bottom=0)
