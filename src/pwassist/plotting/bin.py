@@ -884,5 +884,5 @@ class BinPlotter(BasePWAPlotter):
         return (
             rf"${t.low:.3f} < -t < {t.high:.3f}\ GeV^2$,"
             rf" ${e.low:.2f} < E_{{\gamma}} < {e.high:.2f}\ GeV$,"
-            rf" ${m.low:.3f} < M < {m.high:.3f}\ GeV$,"
+            rf" ${m.low:.3f} < M < {m.high:.3f}\ GeV$"
         )
