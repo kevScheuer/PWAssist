@@ -1,3 +1,5 @@
+import warnings
+from collections.abc import Sequence
 from typing import Any, Literal
 
 import matplotlib.axes
@@ -5,7 +7,12 @@ import matplotlib.colors
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import scipy.stats
 import seaborn as sns
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
+from scipy.special import erf
+from uncertainties import ufloat
 
 from pwassist.io.binning import EnergyBin, KinematicBin, MassBin, TBin
 from pwassist.plotting.base import BasePWAPlotter
@@ -216,11 +223,9 @@ class BinPlotter(BasePWAPlotter):
         delta_lnL = self._delta_lnL(value_df["likelihood"])
 
         # mask values according to function parameters
-        mask = delta_lnL <= delta_lnL_threshold
-        if ignore_failed_fits:
-            mask &= value_df["lastMinuitCommandStatus"] == 0
-        if ignore_bad_matrix:
-            mask &= value_df["eMatrixStatus"] == 3
+        mask = self._fit_quality_mask(
+            value_df, delta_lnL_threshold, ignore_failed_fits, ignore_bad_matrix
+        )
 
         value_df = value_df[mask]
         delta_lnL = delta_lnL[mask]
@@ -409,11 +414,9 @@ class BinPlotter(BasePWAPlotter):
         delta_lnL = self._delta_lnL(value_df["likelihood"])
 
         # mask values according to function parameters
-        mask = delta_lnL <= delta_lnL_threshold
-        if ignore_failed_fits:
-            mask &= value_df["lastMinuitCommandStatus"] == 0
-        if ignore_bad_matrix:
-            mask &= value_df["eMatrixStatus"] == 3
+        mask = self._fit_quality_mask(
+            value_df, delta_lnL_threshold, ignore_failed_fits, ignore_bad_matrix
+        )
 
         value_df = value_df[mask]
         delta_lnL = delta_lnL[mask]
@@ -512,39 +515,250 @@ class BinPlotter(BasePWAPlotter):
 
     def pairplot(
         self,
-        bin_indices: list[int],
         columns: list[str],
         correlation_threshold: float = 0.7,
+        sigmas: Sequence[float] = (1.0, 2.0, 3.0),
+        fit_fractions: bool = True,
+        show_uncertainty_bands: bool = True,
+        normalize_axis_limits: bool = True,
+        ignore_failed_fits: bool = True,
+        ignore_bad_matrix: bool = True,
+        t_bin: tuple[float, float] | TBin | None = None,
+        energy_bin: tuple[float, float] | EnergyBin | None = None,
+        mass_bin: tuple[float, float] | MassBin | None = None,
+        indices: list[int] | None = None,
+        kwargs: dict[str, dict[str, Any]] | None = None,
     ) -> sns.PairGrid:
-        """Create a comprehensive pairplot of bootstrap fit results
 
-        Args:
-            bin_indices (list[int]): The indices of the bins to include in the pairplot.
-            columns (list[str]): The columns of the bootstrap fit results to include in
-                the pairplot.
-            correlation_threshold (float, optional): The threshold for highlighting
-                plots with high correlation. Defaults to 0.7.
-
-        Returns:
-            sns.PairGrid: The seaborn PairGrid object containing the pairplot.
-
-        Raises:
-            KeyError: If the bootstrap fit results are not available or if any of the
-                requested columns are not found in the bootstrap fit results.
-        """
-
+        # parameter validation
         if self.results.bootstrap is None:
-            raise KeyError("Bootstrap fit results are not available.")
+            raise KeyError("Bootstrap fit results are required to create a pairplot")
 
-        for col in columns:
-            if col not in self.results.bootstrap.columns:
-                raise KeyError(f"Column '{col}' not found in bootstrap fit results.")
+        columns = list(dict.fromkeys(columns))
+        if len(columns) < 2:
+            raise ValueError("A pairplot needs at least two distinct columns")
+        missing_cols = [c for c in columns if c not in self.results.bootstrap.columns]
+        if missing_cols:
+            raise KeyError(
+                f"The columns `{missing_cols}' are missing in the bootstrap results."
+                f" Available columns: {list(self.results.bootstrap.columns)}"
+            )
+        if not 0.0 <= correlation_threshold <= 1.0:
+            raise ValueError(
+                f"correlation_threshold must be in [0, 1], got {correlation_threshold}"
+            )
+        if len(sigmas) == 0 or any(s <= 0 for s in sigmas):
+            raise ValueError(f"sigmas must be positive numbers, got {sigmas}")
+        unknown_keys = set(kwargs or {}) - {"grid", "diag", "lower", "upper"}
+        if unknown_keys:
+            raise ValueError(
+                f"Unrecognized kwargs keys {sorted(unknown_keys)}. Recognized keys are"
+                " 'grid', 'diag', 'lower', and 'upper'."
+            )
 
-        # TODO: implement the pairplot creation using seaborn's PairGrid,
-        # filtering by bin_indices and columns, and highlighting based on
-        # correlation_threshold
-        pg = sns.PairGrid(pd.DataFrame())
+        # get our dataframes of interest
+        boot_df, kinematic_bin = self._bin_dataframe(
+            frame="bootstrap",
+            t_bin=t_bin,
+            energy_bin=energy_bin,
+            mass_bin=mass_bin,
+            indices=indices,
+        )
+        best_df, _ = self._bin_dataframe(  # for 'best' fit values and MINUIT errors
+            frame="fit",
+            t_bin=t_bin,
+            energy_bin=energy_bin,
+            mass_bin=mass_bin,
+            indices=indices,
+        )
+        boot_df = boot_df[
+            self._fit_quality_mask(
+                boot_df,
+                ignore_failed_fits=ignore_failed_fits,
+                ignore_bad_matrix=ignore_bad_matrix,
+            )
+        ]
 
+        # convert amplitudes and coherent sums to fit fractions (if requested)
+        intensity_col = "ac_intensity" if self.results.is_acc_corrected else "intensity"
+        intensities = set(self.results.amplitudes).union(
+            *self.results.coherent_sums.values()
+        )
+        fraction_columns = (
+            [c for c in columns if c in intensities] if fit_fractions else []
+        )
+        if fraction_columns:
+            for name, df in (("bootstrap", boot_df), ("fit", best_df)):
+                if intensity_col not in df.columns:
+                    raise KeyError(
+                        f"Fit fractions need the total intensity '{intensity_col}', but"
+                        f" it is not in the {name} results. Use fit_fractions=False to"
+                        f" plot the intensities instead"
+                    )
+        plot_df = boot_df[columns].astype(float)
+        for c in fraction_columns:
+            plot_df[c] = plot_df[c] / boot_df[intensity_col].astype(float)
+
+        # filter out nan/inf results, and error if too few results
+        plot_df = plot_df.replace([np.inf, -np.inf], np.nan).dropna()
+        if len(plot_df) < 3:
+            raise ValueError(
+                f"Only {len(plot_df)} usable bootstrap fits remain in"
+                f" {kinematic_bin.bin_id} after filtering, but at least 3 are needed."
+            )
+
+        # Drop any fixed parameters and warn the user
+        constant_cols = [c for c in columns if plot_df[c].nunique() < 2]
+        if constant_cols:
+            warnings.warn(
+                f"Dropping the columns {constant_cols} from the pairplot, since they"
+                f" take a single value in every bootstrap fit (are fixed)",
+                UserWarning,
+            )
+            columns = [c for c in columns if c not in constant_cols]
+            plot_df = plot_df[columns]
+        if len(columns) < 2:
+            raise ValueError(
+                "Fewer than two of the requested columns vary between bootstrap fits"
+            )
+
+        def _value_and_error(column: str) -> tuple[float, float]:
+            # best fit values, and MINUIT errors, in the same units as the plot
+            error_col = f"{column}_err"
+            return (
+                float(best_df[column].iloc[0]),
+                float(best_df[error_col].iloc[0]) if error_col in best_df else np.nan,
+            )
+
+        best: dict[str, tuple[float, float]] = {}
+        for c in columns:
+            if c not in best_df.columns:
+                continue
+            value, error = _value_and_error(c)
+            if c in fraction_columns:
+                fraction = ufloat(value, error) / ufloat(
+                    *_value_and_error(intensity_col)
+                )  # type: ignore
+                value, error = fraction.nominal_value, fraction.std_dev
+            best[c] = (value, error)
+
+        # label the coherent sums
+        labels: dict[str, str] = {}
+        for c in columns:
+            sum_label = next(
+                (k for k, v in self.results.coherent_sums.items() if c in v), None
+            )
+            try:
+                labels[c] = rf"${self.results.parser.to_latex(c, sum_label)}$"
+            except (ValueError, KeyError, IndexError):
+                labels[c] = c
+
+        color = "tab:blue"
+        band_color = "tab:orange"
+        default_kwargs: dict[str, dict[str, Any]] = {
+            "grid": {"height": 2.2, "diag_sharey": False},
+            "diag": {"color": color, "fill": True, "alpha": 0.5},
+            "lower": {"color": color, "s": 8, "alpha": 0.5, "linewidth": 0},
+            "upper": {"color": color, "linewidths": 1.2},
+        }
+        for panel, panel_kwargs in default_kwargs.items():
+            panel_kwargs.update((kwargs or {}).get(panel) or {})
+        kwargs = default_kwargs
+
+        # now get to plottin'
+        with self._style():
+            pg = sns.PairGrid(plot_df, vars=columns, **kwargs["grid"])
+            pg.map_diag(sns.kdeplot, **kwargs["diag"])
+            pg.map_lower(sns.scatterplot, **kwargs["lower"])
+            pg.map_upper(self._sigma_contours, sigmas=sigmas, **kwargs["upper"])
+
+            corr = plot_df.corr()
+            any_highlighted = False
+            for row, y_col in enumerate(columns):
+                for col, x_col in enumerate(columns):
+                    ax = pg.axes[row, col]
+
+                    if show_uncertainty_bands:
+                        # every panel gets x-band, only off-diagonals get y-band
+                        spans = [(x_col, ax.axvspan, ax.axvline)]
+                        if row != col:
+                            spans.append((y_col, ax.axhspan, ax.axhline))
+                        for name, span, line in spans:
+                            if name not in best:
+                                continue
+                            value, error = best[name]
+                            if np.isfinite(error):
+                                span(
+                                    value - error,
+                                    value + error,
+                                    color=band_color,
+                                    alpha=0.25,
+                                    linewidth=0,
+                                    zorder=0,
+                                )
+                            line(value, color=band_color, linewidth=1.0, zorder=2)
+
+                    if row != col and abs(corr.iloc[row, col]) > correlation_threshold:  # type: ignore
+                        any_highlighted = True
+                        for spine in ax.spines.values():
+                            spine.set_visible(True)
+                            spine.set_edgecolor("black")
+                            spine.set_linewidth(2.5)
+
+            if normalize_axis_limits:
+                for i, c in enumerate(columns):
+                    if c in fraction_columns:
+                        limits = (0.0, 1.0)
+                    elif c in self.results.phase_differences:
+                        limits = (-180.0, 180.0)
+                    else:
+                        continue
+                    pg.axes[0, i].set_xlim(limits)  # x is shared along a column
+                    pg.axes[i, 0].set_ylim(limits)  # y is shared along a row
+
+            for i, c in enumerate(columns):
+                pg.axes[-1, i].set_xlabel(labels[c], loc="center")
+                pg.axes[i, 0].set_ylabel(labels[c], loc="center")
+
+            handles: list[Line2D | Patch] = [
+                Line2D(
+                    [],
+                    [],
+                    marker="o",
+                    linestyle="",
+                    markersize=4,
+                    color=kwargs["lower"].get("color", color),
+                    alpha=0.6,
+                    label=f"Bootstrap fits (N={len(plot_df)})",
+                ),
+                Line2D(
+                    [],
+                    [],
+                    color=kwargs["upper"].get("color", color),
+                    label=rf"${', '.join(f'{s:g}' for s in sigmas)}\sigma$ contours",
+                ),
+            ]
+            if show_uncertainty_bands:
+                handles.append(
+                    Patch(
+                        facecolor=band_color,
+                        alpha=0.25,
+                        label=r"best fit $\pm$ MINUIT",
+                    )
+                )
+            if any_highlighted:
+                handles.append(
+                    Patch(
+                        facecolor="None",
+                        edgecolor="black",
+                        linewidth=2.5,
+                        label=rf"$|\rho| > {correlation_threshold:g}$",
+                    )
+                )
+            pg.figure.legend(
+                handles=handles, loc="center left", bbox_to_anchor=(1.0, 0.5)
+            )
+            pg.figure.suptitle(self._bin_title(kinematic_bin), y=1.02)
         return pg
 
     def bootstrap_convergence(
@@ -886,3 +1100,100 @@ class BinPlotter(BasePWAPlotter):
             rf" ${e.low:.2f} < E_{{\gamma}} < {e.high:.2f}\ GeV$,"
             rf" ${m.low:.3f} < M < {m.high:.3f}\ GeV$"
         )
+
+    def _fit_quality_mask(
+        self,
+        df: pd.DataFrame,
+        delta_lnL_threshold: float = np.inf,
+        ignore_failed_fits: bool = True,
+        ignore_bad_matrix: bool = True,
+    ) -> np.ndarray:
+        """Mask of fits that pass likelihood difference and other cuts
+
+        Args:
+            df (pd.DataFrame): Dataframe with one row per fit, from a single bin, so
+                that likelihoods are comparable
+            delta_lnL_threshold (float, optional): Keep fits with
+                Δ(-2lnL_i - -2lnL_min) <= threshold. Defaults to np.inf, so no fits
+                are removed.
+            ignore_failed_fits (bool, optional): Remove fits with
+                lastMinuitCommandStatus != 0 (abnormal termination). Defaults to True.
+            ignore_bad_matrix (bool, optional): Remove fits with eMatrixStatus != 3
+                (not 'full and accurate'). Defaults to True.
+
+        Raises:
+            KeyError: If a column needed for a requested cut is not in 'df'
+
+        Returns:
+            np.ndarray: boolean mask, True for fits to keep
+        """
+
+        needed = ["likelihood"]
+        if ignore_failed_fits:
+            needed.append("lastMinuitCommandStatus")
+        if ignore_bad_matrix:
+            needed.append("eMatrixStatus")
+        missing = [c for c in needed if c not in df.columns]
+        if missing:
+            raise KeyError(
+                f"Cannot apply fit quality cuts, since {missing} are missing from the"
+                " dataframe. Set ignore_failed_fits/ignore_bad_matrix to False to skip"
+                " the status cuts"
+            )
+
+        mask = self._delta_lnL(df["likelihood"]) <= delta_lnL_threshold
+        if ignore_failed_fits:
+            mask &= (df["lastMinuitCommandStatus"] == 0).to_numpy()
+        if ignore_bad_matrix:
+            mask &= (df["eMatrixStatus"] == 3).to_numpy()
+        return mask
+
+    def _sigma_contours(
+        self,
+        x: pd.Series | np.ndarray,
+        y: pd.Series | np.ndarray,
+        sigmas: Sequence[float] = (1.0, 2.0, 3.0),
+        bw_method: str | float | None = None,
+        grid_size: int = 128,
+        color: Any = None,
+        ax: matplotlib.axes.Axes | None = None,
+        **kwargs: Any,
+    ) -> None:
+
+        ax = plt.gca() if ax is None else ax
+        xy = np.vstack([np.asarray(x, dtype=float), np.asarray(y, dtype=float)])
+
+        try:
+            kde = scipy.stats.gaussian_kde(xy, bw_method=bw_method)
+        except np.linalg.LinAlgError:
+            warnings.warn(
+                f"Skipping the 2D KDE contours of '{getattr(x, 'name', 'x')} vs"
+                f" '{getattr(y, 'name', 'y')}': the samples are perfectly"
+                f" (anti-)correlated so no KDE can be built",
+                UserWarning,
+            )
+            return
+        # density at each sample without its own kernel, K_H(0) = 1 / (2 pi sqrt(det H))
+        n_samples = xy.shape[1]
+        self_kernel = 1.0 / (2.0 * np.pi * np.sqrt(np.linalg.det(kde.covariance)))
+        loo_density = (n_samples * kde(xy) - self_kernel) / (n_samples - 1)
+
+        coverage = erf(np.asarray(sigmas, dtype=float) / np.sqrt(2.0))
+        levels = np.unique(np.quantile(loo_density, 1.0 - coverage))
+        levels = levels[levels > 0]
+        if len(levels) == 0:
+            return
+
+        # make grid wide enough for outermost contour to close
+        pad = 3.0 * np.sqrt(np.diag(kde.covariance))
+        low, high = xy.min(axis=1) - pad, xy.max(axis=1) + pad
+        grid_x, grid_y = np.meshgrid(
+            np.linspace(low[0], high[0], grid_size),
+            np.linspace(low[1], high[1], grid_size),
+        )
+        density = kde(np.vstack([grid_x.ravel(), grid_y.ravel()])).reshape(grid_x.shape)
+
+        # levels ascend in density, so outermost contour is first
+        rgb = matplotlib.colors.to_rgba("C0" if color is None else color)[:3]
+        colors = [(*rgb, alpha) for alpha in np.linspace(0.4, 1.0, len(levels))]
+        ax.contour(grid_x, grid_y, density, levels=levels, colors=colors, **kwargs)
