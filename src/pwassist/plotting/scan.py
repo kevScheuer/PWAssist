@@ -93,7 +93,7 @@ class ScanPlotter(BasePWAPlotter):
         mass_bin: tuple[float, float] | MassBin | None = None,
         indices: list[int] | None = None,
         ax: matplotlib.axes.Axes | None = None,
-        kwargs: dict[str, Any] | None = None,
+        kwargs: dict[str, dict[str, Any]] | None = None,
     ) -> matplotlib.axes.Axes:
         """Plot coherent sum group across the bins.
 
@@ -130,8 +130,8 @@ class ScanPlotter(BasePWAPlotter):
                 kinematic bin to select specific bins. Defaults to None.
             ax (matplotlib.axes.Axes | None): Optional axes to plot on. If None, a new
                 figure and axes will be created.
-            kwargs (dict[str, Any] | None): Optional dictionary of keyword arguments
-                to customize the plot appearance.
+            kwargs (dict[str, dict[str, Any]] | None): Optional dictionary of keyword
+                arguments for each coherent sum, passed directly to ax.errorbar
 
         Raises:
             KeyError: If the specified sum_label is not found in the coherent sums, or
@@ -167,12 +167,17 @@ class ScanPlotter(BasePWAPlotter):
         colors = plt.get_cmap("Dark2").colors  # type: ignore
         colors = list(itertools.islice(itertools.cycle(colors), len(coherent_sums)))
         default_kwargs = {
-            "marker": ["." for _ in range(len(coherent_sums))],
-            "linestyle": ["" for _ in range(len(coherent_sums))],
-            "alpha": [0.7 for _ in range(len(coherent_sums))],
-            "colors": colors,
+            k: {
+                "marker": ".",
+                "linestyle": "",
+                "alpha": 0.7,
+                "color": colors[coherent_sums.index(k)],
+            }
+            for k in coherent_sums
         }
-        default_kwargs.update(kwargs or {})
+        for k in default_kwargs.keys():
+            default_kwargs[k].update(kwargs.get(k, {}) if kwargs else {})
+
         kwargs = default_kwargs
 
         if fractional:
@@ -215,6 +220,8 @@ class ScanPlotter(BasePWAPlotter):
             # plot each coherent sum with error bars
             for sum_idx, coh_sum in enumerate(coherent_sums):
                 label = rf"${self.results.parser.to_latex(coh_sum, sum_label)}$"
+                if "label" not in kwargs[coh_sum]:
+                    kwargs[coh_sum]["label"] = label
 
                 if fractional:
                     intensity = (
@@ -239,11 +246,7 @@ class ScanPlotter(BasePWAPlotter):
                     xerr=data_df["x_err"],
                     y=y_vals,
                     yerr=y_errs,
-                    label=label,
-                    marker=kwargs["marker"][sum_idx],
-                    linestyle=kwargs["linestyle"][sum_idx],
-                    alpha=kwargs["alpha"][sum_idx],
-                    color=kwargs["colors"][sum_idx],
+                    **kwargs[coh_sum],
                 )
 
             ax.set_xlabel(x_label)
