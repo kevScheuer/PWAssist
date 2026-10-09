@@ -1,10 +1,12 @@
 import itertools
+import warnings
 from typing import Any, Literal
 
 import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from scipy.stats import gaussian_kde
 from uncertainties import ufloat, unumpy
 
 from pwassist.io.binning import EnergyBin, KinematicBin, MassBin, TBin
@@ -212,7 +214,7 @@ class ScanPlotter(BasePWAPlotter):
 
             # plot each coherent sum with error bars
             for sum_idx, coh_sum in enumerate(coherent_sums):
-                label = rf"{self.results.parser.to_latex(coh_sum, sum_label)}"
+                label = rf"${self.results.parser.to_latex(coh_sum, sum_label)}$"
 
                 if fractional:
                     intensity = (
@@ -916,38 +918,232 @@ class ScanPlotter(BasePWAPlotter):
     def ridgeline(
         self,
         columns: list[str],
+        overlap: float = 1.5,
+        scale: Literal["global", "ridge"] = "global",
+        equidistant: bool = False,
+        bw_method: str | float | None = None,
+        n_points: int = 256,
+        cmap: str = "Dark2",
+        kin_variable: str = "m",
+        stat: Literal["edges", "avg"] = "edges",
+        t_bin: tuple[float, float] | TBin | None = None,
+        energy_bin: tuple[float, float] | EnergyBin | None = None,
+        mass_bin: tuple[float, float] | MassBin | None = None,
         indices: list[int] | None = None,
-    ) -> np.ndarray:
-        """Create a ridgeline plot of the columns from the bootstrap distributions
+        ax: matplotlib.axes.Axes | None = None,
+        kwargs: dict[str, Any] | None = None,
+    ) -> matplotlib.axes.Axes:
+        """Create a ridgeline (joyplot) of bootstrap distributions across a scan.
+
+        Each kinematic bin gets one "ridge" per column, a KDE of the bootstrap
+        distribution for the column, drawn on a baseline located at the bin's
+        position along the scan variable (y-axis). The column values are on the x-axis.
+        Ridges from lower values are drawn in front of those from higher values.
 
         Args:
-            columns (list[str]): _description_
-            indices (list[int] | None, optional): _description_. Defaults to None.
+            columns (list[str]): Columns of the 'bootstrap' frame to plot. Each is given
+                a different color, in the order given by cmap.
+            overlap (float, optional): Control how much neighboring ridges overlap, as
+                the height of the teallest ridge in units of baseline spacing (median
+                distance between adjacent bins). overlap=1.0: tallest ridge just touches
+                the next baseline. overlap<1.0 leaves gaps. Defaults to 1.5.
+            scale (Literal['global', 'ridge']): 'global' (default) scales all KDEs by a
+                single common factor, so narrower distributions appear taller. 'ridge'
+                scale each KDE to the same peak height, useful when widths vary largely
+                between bins or columns.
+            equidistant (bool): If True, the baselines are evenly spaced, one step per
+                bin in scan order. y tick-labels still show each bin's value as usual.
+                If False (default), baselines sit at actual bin positions at scale.
+            bw_method (str | float | None, optional): KDE bandwidth, passed to
+                scipy.stats.gaussian_kde. Can be 'scott' or 'silverman', or a scalar
+                bandwidth factor. Defaults to None, or Scott's rule.
+            n_points (int, optional): Number of x points each KDE is evaluated on.
+                Defaults to 256.
+            cmap (str, optional): Name of qualitative matplotlib colormap used to color
+                the columns. Cycles if there are more columns than colors. Defaults to
+                "Dark2".
+            kin_variable (str): Shorthand ("m", "t", "e") or exact 'data' dataframe
+                column name for the kinematic variable to plot against. Default to 'm'
+                (mass).
+            stat (Literal['edges', 'avg']): Whether x-value/error is from the bin center
+                and (high-low)/2 'edges' (default) or from the actual bin average and
+                rms of the underlying data.
+            t_bin (tuple[float, float] | TBin | None): Fixes the t bin to plot from if
+                the results span multiple t bins. If only 1 t bin is available,
+                specification is unnecessary. Defaults to None.
+            energy_bin (tuple[float,float] | EnergyBin | None): Fixes the beam energy
+                bin to plot from if the results span multiple energy bins. If only 1
+                energy bin is available, specification is unnecessary. Defaults to None.
+            mass_bin (tuple[float,float] | MassBin | None): Fixes the mass bin to plot
+                from if the results span multiple mass bins. If only 1 mass bin is
+                available, specification is unnecessary. Defaults to None.
+            indices (list[int] | None): Optional list of positions within the resolved
+                kinematic bin to select specific bins. Defaults to None.
+            ax (matplotlib.axes.Axes | None): Optional axes to plot on. If None, a new
+                figure and axes will be created.
+            kwargs (dict[str, Any] | None): Optional dictionary of keyword arguments
+                to customize the plot appearance. Recognized keys are 'colors' (list
+                of one color per column, overriding 'cmap'), 'alpha' (fill transparency)
+                and 'linewidth' (KDE outline width, default 1.0).
 
         Returns:
-            np.ndarray: _description_
+            matplotlib.axes.Axes: The axes object containing the ridgeline plot
 
         Raises:
-            KeyError: If the specified columns are not found in the bootstrap dataframe,
-                or if the bootstrap dataframe is not available in the results.
+            KeyError: If bootstrap dataframe is not in the results, or any requested
+                columns are not found.
+            ValueError: If no columns are requested, 'overlap' < 0, 'scale' is not in
+                list options, 'n_points' < 2, or no KDE can be computed.
         """
 
         if self.results.bootstrap is None:
             raise KeyError(
-                "Bootstrap distributions are required to create a ridgeline plot."
+                "Bootstrap dataframe is required to create the ridgeline plot"
+            )
+        if not columns:
+            raise ValueError("At least one column must be requested")
+
+        columns = list(dict.fromkeys(columns))
+        missing = [c for c in columns if c not in self.results.bootstrap.columns]
+        if missing:
+            raise KeyError(
+                f"Columns {missing} not found in bootstrap dataframe. Available columns"
+                f" {list(self.results.bootstrap.columns)}"
+            )
+        if overlap <= 0:
+            raise ValueError(f"overlap must be > 0, got {overlap}")
+        if scale not in ("global", "ridge"):
+            raise ValueError(f"scale must be 'global' or 'ridge', got '{scale}'")
+        if n_points < 2:
+            raise ValueError(f"n_points must be at least 2, got {n_points}")
+
+        df, data_df, y_label, _ = self._scan_dataframes(
+            columns=columns,
+            frame="bootstrap",
+            kin_variable=kin_variable,
+            stat=stat,
+            t_bin=t_bin,
+            energy_bin=energy_bin,
+            mass_bin=mass_bin,
+            indices=indices,
+        )
+
+        color_map = plt.get_cmap(cmap)
+        palette = (
+            list(color_map.colors)  # type: ignore
+            if hasattr(color_map, "colors")
+            else list(color_map(np.linspace(0, 1, len(columns))))
+        )
+        default_kwargs = {
+            "colors": list(itertools.islice(itertools.cycle(palette), len(columns))),
+            "alpha": 0.6,
+            "linewidth": 1.0,
+        }
+        default_kwargs.update(kwargs or {})
+        kwargs = default_kwargs
+
+        # common x grid for KDEs
+        all_values = df[columns].to_numpy(dtype=float)
+        lo, hi = all_values.min(), all_values.max()
+        pad = 0.1 * (hi - lo) if hi > lo else 0.5
+        x_grid = np.linspace(lo - pad, hi + pad, n_points)
+
+        # baseline of each ridge and their spacing
+        scan_values = data_df["x_center"].to_numpy(dtype=float)
+        bin_ids = data_df["bin_id"].to_numpy()
+        if equidistant:
+            baselines = np.argsort(np.argsort(scan_values, kind="stable")).astype(float)
+            spacing = 1.0
+        else:
+            baselines = scan_values
+            if len(baselines) > 1:
+                spacing = float(np.median(np.diff(np.sort(baselines))))
+            else:
+                spacing = 2.0 * float(data_df["x_err"].iloc[0])
+            if not np.isfinite(spacing) or spacing <= 0:
+                spacing = 1.0
+        height = overlap * spacing
+
+        # compute KDE of each column in each bin
+        grouped = dict(tuple(df.groupby("bin_id")))
+        ridges: list[tuple[float, int, np.ndarray]] = []
+        skipped: list[tuple[Any, str]] = []
+
+        for baseline, bin_id in zip(baselines, bin_ids):
+            group = grouped.get(bin_id)
+            if group is None:
+                continue
+            for col_idx, col in enumerate(columns):
+                values = group[col].to_numpy(dtype=float)
+                values = values[np.isfinite(values)]
+                if values.size < 2 or np.ptp(values) == 0:
+                    skipped.append((bin_id, col))
+                    continue
+                density = gaussian_kde(values, bw_method=bw_method)(x_grid)
+                ridges.append((float(baseline), col_idx, density))
+
+        if skipped:
+            warnings.warn(
+                f"Skipped {len(skipped)} (bin_id, column) distributions with fewer than"
+                f" 2 distinct finite values: {skipped}"
+            )
+        if not ridges:
+            raise ValueError("No bootstrap distributions could be estimated")
+
+        global_peak = max(density.max() for _, _, density in ridges)
+        ridges.sort(key=lambda ridge: -ridge[0])
+
+        with self._style():
+            fig, ax = (
+                plt.subplots(layout="constrained")
+                if ax is None
+                else (ax.get_figure(), ax)
             )
 
-        for col in columns:
-            if col not in self.results.bootstrap.columns:
-                raise KeyError(
-                    f"Column '{col}' not found in bootstrap distributions. "
-                    f"Available columns: {list(self.results.bootstrap.columns)}"
+            labeled: set[int] = set()
+            for order, (baseline, col_idx, density) in enumerate(ridges):
+                peak = density.max() if scale == "ridge" else global_peak
+                top = baseline + height * density / peak
+                color = kwargs["colors"][col_idx]
+                zorder = 2 + order * 1e-3
+
+                label = None
+                if col_idx not in labeled:
+                    label = rf"${self.results.parser.to_latex(columns[col_idx])}$"
+                    labeled.add(col_idx)
+
+                ax.fill_between(
+                    x_grid,
+                    baseline,
+                    top,
+                    facecolor=color,
+                    alpha=kwargs["alpha"],
+                    linewidth=0,
+                    label=label,
+                    zorder=zorder,
+                )
+                ax.plot(
+                    x_grid,
+                    top,
+                    color=color,
+                    linewidth=kwargs["linewidth"],
+                    zorder=zorder,
                 )
 
-        # TODO: replace with joypy.joyplot, ridgeplot, seaborn, or similar library
-        fig, axs = plt.subplots(2, 2)
+            tick_order = np.argsort(baselines)
+            ax.set_yticks(
+                baselines[tick_order], [f"{v:.3f}" for v in scan_values[tick_order]]
+            )
+            ax.set_ylabel(y_label)
+            ax.set_xlabel(
+                rf"${self.results.parser.to_latex(columns[0])}$"
+                if len(columns) == 1
+                else "Bootstrap value"
+            )
+            ax.margins(y=0.03)
+            ax.legend()
 
-        return axs
+        return ax
 
     # ----------------------------------------------------------------------------------
     # Helpers
