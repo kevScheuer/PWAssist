@@ -419,6 +419,17 @@ class ScanPlotter(BasePWAPlotter):
 
         max_value: float = 0.0  # for resetting y_lim later
 
+        # mark the grid cells that will fill, so that labels go on these
+        present = np.zeros((nrows, ncols), dtype=bool)
+        for row_idx, row_key in enumerate(sorted_rows):
+            for col_idx, col_value in enumerate(sorted_cols):
+                present[row_idx, col_idx] = any(
+                    parsed.m == col_value for _, parsed in row_groups[row_key]
+                )
+
+        first_col_in_row = [int(np.flatnonzero(present[i])[0]) for i in range(nrows)]
+        first_row_in_col = [int(np.flatnonzero(present[:, j])[0]) for j in range(ncols)]
+
         with self._style():
             if axs is None:
                 fig, axs = plt.subplots(
@@ -438,20 +449,24 @@ class ScanPlotter(BasePWAPlotter):
                         f"Provided axes shape {axs.shape} does not match expected "
                         f"shape ({nrows}, {ncols}) based on the number of amplitudes."
                     )
+                fig = axs.flat[0].figure
+
             for row_idx, row_key in enumerate(sorted_rows):
                 row_label = self.results.parser.to_latex(
                     "".join(row_key), row_group_key
                 )
                 for col_idx, col_value in enumerate(sorted_cols):
                     ax = axs[row_idx, col_idx]
+
+                    if not present[row_idx, col_idx]:
+                        ax.set_visible(False)
+                        continue
+
                     amps_here = [
                         (amp, parsed)
                         for amp, parsed in row_groups[row_key]
                         if parsed.m == col_value
                     ]
-                    if not amps_here:
-                        ax.set_visible(False)
-                        continue
 
                     # plot positive reflectivity first
                     amps_here.sort(
@@ -495,17 +510,26 @@ class ScanPlotter(BasePWAPlotter):
                             **kwargs[refl_kind],
                         )
 
-                    ax.set_title(
-                        rf"${row_label}$, $m={_format_spin_projection(col_value)}$",
-                        fontsize="small",
-                    )
                     ax.set_ylim(bottom=0)
                     ax.legend(fontsize="x-small")
 
+                    # row label J^P L on y-axis of first existing plot
+                    if col_idx == first_col_in_row[row_idx]:
+                        ax.set_ylabel(
+                            rf"${row_label}$",
+                            loc="center",
+                            labelpad=10,
+                        )
+                        ax.tick_params(labelleft=True)
+
+                    # column label "m" on title of first existing plot
+                    if row_idx == first_row_in_col[col_idx]:
+                        ax.set_title(rf"$m={_format_spin_projection(col_value)}$")
+
                     if row_idx == nrows - 1:
                         ax.set_xlabel(x_label)
-                    if col_idx == 0:
-                        ax.set_ylabel(y_label)
+
+            fig.supylabel(y_label, fontsize="large", weight="bold")
 
         # adjust y limits after plotting if using common axis
         if sharey:
