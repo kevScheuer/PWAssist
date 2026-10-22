@@ -1,5 +1,6 @@
 import logging
 import time
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
@@ -29,11 +30,14 @@ class PipelineReport:
     n_bins_processed: int
     stage_timings_ms: dict[str, float]
     bin_reports: tuple[PreprocessReport, ...]
+    pipeline_warnings: tuple[str, ...] = ()
 
     @property
     def total_warnings(self) -> int:
-        """Total number of warnings across all bins"""
-        return sum(len(r.warnings) for r in self.bin_reports)
+        """Total number of warnings across all pipeline stages and bins."""
+        return len(self.pipeline_warnings) + sum(
+            len(r.warnings) for r in self.bin_reports
+        )
 
     @property
     def total_time_ms(self) -> float:
@@ -47,6 +51,7 @@ class PipelineReport:
         ]
         for stage, ms in self.stage_timings_ms.items():
             lines.append(f"\t{stage}: {ms:.1f} ms")
+        lines.extend(f"\t{w}" for w in self.pipeline_warnings)
         for r in self.bin_reports:
             for w in r.warnings:
                 lines.append(f"\t{w}")
@@ -86,11 +91,23 @@ class Pipeline:
 
         # ---- Step 1: Scan catalog and assemble bin collection ----
         t0 = time.perf_counter()
-        catalog = Catalog(
-            self.config.root_dir, ignore_files=self.config.ignore_csv_files
+        with warnings.catch_warnings(record=True) as catalog_warnings:
+            warnings.simplefilter("always")
+            catalog = Catalog(
+                self.config.root_dir, ignore_files=self.config.ignore_csv_files
+            )
+            catalog.scan()
+        with warnings.catch_warnings(record=True) as binning_warnings:
+            warnings.simplefilter("always")
+            collection = BinCollection.from_catalog(catalog)
+        pipeline_warnings = tuple(
+            f"{stage}: {warning.message}"
+            for stage, caught in (
+                ("catalog", catalog_warnings),
+                ("binning", binning_warnings),
+            )
+            for warning in caught
         )
-        catalog.scan()
-        collection = BinCollection.from_catalog(catalog)
         stage_timings["catalog"] = self._elapsed_time(t0)
         logger.info(f"Found {len(collection)} bins under {self.config.root_dir}.")
 
@@ -124,6 +141,7 @@ class Pipeline:
             n_bins_processed=len(processed_bins),
             stage_timings_ms=stage_timings,
             bin_reports=tuple(p.report for p in processed_bins),
+            pipeline_warnings=pipeline_warnings,
         )
         return results, report
 
