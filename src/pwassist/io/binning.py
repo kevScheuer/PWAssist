@@ -1,6 +1,7 @@
 """Classes for handling groups of result files in a kinematic bin."""
 
 import pathlib
+import warnings
 from dataclasses import dataclass, field
 
 import pandas as pd
@@ -271,15 +272,28 @@ class BinCollection:
 
     def __init__(self, manifest: pd.DataFrame):
         kinematic_bin_to_bundles: dict[KinematicBin, BinBundle] = {}
+
+        common_file_types = set()
+        # create bin bundle for each kinematic bin
         for bin_id, group in manifest.groupby("bin_id"):
             kinematic_bin = KinematicBin.from_bin_id(str(bin_id))
-            paths = {
-                row["file_type"]: pathlib.Path(row["file_path"])
-                for _, row in group.iterrows()
-            }
+            paths = {}
+            for _, row in group.iterrows():
+                paths[row["file_type"]] = pathlib.Path(row["file_path"])
+                common_file_types.add(row["file_type"])
             kinematic_bin_to_bundles[kinematic_bin] = BinBundle(
                 kinematic_bin=kinematic_bin, bin_id=str(bin_id), paths=paths
             )
+
+        # warn user if any bundle is missing a common set of file types
+        for kb, bundle in kinematic_bin_to_bundles.items():
+            missing_file_types = common_file_types - set(bundle.paths.keys())
+            if missing_file_types:
+                warnings.warn(
+                    f"Kinematic bin {kb} is missing the following set of files common"
+                    f" to other bundles: {missing_file_types}. This may produce errors"
+                    f" later depending on what file type is missing."
+                )
 
         self._kinematic_bin_to_bundles = kinematic_bin_to_bundles
         self._order = sorted(kinematic_bin_to_bundles)  # sorts on KinematicBin.__lt__
