@@ -175,7 +175,7 @@ class Pipeline:
             if fig is SubFigure:
                 fig = fig.get_parent()  # Get the parent Figure if it's a SubFigure
             fig.savefig(  # type: ignore
-                out_dir / f"coherent_sum_{group_key}.png", dpi=200
+                str(out_dir / f"coherent_sum_{group_key}.png"), dpi=200
             )
             plt.close(fig)  # type: ignore
 
