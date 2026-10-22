@@ -1,6 +1,7 @@
 import dataclasses
 import os
 import pickle
+import subprocess
 import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -11,6 +12,20 @@ from pwassist.io.binning import EnergyBin, KinematicBin, MassBin, TBin
 from pwassist.parser import AmplitudeParser, NamingScheme
 from pwassist.plotting.factory import FactoryPlotter
 from pwassist.preprocessing.preprocessor import PreprocessReport, ProcessedBin
+
+
+def _get_current_git_commit_hash() -> str | None:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=Path(__file__).resolve().parent,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return result.stdout.strip()
 
 
 @dataclass
@@ -38,6 +53,9 @@ class Results:
     reports: list[PreprocessReport] = field(default_factory=list)
     is_acc_corrected: bool = field(init=False)
     final_state_parity: int | None = field(default=None)
+    git_commit_hash: str | None = field(
+        default_factory=_get_current_git_commit_hash, repr=False
+    )
 
     # Amplitude-based attributes
     coherent_sums: dict[str, tuple[str, ...]] = field(default_factory=dict, init=False)
@@ -191,6 +209,7 @@ class Results:
         filepath = Path(filepath)
         with open(filepath, "rb") as f:
             data: dict = pickle.load(f)
+        data.setdefault("git_commit_hash", None)
         return cls(**data)
 
     def save(self, filepath: str | Path) -> None:
@@ -206,10 +225,19 @@ class Results:
             "kinematic_bins": self.kinematic_bins,
             "reports": self.reports,
             "final_state_parity": self.final_state_parity,
+            "git_commit_hash": self.git_commit_hash,
             "_naming_scheme": self._naming_scheme,
         }
         with open(filepath, "wb") as f:
             pickle.dump(data, f)
+
+    def _matches_current_git_commit(self) -> bool:
+        current_commit = _get_current_git_commit_hash()
+        return (
+            self.git_commit_hash is not None
+            and current_commit is not None
+            and self.git_commit_hash == current_commit
+        )
 
     def filter_by_kinematic_bins(
         self,
