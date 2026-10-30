@@ -292,7 +292,7 @@ class BinPlotter(BasePWAPlotter):
                     layout="constrained",
                 )
                 if axs is None
-                else (axs[0, 0].gcf(), axs)
+                else (axs.flatten()[0].get_figure(), axs)
             )
             assert axs is not None
 
@@ -451,7 +451,7 @@ class BinPlotter(BasePWAPlotter):
                     layout="constrained",
                 )
                 if axs is None
-                else (axs[0, 0].gcf(), axs)
+                else (axs.flatten()[0].get_figure(), axs)
             )
             assert axs is not None
 
@@ -650,7 +650,7 @@ class BinPlotter(BasePWAPlotter):
             )
             try:
                 labels[c] = rf"${self.results.parser.to_latex(c, sum_label)}$"
-            except (ValueError, KeyError, IndexError):
+            except ValueError, KeyError, IndexError:
                 labels[c] = c
 
         color = "tab:blue"
@@ -764,6 +764,7 @@ class BinPlotter(BasePWAPlotter):
     def bootstrap_convergence(
         self,
         min_samples: int = 10,
+        fraction_of_minuit_error=False,
         columns: list[str] | None = None,
         exclude_columns: list[str] | None = None,
         t_bin: tuple[float, float] | TBin | None = None,
@@ -773,7 +774,7 @@ class BinPlotter(BasePWAPlotter):
         axs: np.ndarray | None = None,
         kwargs: dict[str, Any] | None = None,
     ) -> np.ndarray:
-        """Plot all parameters stdevs / MINUIT error as a function bootstrap fit #
+        """Plot all parameters stdevs as a function bootstrap fit
 
         This is a diagnostic plot to see if the bootstrap fit standard deviation (used
         as the uncertainty estimate on the fit parameters) has converged as a function
@@ -784,6 +785,8 @@ class BinPlotter(BasePWAPlotter):
         Args:
             min_samples (int): Minimum number of bootstrap fits to start calculating
                 the standard deviation. Defaults to 10.
+            fraction_of_minuit_error (bool): Will divide the standard deviation by the
+                MINUIT statistical uncertainty (if available).
             columns (list[str] | None): Optional list of parameter columns to plot.
                 Defaults to None, which plots all columns that have a corresponding
                 '<param>_err' column in the bootstrap dataframe (but not the
@@ -875,14 +878,13 @@ class BinPlotter(BasePWAPlotter):
                 fig.tight_layout()
                 fig.subplots_adjust(top=0.96)
             else:
-                fig, axs = axs[0, 0].gcf(), axs
+                fig, axs = axs.flatten()[0].get_figure(), axs
 
             assert axs is not None
 
             for idx, ax in enumerate(axs.flatten()):
                 par = parameters[idx]
-                best_par_err = best_df[f"{par}_err"].iloc[0]
-                # start at 10 bootstrap samples
+
                 if par in self.results.phase_differences:
                     std_devs = (
                         value_df[par]
@@ -895,17 +897,30 @@ class BinPlotter(BasePWAPlotter):
                 default_kwargs = {"legend": False}
                 default_kwargs.update(kwargs or {})
 
-                (std_devs / best_par_err).plot(ax=ax, **default_kwargs)
+                if f"{par}_err" in best_df and fraction_of_minuit_error:
+                    best_par_err = best_df[f"{par}_err"].iloc[0]
+                    (std_devs / best_par_err).plot(ax=ax, **default_kwargs)
+                else:
+                    std_devs.plot(ax=ax, **default_kwargs)  # type: ignore
+
                 try:
                     if any([par in v for v in self.results.coherent_sums.values()]):
                         sum_label = next(
                             k for k, v in self.results.coherent_sums.items() if par in v
                         )
-                        label = rf"${self.results.parser.to_latex(par, sum_label)}$"
+                        label = (
+                            rf"$\sigma({self.results.parser.to_latex(par, sum_label)})$"
+                        )
                     else:
-                        label = rf"${self.results.parser.to_latex(par)}$"
+                        label = rf"$\sigma({self.results.parser.to_latex(par)})$"
                 except ValueError:
-                    label = par
+                    label = rf"$\sigma(\text{{{par}}})$"
+
+                if fraction_of_minuit_error:
+                    label = (
+                        rf"$\frac{{{label.replace("$", "")}}}"
+                        r"{\sigma_\text{MINUIT}}$"
+                    )
 
                 ax.set_xlim(min_samples, len(value_df))
                 ax.set_ylabel(
@@ -913,7 +928,8 @@ class BinPlotter(BasePWAPlotter):
                     rotation=45,
                     ha="right",
                 )
-                ax.set_xlabel("Number of Bootstrap Fits", loc="center")
+                if idx == len(axs.flatten()) - 1:
+                    ax.set_xlabel("Number of Bootstrap Fits", loc="center")
                 ax.ticklabel_format(axis="x", useOffset=False, style="plain")
 
             fig.suptitle(self._bin_title(kinematic_bin))
@@ -1072,7 +1088,7 @@ class BinPlotter(BasePWAPlotter):
         if sep and part.lower() in _PARAMETER_PART_LABELS:
             try:
                 amp_label = self.results.parser.to_latex(base)
-            except (ValueError, KeyError):
+            except ValueError, KeyError:
                 pass
             else:
                 return (
