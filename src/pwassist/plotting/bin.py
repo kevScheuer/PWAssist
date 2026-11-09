@@ -338,6 +338,7 @@ class BinPlotter(BasePWAPlotter):
         delta_lnL_threshold: float = np.inf,
         ignore_failed_fits: bool = True,
         ignore_bad_matrix: bool = True,
+        degeneracy_tol: float = 1e-6,
         columns: list[str] | None = None,
         weighted_residual: bool = False,
         t_bin: tuple[float, float] | TBin | None = None,
@@ -364,6 +365,9 @@ class BinPlotter(BasePWAPlotter):
                 lastMinuitCommandStatus != 0. Defaults to True.
             ignore_bad_matrix (bool): Does not plot any fits with eMatrixStatus != 3.
                 Defaults to True.
+            degeneracy_tol (float): Fits with Δ(-2lnL) <= this value are considered
+                tied with the best randomized fit. A dashed vertical line marks where
+                Δ(-2lnL) first exceeds it. Defaults to 1e-6.
             columns (list[str] | None, optional): select results columns to plot.
                 Defaults to None, meaning all amplitude intensities and phase
                 differences will be plotted.
@@ -425,7 +429,6 @@ class BinPlotter(BasePWAPlotter):
             if self.bootstrap is not None
             else (None, None)
         )
-        delta_lnL = self._delta_lnL(value_df["likelihood"])
 
         # mask values according to function parameters
         mask = self._fit_quality_mask(
@@ -433,11 +436,16 @@ class BinPlotter(BasePWAPlotter):
         )
 
         value_df = value_df[mask]
-        delta_lnL = delta_lnL[mask]
+        delta_lnL = self._delta_lnL(value_df["likelihood"])
 
         # sort delta_lnL values for plots later
         sort_idx = delta_lnL.argsort()
         sorted_delta_lnL = delta_lnL[sort_idx]
+
+        # number of fits tied with minimum. First index with Δ(-2lnL) > tol is thus
+        # n_tied, for marking where likelihood begins to rise
+        n_tied = int(np.searchsorted(sorted_delta_lnL, degeneracy_tol, side="right"))
+        n_total = len(sorted_delta_lnL)
 
         # build colormap
         cmap = plt.get_cmap("cividis")
@@ -509,6 +517,41 @@ class BinPlotter(BasePWAPlotter):
                     marker="o",
                     **default_kwargs,
                 )
+
+                # mark index where Δ(-2lnL) > 0
+                if 0 < n_tied < n_total:
+                    # place between last tied fit and first diverged one
+                    x_line = n_tied - 0.5
+
+                    ax.axvline(
+                        x_line,
+                        color="crimson",
+                        linestyle="--",
+                        linewidth=1.0,
+                        alpha=0.8,
+                        zorder=0,
+                    )
+                    if i == 0:
+                        ax.annotate(
+                            rf"$\Delta(-2\ln\mathcal{{L}}) > 0$"
+                            "\n"
+                            rf"after {n_tied} fit{'s' if n_tied != 1 else ''}",
+                            xy=(x_line, 1.0),
+                            xycoords=ax.get_xaxis_transform(),
+                            xytext=(3, -4),
+                            textcoords="offset points",
+                            rotation=90,
+                            ha="left",
+                            va="top",
+                            fontsize=7,
+                            color="crimson",
+                            bbox=dict(
+                                boxstyle="round,pad=0.2",
+                                fc="white",
+                                ec="crimson",
+                                alpha=0.8,
+                            ),
+                        )
 
                 try:
                     label = self.results.parser.to_latex(par)
