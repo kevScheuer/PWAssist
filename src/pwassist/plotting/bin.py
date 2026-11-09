@@ -175,8 +175,8 @@ class BinPlotter(BasePWAPlotter):
             ignore_bad_matrix (bool): Does not plot any fits with eMatrixStatus != 3.
                 Defaults to True.
             columns (list[str] | None, optional): select production coefficient columns
-                to plot. Expects them to end with '_re' or '_im' parts. Defaults to
-                None.
+                to plot. Expects base amplitude name that '_re' or '_im' is attached to.\
+                Defaults to None.
             t_bin (tuple[float, float] | TBin | None): Fixes the t bin to plot from if
                 the results span multiple t bins. If only 1 t bin is available,
                 specification is unnecessary. Defaults to None.
@@ -235,12 +235,15 @@ class BinPlotter(BasePWAPlotter):
                 c for c in value_df.columns if c.endswith("_re") or c.endswith("_im")
             ]
         else:
-            for c in columns:
-                if not c.endswith("_re") and not c.endswith("_im"):
-                    raise ValueError(
-                        f"User provided columns '{c}' not a recognized production"
-                        " coefficient."
-                    )
+            c_re = [f"{c}_re" for c in columns]
+            c_im = [f"{c}_im" for c in columns]
+            columns = c_re + c_im
+            missing_cols = [c for c in columns if c not in value_df.columns]
+            if missing_cols:
+                raise KeyError(
+                    f"The following requested columns were not found: {missing_cols}"
+                    f" Available columns: {value_df.columns}"
+                )
         columns = sorted(columns)
 
         # pair all the re and im column names together (if present)
