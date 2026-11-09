@@ -339,6 +339,7 @@ class BinPlotter(BasePWAPlotter):
         ignore_failed_fits: bool = True,
         ignore_bad_matrix: bool = True,
         columns: list[str] | None = None,
+        weighted_residual: bool = False,
         t_bin: tuple[float, float] | TBin | None = None,
         energy_bin: tuple[float, float] | EnergyBin | None = None,
         mass_bin: tuple[float, float] | MassBin | None = None,
@@ -366,6 +367,8 @@ class BinPlotter(BasePWAPlotter):
             columns (list[str] | None, optional): select results columns to plot.
                 Defaults to None, meaning all amplitude intensities and phase
                 differences will be plotted.
+            weighted_residual (bool): plots weighted_residual Δp / sigma_fit
+                on the y-axis. Defaults to False (Δp).
             t_bin (tuple[float, float] | TBin | None): Fixes the t bin to plot from if
                 the results span multiple t bins. If only 1 t bin is available,
                 specification is unnecessary. Defaults to None.
@@ -410,6 +413,17 @@ class BinPlotter(BasePWAPlotter):
             energy_bin=energy_bin,
             mass_bin=mass_bin,
             indices=indices,
+        )
+        bootstrap_df, _ = (
+            self._bin_dataframe(
+                frame="bootstrap",
+                t_bin=t_bin,
+                energy_bin=energy_bin,
+                mass_bin=mass_bin,
+                indices=indices,
+            )
+            if self.bootstrap is not None
+            else (None, None)
         )
         delta_lnL = self._delta_lnL(value_df["likelihood"])
 
@@ -461,6 +475,10 @@ class BinPlotter(BasePWAPlotter):
                 rand_par_val = value_df[par].to_numpy()
                 # match length of rand array
                 best_par_val = np.full(len(rand_par_val), best_df[par])
+                best_par_err = np.full(
+                    len(rand_par_val),
+                    (best_df[par] if bootstrap_df is None else bootstrap_df[par].std()),
+                )
 
                 # calculate the Delta = best par - rand par
                 if par in self.results.phase_differences:
@@ -476,7 +494,7 @@ class BinPlotter(BasePWAPlotter):
                 # likelihoods aren't overlapping, and we can check that parameters
                 # diverge as index increases (larger delta_lnL)
                 default_kwargs = {
-                    "c": np.asarray(delta_lnL),
+                    "c": np.asarray(sorted_delta_lnL),
                     "cmap": cmap,
                     "norm": norm,
                     "s": 3,
@@ -484,9 +502,10 @@ class BinPlotter(BasePWAPlotter):
                 if kwargs is not None and par in kwargs:
                     default_kwargs.update(kwargs[par] or {})
 
+                y = delta_par / best_par_err if weighted_residual else delta_par
                 ax.scatter(
                     [j for j in range(len(delta_par))],
-                    delta_par,
+                    y,
                     marker="o",
                     **default_kwargs,
                 )
@@ -495,7 +514,10 @@ class BinPlotter(BasePWAPlotter):
                     label = self.results.parser.to_latex(par)
                 except ValueError:
                     label = par
-                ax.set_ylabel(rf"$\Delta({label})$", loc="center")
+                if weighted_residual:
+                    ax.set_ylabel(rf"$\frac{{\Delta({label})}}{{\sigma}}$")
+                else:
+                    ax.set_ylabel(rf"$\Delta({label})$", loc="center")
 
             # hide unused axes
             for ax in axs.flatten()[len(columns) :]:
@@ -509,6 +531,9 @@ class BinPlotter(BasePWAPlotter):
                 shrink=0.8,
                 pad=0.02,
                 label=r"$\Delta(-2\ln(\mathcal{L}))$",
+            )
+            fig.supxlabel(
+                r"Indices sorted by $\Delta(-2\ln(\mathcal{L}))$",
             )
 
         return axs
