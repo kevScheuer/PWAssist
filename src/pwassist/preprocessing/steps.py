@@ -265,10 +265,20 @@ def check_covariance_matrix(bundle: BinBundle) -> None:
             UserWarning,
         )
 
-    eigenvalues = np.linalg.eigvalsh(matrix.values)
-    if np.any(eigenvalues < 0):
+    def _psd_tolerance(eigenvalues: np.ndarray) -> float:
+        rtol = eigenvalues.size * np.finfo(float).eps
+        return rtol * np.max(np.abs(eigenvalues))
+
+    values = matrix.values
+    sym = (values + values.T) / 2.0  # remove rounding asymmetry
+    eigenvalues = np.linalg.eigvalsh(sym)
+
+    tol = _psd_tolerance(eigenvalues)
+    if np.any(eigenvalues < -tol):
         warnings.warn(
-            f"[{bundle.bin_id}] Covariance matrix is not positive semi-definite.",
+            f"[{bundle.bin_id}] Covariance matrix is not positive semi-definite:"
+            f" min eigenvalue {eigenvalues.min():.3e}"
+            f" (tolerance -{tol:.3e}, max eigenvalue {eigenvalues.max():.3e})",
             UserWarning,
         )
 
