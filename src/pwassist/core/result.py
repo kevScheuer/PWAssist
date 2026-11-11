@@ -6,7 +6,9 @@ import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
+import scipy
 
 from pwassist.io.binning import EnergyBin, KinematicBin, MassBin, TBin
 from pwassist.parser import AmplitudeParser, NamingScheme
@@ -385,12 +387,6 @@ class Results:
             print(f"  Total Time (ms): {report.total_time_ms}")
 
     # ----------------------------------------------------------------------------------
-    # Significance Queries
-    # ----------------------------------------------------------------------------------
-
-    # TODO: copy over get_significant_amplitudes / phases from old results class
-
-    # ----------------------------------------------------------------------------------
     # Kinematic Bin Extraction
     # ----------------------------------------------------------------------------------
 
@@ -582,6 +578,54 @@ class Results:
 
         return self._factory_plotter
 
+    def get_uncertainty(
+        self, label: str, kinematic_bins: list[KinematicBin] | None = None
+    ) -> pd.Series:
+        """Get the uncertainty for a given label
+
+        Args:
+            label (str): column in fit result get calculate uncertainty for.
+            kinematic_bins (list[KinematicBin] | None, optional): Optional list of
+                kinematic bins to narrow down to. Defaults to None.
+
+        Raises:
+            KeyError: If 'label' is found in neither the bootstrap dataframe or as a
+                '<label>_err' column in the fit dataframe.
+
+        Returns:
+            pd.Series: Standard deviations of bootstrap samples (if exists), or
+                '<label>_err' column.
+        """
+
+        if self.bootstrap is not None and label in self.bootstrap.columns:
+            grouped = self.bootstrap.groupby("bin_id", sort=False)[label]
+
+            if label in self.phase_differences:
+                uncertainty = grouped.apply(self._circular_std)
+            else:
+                uncertainty = grouped.std()
+
+            if kinematic_bins is not None:
+                bin_ids = [kinematic_bin.bin_id for kinematic_bin in kinematic_bins]
+                uncertainty = uncertainty.reindex(bin_ids)
+            return uncertainty
+        else:
+            if f"{label}_err" not in self.fit.columns:
+                raise KeyError(
+                    f"{label} could not be found in bootstrap data, and '{label}_err'"
+                    " does not exist in the best fit result. Could not determine"
+                    f" uncertainty of {label}"
+                )
+
+            if kinematic_bins is not None:
+                bin_ids = [kinematic_bin.bin_id for kinematic_bin in kinematic_bins]
+                selected = self.fit.set_index("bin_id", drop=False).loc[
+                    bin_ids, f"{label}_err"
+                ]
+                return selected.reset_index(drop=True)
+            else:
+                return self.fit[f"{label}_err"]
+
     # ----------------------------------------------------------------------------------
     # Pass-Through
     # ----------------------------------------------------------------------------------
@@ -764,3 +808,30 @@ class Results:
             and (energy_bins is None or kb.energy_bin in formatted_energy_bins)
             and (mass_bins is None or kb.mass_bin in formatted_mass_bins)
         ]
+
+    def _circular_std(self, angles: pd.Series) -> float:
+        """Calculate the circular standard deviation of a series of angles
+
+        Args:
+            angles (pd.Series): Series of angles (in degrees). Preprocessing should
+                ensure that angles are within [-180, 180] degrees.
+
+        Raises:
+            ValueError: if angles are not within [-180, 180] degrees.
+
+        Returns:
+            float: circular standard deviation in degrees. Returns NaN if the input
+                series is empty or contains only NaN values.
+
+        Note:
+            This automatically corrects for the sign ambiguity in the phase differences
+            by taking the absolute value before calculating.
+        """
+        angles = angles.dropna()
+        if len(angles) == 0:
+            return np.nan
+        angles_rad = np.abs(np.deg2rad(angles))  # corrected for sign ambiguity
+
+        if angles_rad.max() > np.pi:
+            raise ValueError("Data must be within [-pi, pi]; check preprocessing.")
+        return np.rad2deg(scipy.stats.circstd(angles_rad, low=0, high=np.pi))

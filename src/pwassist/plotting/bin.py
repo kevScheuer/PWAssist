@@ -960,7 +960,7 @@ class BinPlotter(BasePWAPlotter):
                     std_devs = (
                         value_df[par]
                         .expanding(min_periods=min_samples)
-                        .apply(lambda x: self._circular_std(x), raw=False)
+                        .apply(lambda x: self.results._circular_std(x), raw=False)
                     )
                 else:
                     std_devs = value_df[par].expanding(min_periods=min_samples).std()

@@ -121,70 +121,6 @@ class BasePWAPlotter:
     # ----------------------------------------------------------------------------------
     # Shared Helpers
     # ----------------------------------------------------------------------------------
-    def get_bootstrap_uncertainty(
-        self, label: str, kinematic_bins: list[KinematicBin] | None = None
-    ) -> pd.Series:
-        """Get the uncertainty for a given label calculated from the bootstrap data
-
-        Args:
-            label (str): label that should match a column in the bootstrap dataframe
-            kinematic_bins (list[KinematicBin] | None, optional): Optional list of
-                kinematic bins to narrow the calculation down to. Defaults to None.
-
-        Raises:
-            KeyError: If bootstrap fits are unavailable, or label is not in the
-                bootstrap frame.
-
-        Returns:
-            pd.Series: Standard deviations of the bootstrap samples, indexed by
-                kinematic bin.
-        """
-
-        if self.bootstrap is None:
-            raise KeyError("Bootstrap results are not available in the results.")
-
-        if label not in self.bootstrap.columns:
-            raise KeyError(f"Label '{label}' not found in bootstrap results.")
-
-        grouped = self.bootstrap.groupby("bin_id", sort=False)[label]
-
-        if label in self.results.phase_differences:
-            uncertainty = grouped.apply(self._circular_std)
-        else:
-            uncertainty = grouped.std()  # Standard deviation as error estimate
-
-        if kinematic_bins is not None:
-            bin_ids = [kinematic_bin.bin_id for kinematic_bin in kinematic_bins]
-            uncertainty = uncertainty.reindex(bin_ids)
-        return uncertainty
-
-    def _circular_std(self, angles: pd.Series) -> float:
-        """Calculate the circular standard deviation of a series of angles
-
-        Args:
-            angles (pd.Series): Series of angles (in degrees). Preprocessing should
-                ensure that angles are within [-180, 180] degrees.
-
-        Raises:
-            ValueError: if angles are not within [-180, 180] degrees.
-
-        Returns:
-            float: circular standard deviation in degrees. Returns NaN if the input
-                series is empty or contains only NaN values.
-
-        Note:
-            This automatically corrects for the sign ambiguity in the phase differences
-            by taking the absolute value before calculating.
-        """
-        angles = angles.dropna()
-        if len(angles) == 0:
-            return np.nan
-        angles_rad = np.abs(np.deg2rad(angles))  # corrected for sign ambiguity
-
-        if angles_rad.max() > np.pi:
-            raise ValueError("Data must be within [-pi, pi]; check preprocessing.")
-        return np.rad2deg(scipy.stats.circstd(angles_rad, low=0, high=np.pi))
-
     def _circular_residual(
         self,
         angle1: float,
@@ -386,7 +322,7 @@ class BasePWAPlotter:
         bin_ids = frame["bin_id"]
         for error_column in (c for c in frame.columns if c.endswith("_err")):
             label = error_column.removesuffix("_err")
-            uncertainty = self.get_bootstrap_uncertainty(label)
+            uncertainty = self.results.get_uncertainty(label)
             updated_frame[error_column] = uncertainty.reindex(bin_ids).to_numpy()
         return updated_frame
 
