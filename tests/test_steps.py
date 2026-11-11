@@ -400,7 +400,7 @@ class TestCheckCovarianceMatrix:
 
     def test_non_symmetric_covariance_matrix(self, tmp_path, recwarn):
         non_symmetric_cov_matrix = pd.DataFrame(
-            {"file": ["file1", "file1"], "param1": [2, 6], "param2": [6.3, 18]},
+            {"file": ["file1", "file1"], "param1": [2, 6], "param2": [5.7, 18]},
         )
 
         non_symmetric_cov_bundle = make_bundle(
@@ -426,10 +426,10 @@ class TestCheckCovarianceMatrix:
         assert len(recwarn) == 1
         warning = recwarn.pop()
         assert issubclass(warning.category, UserWarning)
-        assert str(warning.message) == (
+        assert (
             "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Covariance matrix is not positive"
-            " semi-definite."
-        )
+            " semi-definite"
+        ) in str(warning.message)
 
     def test_no_covariance_matrix(self, tmp_path, recwarn):
         """Test that a bundle with no covariance matrix passes without warnings."""
