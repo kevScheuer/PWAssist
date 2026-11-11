@@ -1,11 +1,13 @@
 import itertools
 import warnings
+from dataclasses import dataclass
 from typing import Any, Literal
 
 import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.lines import Line2D
 from scipy.stats import gaussian_kde
 from uncertainties import ufloat, unumpy
 
@@ -31,6 +33,22 @@ _KIN_VARIABLE_YLABELS: dict[str, str] = {
     "t": r"Events / NUM $(GeV^2)$",
     "e": r"Events / NUM $(GeV)$",
 }
+
+# Quantum numbers that identify a "wave", i.e. an amplitude with its reflectivity
+# removed. Unused quantum numbers in a naming scheme are empty strings, so they are
+# harmless for grouping and sorting.
+_WAVE_QUANTUM_NUMBERS = ("J", "P", "m", "L")
+
+_REFLECTIVITIES = ("positive", "negative")
+
+
+@dataclass(frozen=True)
+class _Wave:
+    """A wave (all quantum numbers but reflectivity) and its available amplitudes"""
+
+    label: str  # LaTeX label without reflectivity
+    positive: str | None = None  # positive-reflectivity amplitude name
+    negative: str | None = None  # negative-reflectivity amplitude name
 
 
 def _numeric_sort_key(value: str) -> float:
@@ -268,7 +286,7 @@ class ScanPlotter(BasePWAPlotter):
         mass_bin: tuple[float, float] | MassBin | None = None,
         indices: list[int] | None = None,
         axs: np.ndarray | None = None,
-        kwargs: dict[str, Any] | None = None,
+        kwargs: dict[str, dict[str, Any]] | None = None,
     ) -> np.ndarray:
         """Plot a grid of amplitudes, organized by spin (rows) and projection (columns)
 
@@ -306,12 +324,12 @@ class ScanPlotter(BasePWAPlotter):
             axs (np.ndarray | None): Optional array of axes to plot on. If None, a new
                 figure and axes will be created. Note that one must be careful that the
                 axes shape matches the expected shape.
-            kwargs (dict[str, Any] | None): Optional dictionary of keyword arguments
-                to customize the plot appearance. Recognized keys are "positive" and
-                "negative" mapping to a dict of matplotlib 'errorbar' kwargs that
-                override the defaults for the respective reflectivity amplitudes.
-                e.g. {"positive": {"color": "red"}, "negative": {"color": "blue"}}.
-                Defaults to None.
+            kwargs (dict[str, dict[str, Any]] | None): Optional dictionary of keyword
+                arguments to customize the plot appearance. Recognized keys are
+                "positive" and "negative" mapping to a dict of matplotlib 'errorbar'
+                kwargs that override the defaults for the respective reflectivity
+                amplitudes. e.g. {"positive": {"color": "red"}, "negative": {"color":
+                "blue"}}. Defaults to None.
 
         Returns:
             np.ndarray: The array of axes objects containing the amplitude plots.
@@ -606,46 +624,162 @@ class ScanPlotter(BasePWAPlotter):
 
     def model_matrix(
         self,
+        stat: Literal["edges", "avg"] = "edges",
+        t_bin: tuple[float, float] | TBin | None = None,
+        energy_bin: tuple[float, float] | EnergyBin | None = None,
         indices: list[int] | None = None,
         axs: np.ndarray | None = None,
+        kwargs: dict[str, dict[str, Any]] | None = None,
     ) -> np.ndarray:
         """Plot the entire model behavior as a function of mass in a matrix of plots
 
-        The matrix is organized where the amplitudes are plotted on the diagonal,
-        grouped by reflectivity (similar to the amplitudes() method), and the
-        off-diagonal plots show the interference between the amplitudes. The upper
-        triangle is for the positive reflectivity amplitude interferences, and the
-        lower triangle for the negative reflectivity amplitude interferences.
+        Each row/column is a "wave": an amplitude with its reflectivity removed
+        (e.g. J^P L_m). The diagonal shows the intensity of each wave, with both
+        reflectivities overlaid. The off-diagonal plots show the phase difference
+        between the row and column waves. The upper triangle is for the positive
+        reflectivity amplitudes, and the lower triangle for the negative. Since the
+        sign of a phase difference is ambiguous, both +|phase| and -|phase| are drawn.
+        Uncertainties are drawn as filled bands, as the subplots are small.
 
         Args:
-            indices (list[int] | None): Optional list of indices to select specific mass
-                bins. If None, all bins will be plotted.
+            stat (Literal['edges', 'avg']): Whether x-value is from the bin center
+                'edges' (default) or from the actual bin average of the underlying
+                data.
+            t_bin (tuple[float, float] | TBin | None): Fixes the t bin to plot from if
+                the results span multiple t bins. If only 1 t bin is available,
+                specification is unnecessary. Defaults to None.
+            energy_bin (tuple[float,float] | EnergyBin | None): Fixes the beam energy
+                bin to plot from if the results span multiple energy bins. If only 1
+                energy bin is available, specification is unnecessary. Defaults to None.
+            indices (list[int] | None): Optional list of positions within the resolved
+                mass scan to select specific bins. If None, all bins will be plotted.
             axs (np.ndarray | None): Optional array of axes to plot on. If None, a new
                 figure and axes will be created. Note that one must be careful that the
-                axes shape matches the expected shape.
-        Returns:
-            np.ndarray: The array of axes objects containing the amplitudes and
-                interference plots.
-        Raises:
-            IndexError: If the provided axes shape does not match the expected shape
-                based on the number of amplitudes and reflectivities.
-        """
+                axes shape matches the expected shape (n_waves, n_waves).
+            kwargs (dict[str, dict[str, Any]] | None): Optional dictionary of
+                matplotlib 'plot' kwargs overriding the defaults for each reflectivity,
+                e.g. {"positive": {"color": "red"}, "negative": {"linewidth": 2}}. The
+                uncertainty band takes its color from the "color" entry.
 
-        if axs is None:
-            # TODO: determine shape, reference amplitudes() method for guidance.
-            nrows = 0
-            ncols = 0
-            fig, axs = plt.subplots(
-                nrows,
-                ncols,
-                sharey=True,
-                figsize=(4 * ncols, 3 * nrows),
-                layout="constrained",
+        Returns:
+            np.ndarray: The (n_waves, n_waves) array of axes objects containing the
+                intensity and phase difference plots.
+
+        Raises:
+            KeyError: If no amplitudes are found in the results.
+            IndexError: If the provided axes shape does not match the expected shape
+                based on the number of waves.
+            ValueError: If multiple t or energy bins are present and not fixed, leaving
+                an ambiguous plot range.
+        """
+        waves = self._group_waves()
+        n_waves = len(waves)
+
+        # Resolve the phase column for every off-diagonal cell, which also tells us
+        # which cells have nothing to plot.
+        phase_columns = {
+            (row, col): self._matrix_phase_column(waves, row, col)
+            for row, col in itertools.permutations(range(n_waves), 2)
+        }
+        amp_columns = [
+            amp for wave in waves for amp in (wave.positive, wave.negative) if amp
+        ]
+        fit_df, data_df, x_label, _ = self._scan_dataframes(
+            columns=amp_columns + [p for p in phase_columns.values() if p],
+            kin_variable="m",
+            stat=stat,
+            t_bin=t_bin,
+            energy_bin=energy_bin,
+            indices=indices,
+        )
+        x = data_df["x_center"].to_numpy()
+        xerr = data_df["x_err"].to_numpy()
+
+        styles = {
+            "positive": {"color": "tab:red", "linestyle": "none", "marker": "."},
+            "negative": {"color": "tab:blue", "linestyle": "none", "marker": "."},
+        }
+        for refl in _REFLECTIVITIES:
+            styles[refl].update((kwargs or {}).get(refl, {}))
+
+        # all intensities share one scale, as do all phases
+        max_intensity = fit_df[amp_columns].to_numpy().max()
+
+        with self._style():
+            if axs is None:
+                fig, axs = plt.subplots(
+                    nrows=n_waves,
+                    ncols=n_waves,
+                    sharex=True,
+                    squeeze=False,
+                    figsize=(3 * n_waves, 2.5 * n_waves),
+                    layout="constrained",
+                )
+            else:
+                axs = np.asarray(axs)
+                try:
+                    axs = axs.reshape(n_waves, n_waves)
+                except ValueError:
+                    raise IndexError(
+                        f"Provided axes shape {axs.shape} does not match expected "
+                        f"shape ({n_waves}, {n_waves}) based on the number of waves."
+                    )
+                fig = axs[0, 0].get_figure()
+
+            for row, col in itertools.product(range(n_waves), repeat=2):
+                ax = axs[row, col]
+
+                if row == col:
+                    for refl in _REFLECTIVITIES:
+                        if amp := getattr(waves[row], refl):
+                            ax.errorbar(
+                                x=x,
+                                xerr=xerr,
+                                y=fit_df[amp].to_numpy(),
+                                yerr=fit_df[f"{amp}_err"].to_numpy(),
+                                **styles[refl],
+                            )
+
+                    ax.set_ylim(0, 1.05 * max_intensity)
+                    # emphasize the diagonal
+                    for spine in ax.spines.values():
+                        spine.set_linewidth(2)
+                else:
+                    refl = "positive" if col > row else "negative"
+                    if phase := phase_columns[row, col]:
+                        value = fit_df[phase].abs().to_numpy()
+                        err = fit_df[f"{phase}_err"].abs().to_numpy()
+                        # sign of the phase difference is ambiguous, so show both
+                        ax.errorbar(x=x, xerr=xerr, y=value, yerr=err, **styles[refl])
+                        ax.errorbar(x=x, xerr=xerr, y=-value, yerr=err, **styles[refl])
+                    ax.set_ylim(-180, 180)
+                    ax.set_yticks([-180, -90, 0, 90, 180])
+
+                # label the outer edge with waves, and drop redundant tick labels
+                if row == 0:
+                    ax.set_title(rf"${waves[col].label}$", fontsize="large")
+                if col == 0:
+                    ax.set_ylabel(rf"${waves[row].label}$", fontsize="large")
+                else:
+                    ax.tick_params(labelleft=False)
+                ax.tick_params(labelsize="x-small")
+
+            # diagonal intensities share a scale, so only label the first
+            for row in range(1, n_waves):
+                axs[row, row].tick_params(labelleft=False)
+
+            fig.supxlabel(x_label)
+            fig.legend(
+                handles=[
+                    Line2D([], [], color=styles[refl]["color"], label=label)
+                    for refl, label in zip(
+                        _REFLECTIVITIES, (r"$\varepsilon=+1$", r"$\varepsilon=-1$")
+                    )
+                ],
+                loc="outside upper right",
             )
 
-        # TODO: make sure to plot errorbars as smooth fill_between due to small plots
-
-        return axs  # type: ignore
+        return axs
 
     def convergence_rate(
         self,
@@ -1175,6 +1309,50 @@ class ScanPlotter(BasePWAPlotter):
     # ----------------------------------------------------------------------------------
     # Helpers
     # ----------------------------------------------------------------------------------
+
+    def _group_waves(self) -> list[_Wave]:
+        """Group the results' amplitudes into waves, sorted by their quantum numbers
+
+        A wave is an amplitude with its reflectivity removed, so each holds at most one
+        positive and one negative reflectivity amplitude.
+
+        Raises:
+            KeyError: If no amplitudes are found in the results.
+        """
+        parser = self.results.parser
+        grouped: dict[tuple[str, ...], dict[str, str]] = {}
+        for amp in self.results.amplitudes:
+            parsed = parser.parse_amplitude(amp)
+            is_positive = parsed.e in _POSITIVE_REFLECTIVITY_CHARS
+            refl = "positive" if is_positive else "negative"
+            key = tuple(parsed.get(qn) for qn in _WAVE_QUANTUM_NUMBERS)
+            grouped.setdefault(key, {})[refl] = amp
+
+        if not grouped:
+            raise KeyError("No amplitudes found in the results to plot.")
+
+        return [
+            _Wave(label=parser.to_latex(next(iter(amps.values()))), **amps)
+            for _, amps in sorted(
+                grouped.items(),
+                key=lambda item: tuple(_numeric_sort_key(qn) for qn in item[0]),
+            )
+        ]
+
+    def _matrix_phase_column(
+        self, waves: list[_Wave], row: int, col: int
+    ) -> str | None:
+        """Phase difference column for an off-diagonal cell of the model matrix
+
+        The upper triangle (col > row) uses positive reflectivity amplitudes and the
+        lower triangle negative. Returns None if either amplitude or their phase
+        difference is not in the results.
+        """
+        refl = "positive" if col > row else "negative"
+        amp1, amp2 = getattr(waves[row], refl), getattr(waves[col], refl)
+        if amp1 is None or amp2 is None:
+            return None
+        return self.results.find_phase(amp1, amp2)
 
     def _resolve_kin_variable(
         self,
