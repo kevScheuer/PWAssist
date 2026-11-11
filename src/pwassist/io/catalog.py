@@ -159,7 +159,7 @@ class CovarianceFile(ResultsFile):
         try:
             if df_sample[numeric_cols].select_dtypes(include=[complex]).shape[1] > 0:
                 return False
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             pass
 
         numeric_data = df_sample[numeric_cols].values.flatten()
@@ -491,10 +491,53 @@ class Catalog:
             raise RuntimeError("Manifest is not available after scanning.")
         return self._manifest
 
+    def _round_to_n(self, x: float, n: int) -> float:
+        return x if x == 0 else round(x, -int(np.floor(np.log10(abs(x)))) + (n - 1))
+
+    def _snap_edges(
+        self, bins: list[tuple[float, float]], rel_tol: float = 0.25
+    ) -> dict[float, float]:
+        """Map each raw bin edge to a canonical value shared by all nearby edges
+
+        Edges closer together than rel_tol * (narrowest bin width) are considered the
+        same edge. Tolerance is derived from the data dataframes.
+
+        Args:
+            bins (list[tuple[float, float]]): low, high bin edges for a t, energy, or
+                mass dimension.
+            rel_tol (float, optional): Multiplies the minimum bin_width to determine
+                what bins will be grouped. Defaults to 0.25.
+
+        Returns:
+            dict[float, float]: map of raw bin edge to a shared canonical value.
+        """
+        edges = np.unique(np.concatenate([np.asarray(b, dtype=float) for b in bins]))
+        min_width = min(high - low for low, high in bins)
+        tol = rel_tol * min_width
+
+        # start a new cluster wherever the gap to the previous edge exceeds tol
+        split_idx = np.where(np.diff(edges) > tol)[0] + 1
+        mapping: dict[float, float] = {}
+        for cluster in np.split(edges, split_idx):
+            canonical = self._round_to_n(
+                float(np.median(cluster)), self._sig_kinematic_digits
+            )
+            for edge in cluster:
+                mapping[float(edge)] = canonical
+
+        return mapping
+
     def _build_dir_to_kinematics_map(
         self, data_csv_files: list[pathlib.Path]
     ) -> dict[pathlib.Path, dict[str, tuple[float, float]]]:
         """Map the data file directories to kinematic bin information.
+
+        Raw bin edges from all data files are clustered per dimension so that
+        statistically blurred edges (0.0747 vs 0.0748) collapse to one value
+
+        Args:
+            data_csv_files (list[pathlib.Path]): all data CSV files discovered from a
+                scan.
 
         Returns:
             dict[pathlib.Path, dict[str, tuple[float, float]]]: A dictionary mapping
@@ -505,30 +548,28 @@ class Catalog:
                     "energy": (low, high)}
                 }.
         """
-        path_to_kinematics: dict[pathlib.Path, dict[str, tuple[float, float]]] = {}
+        dims = {
+            "mass": ("m_low", "m_high"),
+            "t": ("t_low", "t_high"),
+            "energy": ("e_low", "e_high"),
+        }
 
-        round_to_n = lambda x, n: (
-            x if x == 0 else round(x, -int(np.floor(np.log10(abs(x)))) + (n - 1))
+        # first pass, raw edges per directory
+        raw: dict[pathlib.Path, dict[str, tuple[float, float]]] = {}
+        for data_csv in data_csv_files:
+            row = pd.read_csv(data_csv, nrows=1).iloc[0]
+            raw[data_csv.parent] = {
+                dim: (float(row[lo]), float(row[hi])) for dim, (lo, hi) in dims.items()
+            }
+        # second pass: cluster edges per dimension, then snap every bin to canonical
+        # edges
+        snaps = (
+            {dim: self._snap_edges([k[dim] for k in raw.values()]) for dim in dims}
+            if raw
+            else {}
         )
 
-        for data_csv in data_csv_files:
-            df = pd.read_csv(data_csv, nrows=1)
-
-            mass_low = round_to_n(df["m_low"].iloc[0], self._sig_kinematic_digits)
-            mass_high = round_to_n(df["m_high"].iloc[0], self._sig_kinematic_digits)
-            t_low = round_to_n(df["t_low"].iloc[0], self._sig_kinematic_digits)
-            t_high = round_to_n(df["t_high"].iloc[0], self._sig_kinematic_digits)
-            e_low = round_to_n(df["e_low"].iloc[0], self._sig_kinematic_digits)
-            e_high = round_to_n(df["e_high"].iloc[0], self._sig_kinematic_digits)
-
-            mass_bin = (mass_low, mass_high)
-            t_bin = (t_low, t_high)
-            energy_bin = (e_low, e_high)
-
-            path_to_kinematics[data_csv.parent] = {
-                "mass": mass_bin,
-                "t": t_bin,
-                "energy": energy_bin,
-            }
-
-        return path_to_kinematics
+        return {
+            d: {dim: (snaps[dim][lo], snaps[dim][hi]) for dim, (lo, hi) in k.items()}
+            for d, k in raw.items()
+        }
