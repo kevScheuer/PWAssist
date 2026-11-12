@@ -1,3 +1,4 @@
+import dataclasses
 import pathlib
 import warnings
 
@@ -182,6 +183,21 @@ class TestAlignConjugation:
     def test_invalid_references(self, results, references):
         with pytest.raises(ValueError):
             results.align_conjugation(references)
+
+    def test_ignores_coefficients_without_sector(self, results):
+        """An 'isotropic' background has no reflectivity and is left untouched."""
+        fit = results.fit.copy()
+        fit["isotropic_re"] = 1.5
+        fit["isotropic_im"] = -0.5
+        with_background = dataclasses.replace(results, fit=fit)
+        assert "isotropic" in with_background.coefficient_names
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            aligned = with_background.align_conjugation(REFERENCES)
+        assert (aligned.fit["isotropic_im"] == -0.5).all()
+        with pytest.raises(ValueError, match="reflectivity"):
+            with_background.align_conjugation(("isotropic", "m1pmS", 1))
 
     def test_save_load_keeps_references(self, aligned, tmp_path):
         path = tmp_path / "results.pkl"

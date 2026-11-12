@@ -827,6 +827,15 @@ class Results:
             references = [references]
         names = self.coefficient_names
 
+        # coefficients outside any reflectivity sector (e.g. an 'isotropic'
+        # background) have no conjugation partner and are never touched
+        sector_of: dict[str, tuple[str, str]] = {}
+        for name in names:
+            try:
+                sector_of[name] = self.coherent_sector(name)
+            except ValueError:
+                continue
+
         sectors: list[tuple[str, str, int, list[str]]] = []
         seen_sectors = set()
         for amp1, amp2, sign in references:
@@ -837,15 +846,15 @@ class Results:
                     raise ValueError(
                         f"'{amp}' is not a production coefficient. Available: {names}"
                     )
-            sector = self._sector_of(amp1)
-            if self._sector_of(amp2) != sector:
+            sector = self.coherent_sector(amp1)
+            if self.coherent_sector(amp2) != sector:
                 raise ValueError(
                     f"'{amp1}' and '{amp2}' are in different coherent sectors"
                 )
             if sector in seen_sectors:
                 raise ValueError(f"Two references were given for the sector {sector}")
             seen_sectors.add(sector)
-            members = [n for n in names if self._sector_of(n) == sector]
+            members = [n for n, s in sector_of.items() if s == sector]
             sectors.append((amp1, amp2, sign, members))
 
         frames = {
@@ -1239,8 +1248,23 @@ class Results:
             return "accepted"
         return "unknown"
 
-    def _sector_of(self, name: str) -> tuple[str, str]:
-        """The coherent sector of a coefficient: its '::' prefix and reflectivity."""
+    def coherent_sector(self, name: str) -> tuple[str, str]:
+        """The coherent sector of a production coefficient.
+
+        Coefficients in the same sector interfere, while different sectors add
+        incoherently. A sector is identified by the coefficient's '<reaction>::<sum>'
+        prefix (empty when constrained) and its reflectivity.
+
+        Args:
+            name (str): A unique coefficient name, e.g. '1P+0p' or 'sum::1P+0p'.
+
+        Returns:
+            tuple[str, str]: (prefix, reflectivity), e.g. ('', 'p').
+
+        Raises:
+            ValueError: If the reflectivity cannot be parsed from the name (e.g. an
+                'isotropic' background term).
+        """
         prefix, _, amp = name.rpartition("::")
         try:
             reflectivity = self.parser.parse_amplitude(amp).e
