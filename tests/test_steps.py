@@ -512,3 +512,137 @@ class TestCheckCorrelationMatrix:
         )
         steps.check_correlation_matrix(bundle_no_corr)
         assert len(recwarn) == 0
+
+
+def make_constrained_covariance(perturb_copy: bool = False) -> pd.DataFrame:
+    """Covariance of 2 reactions sharing coefficients 'a' (anchor) and 'b'.
+
+    Unique free parameters: a_re, b_re, b_im, parScale_r2. Fixed: a_im, parScale_r1.
+    """
+    free = ["a_re", "b_re", "b_im", "parScale_r2"]
+    rng = np.random.default_rng(1)
+    x = rng.normal(size=(4, 4))
+    base = x @ x.T + 4 * np.eye(4)
+
+    params = [
+        "r1::s::a_re",
+        "r1::s::a_im",
+        "r1::s::b_re",
+        "r1::s::b_im",
+        "r2::s::a_re",
+        "r2::s::a_im",
+        "r2::s::b_re",
+        "r2::s::b_im",
+        "parScale_r1",
+        "parScale_r2",
+    ]
+    unique_of = {
+        p: p.split("::")[-1] if "::" in p else p for p in params
+    }  # full -> unique
+    matrix = np.zeros((len(params), len(params)))
+    for i, pi in enumerate(params):
+        for j, pj in enumerate(params):
+            ui, uj = unique_of[pi], unique_of[pj]
+            if ui in free and uj in free:
+                matrix[i, j] = base[free.index(ui), free.index(uj)]
+    if perturb_copy:
+        matrix[6, 6] *= 1.5  # r2::s::b_re no longer identical to its r1 copy
+
+    frame = pd.DataFrame(matrix, columns=params)
+    frame.insert(0, "parameter", params)
+    frame.insert(0, "file", "cov.csv")
+    frame["bin_id"] = "T=0.1,0.2-E=8.2,8.8-M=1.0,1.1"
+    return frame
+
+
+@pytest.fixture
+def constrained_fit() -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            "a_re": [1.0],
+            "a_im": [0.0],
+            "b_re": [0.5],
+            "b_im": [0.2],
+            "parScale_r1": [1.0],
+            "parScale_r2": [0.9],
+        }
+    )
+
+
+class TestDowncastExemption:
+
+    def test_matrices_keep_float64(self, tmp_path, constrained_fit):
+        cov = make_constrained_covariance()
+        bundle = make_bundle(
+            path=tmp_path, fit=constrained_fit, covariance=cov, correlation=cov.copy()
+        )
+        assert bundle.covariance is not None and bundle.correlation is not None
+        steps.downcast_numeric_dtypes(bundle)
+        assert bundle.fit.frame["a_re"].dtype == np.float32
+        assert (bundle.covariance.frame["r1::s::a_re"].dtype) == np.float64
+        assert (bundle.correlation.frame["r1::s::a_re"].dtype) == np.float64
+
+
+class TestReduceCovarianceMatrices:
+
+    def test_reduces_to_unique_free_parameters(
+        self, tmp_path, constrained_fit, recwarn
+    ):
+        bundle = make_bundle(
+            path=tmp_path, fit=constrained_fit, covariance=make_constrained_covariance()
+        )
+        steps.reduce_covariance_matrices(bundle)
+        assert len(recwarn) == 0
+        assert bundle.covariance is not None
+        frame = bundle.covariance.frame
+        expected = ["a_re", "b_re", "b_im", "parScale_r2"]
+        assert frame["parameter"].tolist() == expected
+        assert [
+            c for c in frame.columns if c not in ("file", "parameter", "bin_id")
+        ] == (expected)
+        matrix = frame[expected].to_numpy()
+        assert matrix.dtype == np.float64
+        assert np.linalg.matrix_rank(matrix) == len(expected)
+        assert np.all(np.linalg.eigvalsh(matrix) > 0)
+
+    def test_idempotent(self, tmp_path, constrained_fit):
+        bundle = make_bundle(
+            path=tmp_path, fit=constrained_fit, covariance=make_constrained_covariance()
+        )
+        assert bundle.covariance is not None
+        steps.reduce_covariance_matrices(bundle)
+        once = bundle.covariance.frame.copy()
+        steps.reduce_covariance_matrices(bundle)
+        pd.testing.assert_frame_equal(once, bundle.covariance.frame)
+
+    def test_warns_on_differing_copies(self, tmp_path, constrained_fit):
+        bundle = make_bundle(
+            path=tmp_path,
+            fit=constrained_fit,
+            covariance=make_constrained_covariance(perturb_copy=True),
+        )
+        assert bundle.covariance is not None
+        with pytest.warns(UserWarning, match="differ from the first copy"):
+            steps.reduce_covariance_matrices(bundle)
+        assert "r2::s::b_re" not in bundle.covariance.frame.columns
+
+    def test_correlation_is_reduced(self, tmp_path, constrained_fit):
+        cov = make_constrained_covariance()
+        params = cov["parameter"].tolist()
+        matrix = cov[params].to_numpy()
+        sigma = np.sqrt(np.diag(matrix))
+        with np.errstate(divide="ignore", invalid="ignore"):
+            corr_values = np.nan_to_num(matrix / np.outer(sigma, sigma))
+        corr = cov.copy()
+        corr[params] = corr_values
+
+        bundle = make_bundle(path=tmp_path, fit=constrained_fit, correlation=corr)
+        assert bundle.correlation is not None
+        steps.reduce_covariance_matrices(bundle)
+        frame = bundle.correlation.frame
+        assert frame["parameter"].tolist() == ["a_re", "b_re", "b_im", "parScale_r2"]
+        np.testing.assert_allclose(np.diag(frame[frame["parameter"]].to_numpy()), 1.0)
+
+    def test_no_fit_or_matrices(self, tmp_path, recwarn):
+        steps.reduce_covariance_matrices(make_bundle(path=tmp_path))
+        assert len(recwarn) == 0

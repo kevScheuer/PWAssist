@@ -81,6 +81,7 @@ class TestPreprocessor:
             "align_phase_column_names",
             "wrap_phase_columns",
             "downcast_numeric_dtypes",
+            "reduce_covariance_matrices",
             "check_covariance_matrix",
             "check_correlation_symmetry",
             "check_normalization_integral_matrix",
