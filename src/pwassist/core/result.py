@@ -3,17 +3,29 @@ import os
 import pickle
 import subprocess
 import warnings
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Literal
 
 import numpy as np
 import pandas as pd
 import scipy
 
+from pwassist.core.parameters import (
+    coefficient_bases,
+    group_by_unique,
+    matches_unique,
+    reaction_scale_columns,
+    split_full_name,
+)
 from pwassist.io.binning import EnergyBin, KinematicBin, MassBin, TBin
 from pwassist.parser import AmplitudeParser, NamingScheme
 from pwassist.plotting.factory import FactoryPlotter
 from pwassist.preprocessing.preprocessor import PreprocessReport, ProcessedBin
+
+NormIntType = Literal["accepted", "generated", "unknown"]
+CoefficientFrame = Literal["fit", "randomized", "bootstrap"]
 
 
 def _get_current_git_commit_hash() -> str | None:
@@ -55,6 +67,9 @@ class Results:
     reports: list[PreprocessReport] = field(default_factory=list)
     is_acc_corrected: bool = field(init=False)
     final_state_parity: int | None = field(default=None)
+    conjugation_references: tuple[tuple[str, str, int], ...] = field(
+        default_factory=tuple
+    )
     git_commit_hash: str | None = field(
         default_factory=_get_current_git_commit_hash, repr=False
     )
@@ -74,6 +89,7 @@ class Results:
     _factory_plotter: FactoryPlotter | None = field(
         default=None, init=False, repr=False
     )
+    _norm_int_type: NormIntType | None = field(default=None, init=False, repr=False)
 
     def __post_init__(self) -> None:
         self._factory_plotter = FactoryPlotter(self)
@@ -212,6 +228,7 @@ class Results:
         with open(filepath, "rb") as f:
             data: dict = pickle.load(f)
         data.setdefault("git_commit_hash", None)
+        data.setdefault("conjugation_references", ())
         return cls(**data)
 
     def save(self, filepath: str | Path) -> None:
@@ -227,6 +244,7 @@ class Results:
             "kinematic_bins": self.kinematic_bins,
             "reports": self.reports,
             "final_state_parity": self.final_state_parity,
+            "conjugation_references": self.conjugation_references,
             "git_commit_hash": self.git_commit_hash,
             "_naming_scheme": self._naming_scheme,
         }
@@ -568,6 +586,334 @@ class Results:
         return self._phase_difference_dict.get((amp1, amp2), None)
 
     # ----------------------------------------------------------------------------------
+    # Production Coefficients, Covariance, and Normalization
+    # ----------------------------------------------------------------------------------
+    @property
+    def coefficient_names(self) -> list[str]:
+        """Unique production coefficient names, without their '_re'/'_im' part.
+
+        These match the amplitude names when reactions and sums are constrained, and
+        otherwise carry their '<sum>::' or '<reaction>::<sum>::' prefix.
+        """
+        return coefficient_bases(self.fit.columns)
+
+    def production_coefficients(
+        self,
+        kinematic_bins: list[KinematicBin] | None = None,
+        frame: CoefficientFrame = "fit",
+    ) -> pd.DataFrame:
+        """Complex production coefficients, one column per unique coefficient.
+
+        Args:
+            kinematic_bins (list[KinematicBin] | None): Optional bins to select, in the
+                order returned. Defaults to None, selecting all bins.
+            frame (Literal['fit', 'randomized', 'bootstrap']): Which results to take
+                the coefficients from. Defaults to 'fit'.
+
+        Returns:
+            pd.DataFrame: complex128 values indexed by 'bin_id'. The 'randomized' and
+                'bootstrap' frames have several rows per bin.
+
+        Raises:
+            ValueError: If the requested frame is not available.
+        """
+        df = self._select_rows(self._coefficient_frame(frame), kinematic_bins)
+        values = {
+            name: df[f"{name}_re"].to_numpy(np.float64)
+            + 1j * df[f"{name}_im"].to_numpy(np.float64)
+            for name in self.coefficient_names
+        }
+        return pd.DataFrame(values, index=pd.Index(df["bin_id"], name="bin_id"))
+
+    def covariance_matrix(
+        self,
+        bin_id: str | KinematicBin,
+        parameters: list[str] | None = None,
+        fill_fixed: bool = False,
+    ) -> pd.DataFrame:
+        """The covariance matrix of the fit parameters in a single bin.
+
+        With the default preprocessing, the matrix only contains the unique, free
+        parameters, named as in the fit dataframe (e.g. 'm1p0S_re').
+
+        Args:
+            bin_id (str | KinematicBin): The bin to get the matrix for.
+            parameters (list[str] | None): Optional parameters to select, in the order
+                returned. Defaults to None, returning all parameters.
+            fill_fixed (bool): If True, requested parameters missing from the matrix
+                (i.e. fixed parameters dropped in preprocessing) get zero rows and
+                columns. Defaults to False.
+
+        Returns:
+            pd.DataFrame: float64 square matrix, with parameter names as index and
+                columns.
+
+        Raises:
+            ValueError: If no covariance matrices are available.
+            KeyError: If the bin is not found, or a requested parameter is missing and
+                'fill_fixed' is False.
+        """
+        if self.covariance is None:
+            raise ValueError("No covariance matrices are available in these results.")
+        block = self._matrix_block(self.covariance, bin_id, "parameter")
+        matrix = block.astype(np.float64)
+
+        if parameters is None:
+            return matrix
+        missing = [p for p in parameters if p not in matrix.index]
+        if missing and not fill_fixed:
+            raise KeyError(
+                f"The parameters {missing} are not in the covariance matrix of"
+                f" '{bin_id}'. Fixed parameters are removed in preprocessing; use"
+                " fill_fixed=True to give them zero (co)variance."
+            )
+        return matrix.reindex(index=parameters, columns=parameters, fill_value=0.0)
+
+    def normalization_factors(
+        self, kinematic_bins: list[KinematicBin] | None = None
+    ) -> pd.DataFrame:
+        """Diagonal normalization of each unique production coefficient per bin.
+
+        For a unique coefficient V_i, this is
+        N_i = sum_{reaction r, sum s} scale_r^2 * Re(NI^{r,s}_ii), summing over all the
+        constrained copies of V_i, where scale_r is the 'parScale_<x>' parameter of
+        the reaction (1 if absent). If the off-diagonal integrals between different
+        amplitudes vanish, |V_i|^2 * N_i is the intensity of amplitude i. Whether that
+        intensity is acceptance corrected depends on 'norm_int_type'.
+
+        Args:
+            kinematic_bins (list[KinematicBin] | None): Optional bins to select, in the
+                order returned. Defaults to None, selecting all bins.
+
+        Returns:
+            pd.DataFrame: float64 factors indexed by 'bin_id', one column per unique
+                coefficient name.
+
+        Raises:
+            ValueError: If no normalization integrals are available.
+            KeyError: If a coefficient has no normalization integral in a bin, or
+                reactions cannot be matched to their scale parameters.
+        """
+        if self.norm_int is None:
+            raise ValueError(
+                "No normalization integrals are available in these results."
+            )
+        names = self.coefficient_names
+        fit = self._select_rows(self.fit, kinematic_bins)
+
+        rows = []
+        for _, fit_row in fit.iterrows():
+            block = self._matrix_block(self.norm_int, fit_row["bin_id"], "amplitude")
+            diag = np.real(np.diag(block.to_numpy()))
+            position = {amp: i for i, amp in enumerate(block.index)}
+            groups = group_by_unique(block.index, names, strict=True)
+            scales = self._reaction_scales(fit_row, block.index)
+            rows.append(
+                {
+                    name: sum(
+                        scales[split_full_name(f)[0]] ** 2 * diag[position[f]]
+                        for f in fulls
+                    )
+                    for name, fulls in groups.items()
+                }
+            )
+        return pd.DataFrame(
+            rows, index=pd.Index(fit["bin_id"], name="bin_id"), dtype=np.float64
+        )
+
+    @property
+    def norm_int_type(self) -> NormIntType:
+        """Whether 'norm_int' holds the accepted or generated (ampInt) integrals.
+
+        Determined by reconstructing the total intensity in each bin,
+        sum_{r,s} scale_r^2 sum_ij V_i V_j^* NI^{r,s}_ij, and comparing it to the
+        'intensity' (accepted) and 'ac_intensity' (acceptance corrected) columns.
+
+        Returns:
+            Literal['accepted', 'generated', 'unknown']: 'unknown' if there are no
+                integrals, or the reconstruction matches neither column in all bins.
+        """
+        if self._norm_int_type is None:
+            self._norm_int_type = self._infer_norm_int_type()
+        return self._norm_int_type
+
+    def reconstructed_intensity(self) -> pd.Series:
+        """Total intensity per bin, reconstructed from coefficients and 'norm_int'.
+
+        Computes sum_{r,s} scale_r^2 sum_ij V_i V_j^* NI^{r,s}_ij over all reactions r
+        and sums s, using the unique coefficient for each constrained copy.
+
+        Returns:
+            pd.Series: float64 reconstructed intensity indexed by 'bin_id'.
+
+        Raises:
+            ValueError: If no normalization integrals are available.
+            KeyError: If reactions cannot be matched to their scale parameters.
+        """
+        if self.norm_int is None:
+            raise ValueError(
+                "No normalization integrals are available in these results."
+            )
+        names = self.coefficient_names
+        coefficients = self.production_coefficients()
+        totals = {}
+        for _, fit_row in self.fit.iterrows():
+            bin_id = fit_row["bin_id"]
+            block = self._matrix_block(self.norm_int, bin_id, "amplitude")
+            full_to_name = {
+                f: name
+                for name, fulls in group_by_unique(block.index, names).items()
+                for f in fulls
+            }
+            scales = self._reaction_scales(fit_row, block.index)
+
+            # group the full amplitudes by their (reaction, sum)
+            sums: dict[tuple[str | None, str | None], list[str]] = {}
+            for f in block.index:
+                if f in full_to_name:
+                    reaction, sum_name, _ = split_full_name(f)
+                    sums.setdefault((reaction, sum_name), []).append(f)
+
+            total = 0.0
+            for (reaction, _), fulls in sums.items():
+                v = np.array(
+                    [coefficients.loc[bin_id, full_to_name[f]] for f in fulls],
+                    dtype=np.complex128,
+                )
+                ni = block.loc[fulls, fulls].to_numpy(np.complex128)
+                total += scales[reaction] ** 2 * np.real(v @ ni @ v.conj())
+            totals[bin_id] = total
+        return pd.Series(totals, name="intensity", dtype=np.float64).rename_axis(
+            "bin_id"
+        )
+
+    def align_conjugation(
+        self,
+        references: tuple[str, str, int] | list[tuple[str, str, int]],
+        ambiguity_sigma: float = 1.0,
+    ) -> "Results":
+        """Resolve the complex conjugation ambiguity with a fixed phase sign choice.
+
+        Within a coherent sector (amplitudes with the same reflectivity and the same
+        '<reaction>::<sum>::' prefix, if any), conjugating all production coefficients
+        V -> V* leaves the likelihood unchanged, so each bin's fit lands on either
+        solution at random. For each reference '(amp1, amp2, sign)', every row in
+        which arg(V_amp1 V_amp2^*) does not have the requested sign is conjugated for
+        the whole sector of 'amp1':
+
+        - '<amp>_im' columns are negated in the fit, randomized and bootstrap frames
+        (each row decided by its own reference phase)
+        - phase difference columns between amplitudes of the sector are negated
+        - covariance / correlation entries of the sector's '_im' parameters are
+        sign-flipped, C_ij -> s_i s_j C_ij
+
+        Intensities are unchanged.
+
+        Args:
+            references (tuple[str, str, int] | list[tuple[str, str, int]]): One
+                '(amp1, amp2, sign)' per sector, with sign +1 or -1.
+            ambiguity_sigma (float): Warn about bins whose fitted reference phase is
+                within this many standard deviations of 0 or 180 degrees, where the
+                choice is arbitrary. Defaults to 1.
+
+        Returns:
+            Results: a new, aligned Results instance.
+
+        Raises:
+            ValueError: For unknown amplitudes, amplitudes in different sectors, two
+                references for the same sector, or a sign other than +1 / -1.
+        """
+        if isinstance(references, tuple):
+            references = [references]
+        names = self.coefficient_names
+
+        sectors: list[tuple[str, str, int, list[str]]] = []
+        seen_sectors = set()
+        for amp1, amp2, sign in references:
+            if sign not in (1, -1):
+                raise ValueError(f"The sign must be +1 or -1, got {sign}")
+            for amp in (amp1, amp2):
+                if amp not in names:
+                    raise ValueError(
+                        f"'{amp}' is not a production coefficient. Available: {names}"
+                    )
+            sector = self._sector_of(amp1)
+            if self._sector_of(amp2) != sector:
+                raise ValueError(
+                    f"'{amp1}' and '{amp2}' are in different coherent sectors"
+                )
+            if sector in seen_sectors:
+                raise ValueError(f"Two references were given for the sector {sector}")
+            seen_sectors.add(sector)
+            members = [n for n in names if self._sector_of(n) == sector]
+            sectors.append((amp1, amp2, sign, members))
+
+        frames = {
+            "fit": self.fit.copy(),
+            "randomized": None if self.randomized is None else self.randomized.copy(),
+            "bootstrap": None if self.bootstrap is None else self.bootstrap.copy(),
+        }
+        matrices = {
+            "covariance": None if self.covariance is None else self.covariance.copy(),
+            "correlation": (
+                None if self.correlation is None else self.correlation.copy()
+            ),
+        }
+
+        for amp1, amp2, sign, members in sectors:
+            sector_phases = [
+                p
+                for p in self.phase_differences
+                if all(a in members for a in p.split("_"))
+            ]
+            self._warn_ambiguous_reference(amp1, amp2, ambiguity_sigma)
+
+            flipped_fit_bins: set[str] = set()
+            for label, df in frames.items():
+                if df is None:
+                    continue
+                flip = self._conjugation_mask(df, amp1, amp2, sign)
+                for m in members:
+                    df.loc[flip, f"{m}_im"] = -df.loc[flip, f"{m}_im"]
+                for p in sector_phases:
+                    if p in df.columns:
+                        flipped = -df.loc[flip, p]
+                        df.loc[flip, p] = flipped.where(flipped > -180.0, 180.0)
+                if label == "fit":
+                    flipped_fit_bins = set(df.loc[flip, "bin_id"])
+
+            im_names = [f"{m}_im" for m in members]
+            for label, matrix in matrices.items():
+                if matrix is None or not flipped_fit_bins:
+                    continue
+                params = matrix["parameter"].astype(str)
+                is_im = params.map(
+                    lambda p: any(matches_unique(str(p), n) for n in im_names)
+                )
+                # the frame stacks all bins, so parameter names repeat
+                im_cols = list(dict.fromkeys(c for c, f in zip(params, is_im) if f))
+                in_bin = matrix["bin_id"].isin(flipped_fit_bins)
+                # negate rows of the '_im' parameters, then their columns. Their
+                # diagonal entries are negated twice, so keep their sign.
+                rows = in_bin & is_im.to_numpy()
+                other_cols = [c for c in params.unique() if c not in im_cols]
+                matrix.loc[rows, other_cols] = -matrix.loc[rows, other_cols]
+                matrix.loc[in_bin & ~is_im.to_numpy(), im_cols] = -matrix.loc[
+                    in_bin & ~is_im.to_numpy(), im_cols
+                ]
+
+        return dataclasses.replace(
+            self,
+            fit=frames["fit"],
+            randomized=frames["randomized"],
+            bootstrap=frames["bootstrap"],
+            covariance=matrices["covariance"],
+            correlation=matrices["correlation"],
+            conjugation_references=self.conjugation_references
+            + tuple((a1, a2, s) for a1, a2, s, _ in sectors),
+        )
+
+    # ----------------------------------------------------------------------------------
     # Analysis
     # ----------------------------------------------------------------------------------
     @property
@@ -808,6 +1154,140 @@ class Results:
             and (energy_bins is None or kb.energy_bin in formatted_energy_bins)
             and (mass_bins is None or kb.mass_bin in formatted_mass_bins)
         ]
+
+    def _coefficient_frame(self, frame: CoefficientFrame) -> pd.DataFrame:
+        """Return the fit, randomized, or bootstrap dataframe by name."""
+        if frame not in ("fit", "randomized", "bootstrap"):
+            raise ValueError(
+                f"frame must be 'fit', 'randomized', or 'bootstrap', got '{frame}'"
+            )
+        df = getattr(self, frame)
+        if df is None:
+            raise ValueError(f"No '{frame}' results are available.")
+        return df
+
+    @staticmethod
+    def _select_rows(
+        df: pd.DataFrame, kinematic_bins: list[KinematicBin] | None
+    ) -> pd.DataFrame:
+        """Select rows of 'df' in the given bins, ordered as the bins are given."""
+        if kinematic_bins is None:
+            return df
+        order = {kb.bin_id: i for i, kb in enumerate(kinematic_bins)}
+        selected = df[df["bin_id"].isin(order)]
+        missing = set(order) - set(selected["bin_id"])
+        if missing:
+            raise KeyError(f"The bins {sorted(missing)} are not in the results.")
+        positions = selected["bin_id"].map(order).to_numpy()
+        return selected.iloc[np.argsort(positions, kind="stable")]
+
+    @staticmethod
+    def _matrix_block(
+        df: pd.DataFrame, bin_id: str | KinematicBin, key: str
+    ) -> pd.DataFrame:
+        """Return one bin's square matrix, indexed and labelled by the 'key' column."""
+        bin_id = bin_id.bin_id if isinstance(bin_id, KinematicBin) else bin_id
+        block = df[df["bin_id"] == bin_id]
+        if block.empty:
+            raise KeyError(f"No matrix found for bin '{bin_id}'.")
+        names = block[key].astype(str).tolist()
+        matrix = block[names].set_axis(pd.Index(names, name=key), axis=0)
+        matrix.columns.name = None
+        return matrix
+
+    def _reaction_scales(
+        self, fit_row: pd.Series, full_names: Iterable[str]
+    ) -> dict[str | None, float]:
+        """Scale factor of every reaction found in 'full_names' (None maps to 1)."""
+        reactions = {split_full_name(f)[0] for f in full_names} - {None}
+        columns = reaction_scale_columns(self.fit.columns, sorted(reactions))  # type: ignore
+        scales: dict[str | None, float] = {
+            r: (1.0 if col is None else float(fit_row[col]))
+            for r, col in columns.items()
+        }
+        scales[None] = 1.0
+        return scales
+
+    def _infer_norm_int_type(self, rtol: float = 1e-3) -> NormIntType:
+        """Implementation of the 'norm_int_type' property."""
+        if self.norm_int is None:
+            return "unknown"
+        try:
+            reconstructed = self.reconstructed_intensity()
+        except (KeyError, ValueError) as e:
+            warnings.warn(
+                f"Could not reconstruct the intensity from the normalization"
+                f" integrals: {e}",
+                UserWarning,
+            )
+            return "unknown"
+
+        fit = self.fit.set_index("bin_id")
+        reconstructed = reconstructed.reindex(fit.index).to_numpy()
+
+        def matches(column: str) -> bool:
+            return column in fit.columns and bool(
+                np.allclose(
+                    reconstructed, fit[column].to_numpy(np.float64), rtol=rtol, atol=0
+                )
+            )
+
+        # if the acceptance is 1, both match and the integrals are interchangeable
+        if matches("ac_intensity"):
+            return "generated"
+        if matches("intensity"):
+            return "accepted"
+        return "unknown"
+
+    def _sector_of(self, name: str) -> tuple[str, str]:
+        """The coherent sector of a coefficient: its '::' prefix and reflectivity."""
+        prefix, _, amp = name.rpartition("::")
+        try:
+            reflectivity = self.parser.parse_amplitude(amp).e
+        except ValueError as e:
+            raise ValueError(
+                f"Could not determine the reflectivity of '{name}': {e}"
+            ) from e
+        return prefix, reflectivity
+
+    @staticmethod
+    def _conjugation_mask(
+        df: pd.DataFrame, amp1: str, amp2: str, sign: int
+    ) -> np.ndarray:
+        """Rows whose phase arg(V_amp1 V_amp2^*) has the opposite of 'sign'."""
+        v1 = df[f"{amp1}_re"].to_numpy(np.float64) + 1j * df[f"{amp1}_im"].to_numpy(
+            np.float64
+        )
+        v2 = df[f"{amp2}_re"].to_numpy(np.float64) + 1j * df[f"{amp2}_im"].to_numpy(
+            np.float64
+        )
+        return sign * np.angle(v1 * np.conj(v2)) < 0
+
+    def _warn_ambiguous_reference(self, amp1: str, amp2: str, n_sigma: float) -> None:
+        """Warn about bins where the reference phase is near 0 or 180 degrees."""
+        phase = self.find_phase(amp1, amp2)
+        if phase is None or n_sigma <= 0:
+            return
+        bin_map = {kb.bin_id: kb for kb in self.kinematic_bins}
+        try:
+            sigma = self.get_uncertainty(
+                phase, [bin_map[b] for b in self.fit["bin_id"]]
+            ).to_numpy(np.float64)
+        except KeyError:
+            return
+
+        v1 = self.production_coefficients()[amp1].to_numpy()
+        v2 = self.production_coefficients()[amp2].to_numpy()
+        abs_phase = np.abs(np.rad2deg(np.angle(v1 * np.conj(v2))))
+        distance = np.minimum(abs_phase, 180.0 - abs_phase)
+        ambiguous = self.fit["bin_id"][distance < n_sigma * sigma].tolist()
+        if ambiguous:
+            warnings.warn(
+                f"The reference phase ({amp1}, {amp2}) is within {n_sigma:g} sigma of"
+                f" 0 or 180 degrees in the bins {ambiguous}. The conjugation choice"
+                " there is arbitrary.",
+                UserWarning,
+            )
 
     def _circular_std(self, angles: pd.Series) -> float:
         """Calculate the circular standard deviation of a series of angles
