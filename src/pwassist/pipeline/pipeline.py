@@ -149,7 +149,7 @@ class Pipeline:
         if not self.config.skip_preprocess_steps:
             return None  # fall back to default steps
         skip = set(self.config.skip_preprocess_steps)
-        return [s for s in DEFAULT_STEPS if s not in skip]
+        return [s for s in DEFAULT_STEPS if s.name not in skip]
 
     def _generate_plots(self, results: Results) -> None:
         if self.config.plot_output_dir is None:
