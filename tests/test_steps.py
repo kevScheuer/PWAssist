@@ -502,8 +502,23 @@ class TestCheckCorrelationMatrix:
         assert issubclass(warning.category, UserWarning)
         assert str(warning.message) == (
             "[T=0.1,0.2-E=8.2,8.8-M=1.0,1.1] Correlation matrix has values outside"
-            " [-1, 1]."
+            " [-1, 1] (largest |rho| - 1 = 5.000e-01)."
         )
+
+    def test_correlation_matrix_rounding_tolerated(self, tmp_path, recwarn):
+        """float64 rounding just above |rho| = 1 should not warn."""
+        rounded_corr_matrix = pd.DataFrame(
+            {
+                "file": ["file1", "file1"],
+                "param1": [1.0000000000000002, -0.5],
+                "param2": [-0.5, 0.9999999999999998],
+            },
+        )
+        bundle = make_bundle(
+            path=tmp_path, correlation=rounded_corr_matrix, fit=None, data=None
+        )
+        steps.check_correlation_matrix(bundle)
+        assert len(recwarn) == 0
 
     def test_no_correlation_matrix(self, tmp_path, recwarn):
         """Test that a bundle with no correlation matrix passes without warnings."""

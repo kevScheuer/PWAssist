@@ -393,6 +393,9 @@ def check_covariance_matrix(bundle: BinBundle) -> None:
         )
 
 
+_CORRELATION_BOUND_TOLERANCE: float = 1e-12
+
+
 def check_correlation_matrix(bundle: BinBundle) -> None:
     """Check if correlation matrix is symmetric and has values in [-1, 1]"""
     corr = bundle.correlation
@@ -415,9 +418,13 @@ def check_correlation_matrix(bundle: BinBundle) -> None:
             UserWarning,
         )
 
-    if not np.all((matrix.values >= -1) & (matrix.values <= 1)):
+    # Matrices are kept in float64, where rounding in the converter leaves entries like
+    # 1.0000000000000002 on the diagonal. Only flag values beyond this tolerance.
+    excess = np.abs(matrix.values) - 1.0
+    if np.any(excess > _CORRELATION_BOUND_TOLERANCE):
         warnings.warn(
-            f"[{bundle.bin_id}] Correlation matrix has values outside [-1, 1].",
+            f"[{bundle.bin_id}] Correlation matrix has values outside [-1, 1]"
+            f" (largest |rho| - 1 = {np.max(excess):.3e}).",
             UserWarning,
         )
 
