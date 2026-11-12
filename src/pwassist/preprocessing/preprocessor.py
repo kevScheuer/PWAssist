@@ -65,6 +65,7 @@ DEFAULT_STEPS: list[PreprocessStep] = [
     FunctionStep("align_phase_column_names", steps.align_phase_column_names),
     FunctionStep("wrap_phase_columns", steps.wrap_phase_columns),
     FunctionStep("downcast_numeric_dtypes", steps.downcast_numeric_dtypes),
+    FunctionStep("reduce_covariance_matrices", steps.reduce_covariance_matrices),
     FunctionStep("check_covariance_matrix", steps.check_covariance_matrix),
     FunctionStep("check_correlation_symmetry", steps.check_correlation_matrix),
     FunctionStep(

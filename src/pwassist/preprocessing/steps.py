@@ -5,6 +5,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
+from pwassist.core.parameters import coefficient_columns, group_by_unique
 from pwassist.io.binning import BinBundle
 from pwassist.io.catalog import Catalog, ResultsFile
 from pwassist.parser import AmplitudeParser
@@ -231,16 +232,125 @@ def wrap_phase_columns(bundle: BinBundle) -> None:
             bundle.bootstrap.frame[col] = np.rad2deg(bundle.bootstrap.frame[col])
 
 
+# Matrix-valued files keep full precision, since they are inverted / decomposed
+# downstream (e.g. covariance matrices in mass-dependent fits)
+_FULL_PRECISION_FILE_TYPES: frozenset[str] = frozenset(
+    {"CovarianceFile", "CorrelationFile", "NormIntFile"}
+)
+
+
 def downcast_numeric_dtypes(bundle: BinBundle) -> None:
-    """Downcast numeric columns to save memory"""
+    """Downcast numeric columns to save memory
+
+    Covariance, correlation, and normalization integral matrices are left in full
+    precision.
+    """
     for label, rf in FILE_TYPE_MAP.items():
-        if bundle.get(rf) is None:
+        if label in _FULL_PRECISION_FILE_TYPES or bundle.get(rf) is None:
             continue
         df = bundle.get(rf).frame  # type: ignore
         for col in df.select_dtypes(include=["float64"]).columns:
             df[col] = pd.to_numeric(df[col], downcast="float")
         for col in df.select_dtypes(include=["int64"]).columns:
             df[col] = pd.to_numeric(df[col], downcast="integer")
+
+
+def reduce_covariance_matrices(bundle: BinBundle) -> None:
+    """Reduce covariance/correlation matrices to the unique, free fit parameters
+
+    AmpTools writes one row/column per '<reaction>::<sum>::<amplitude>_<part>', even
+    when production coefficients are constrained across reactions and sums, and it
+    keeps fixed parameters (zero variance). This leaves a rank-deficient matrix that
+    cannot be inverted. This step:
+
+    1. Keeps only the first copy of each constrained production coefficient, and
+    renames it to the unique name used in the fit dataframe (e.g. 'm1p0S_re').
+    Dropped copies are checked to be identical to the kept one.
+    2. Drops fixed parameters, identified by a zero diagonal entry.
+
+    Non-production parameters (e.g. 'parScale_<x>') keep their name. The step is
+    idempotent: already-reduced matrices are left untouched.
+    """
+    fit = bundle.fit
+    if fit is None:
+        return
+    unique_coeffs = coefficient_columns(fit.frame.columns)
+
+    for label, rf in (
+        ("Covariance", bundle.covariance),
+        ("Correlation", bundle.correlation),
+    ):
+        if rf is None:
+            continue
+        rf.frame = _reduce_matrix_frame(rf.frame, unique_coeffs, label, bundle.bin_id)
+
+
+def _reduce_matrix_frame(
+    frame: pd.DataFrame, unique_coeffs: list[str], label: str, bin_id: str
+) -> pd.DataFrame:
+    """Implementation of 'reduce_covariance_matrices' for a single matrix frame."""
+    if "parameter" not in frame.columns:
+        warnings.warn(
+            f"[{bin_id}] {label} matrix has no 'parameter' column, so it could not be"
+            " reduced.",
+            UserWarning,
+        )
+        return frame
+
+    params = frame["parameter"].astype(str).tolist()
+    missing = [p for p in params if p not in frame.columns]
+    if missing:
+        warnings.warn(
+            f"[{bin_id}] {label} matrix is missing the columns {missing[:5]}"
+            f"{'...' if len(missing) > 5 else ''}, so it could not be reduced.",
+            UserWarning,
+        )
+        return frame
+
+    matrix = frame[params].to_numpy(dtype=np.float64)
+    row_of = {p: i for i, p in enumerate(params)}
+
+    # 1. de-duplicate constrained copies of production coefficients
+    groups = group_by_unique([p for p in params if "::" in p], unique_coeffs)
+    rename: dict[str, str] = {}
+    dropped: set[str] = set()
+    mismatched: list[str] = []
+    for unique, fulls in groups.items():
+        if not fulls:
+            continue
+        kept, *copies = fulls
+        rename[kept] = unique
+        dropped.update(copies)
+        kept_row = matrix[row_of[kept]]
+        scale = np.max(np.abs(kept_row)) if kept_row.size else 0.0
+        for copy in copies:
+            if not np.allclose(
+                matrix[row_of[copy]], kept_row, rtol=1e-6, atol=1e-9 * scale
+            ):
+                mismatched.append(copy)
+    if mismatched:
+        warnings.warn(
+            f"[{bin_id}] {label} rows for {mismatched[:5]}"
+            f"{'...' if len(mismatched) > 5 else ''} differ from the first copy of"
+            " the same production coefficient, though they share a name in the fit"
+            " results. Only the first copy is kept.",
+            UserWarning,
+        )
+
+    # 2. drop fixed parameters
+    fixed = {p for i, p in enumerate(params) if matrix[i, i] == 0.0}
+
+    keep = [p for p in params if p not in dropped and p not in fixed]
+    if len(keep) == len(params):
+        return frame  # nothing to reduce
+
+    keep_rows = [row_of[p] for p in keep]
+    keep_set = set(keep)
+    columns = [c for c in frame.columns if c not in row_of or c in keep_set]
+    reduced = frame.iloc[keep_rows][columns].reset_index(drop=True)
+    reduced[keep] = reduced[keep].astype(np.float64)
+    reduced["parameter"] = [rename.get(p, p) for p in keep]
+    return reduced.rename(columns=rename)
 
 
 def check_covariance_matrix(bundle: BinBundle) -> None:

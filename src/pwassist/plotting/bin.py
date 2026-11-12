@@ -14,6 +14,11 @@ from matplotlib.patches import Patch
 from scipy.special import erf
 from uncertainties import ufloat
 
+from pwassist.core.parameters import (
+    coefficient_columns,
+    group_by_unique,
+    split_full_name,
+)
 from pwassist.io.binning import EnergyBin, KinematicBin, MassBin, TBin
 from pwassist.plotting.base import BasePWAPlotter
 
@@ -1086,6 +1091,11 @@ class BinPlotter(BasePWAPlotter):
         For example, if 'pi1::sumA::my_amp' and 'pi2::sumB::my_amp' exists, and both
         reactions and sums are constrained
 
+        Note:
+            The default 'reduce_covariance_matrices' preprocessing step already
+            reduces the matrices to unique names, in which case 'parameters' is
+            returned unchanged. This remains for results processed without it.
+
         Args:
             parameters (list[str]): List of all AmpTools parameters from a fit,
                 including production coefficients
@@ -1095,33 +1105,17 @@ class BinPlotter(BasePWAPlotter):
                 describe the fit, and all other passed non-production coefficient
                 parameters
         """
+        full_amplitudes = [p for p in parameters if "::" in p]
+        if not full_amplitudes:
+            return list(parameters)
+        other_params = [p for p in parameters if "::" not in p]
 
-        full_amplitudes = []
-        other_params = []
-        for p in parameters:
-            if "::" in p:
-                full_amplitudes.append(p)
-            else:
-                other_params.append(p)
-
-        unique_prod_coefficients = [
-            c for c in self.results.fit.columns if "_re" in c or "_im" in c
-        ]
-        used_unique = []
-        reduced_prod_coefficients = []
-        for upc in unique_prod_coefficients:
-            for fa in full_amplitudes:
-                if upc in fa:
-                    # the first full amplitude that contains the unique component is
-                    # added. All other full amplitudes therefore are repeats.
-                    reduced_prod_coefficients.append(fa)
-                    used_unique.append(upc)
-                    break
-            if upc not in used_unique:
-                raise KeyError(
-                    f"The production coefficient {upc} has no corresponding 'full'"
-                    " amplitude name"
-                )
+        groups = group_by_unique(
+            full_amplitudes, coefficient_columns(self.results.fit.columns), strict=True
+        )
+        # the first full amplitude of each unique coefficient is kept. All other full
+        # amplitudes are repeats.
+        reduced_prod_coefficients = [fulls[0] for fulls in groups.values()]
 
         return reduced_prod_coefficients + other_params
 
@@ -1131,12 +1125,12 @@ class BinPlotter(BasePWAPlotter):
         """Render a raw fit-parameter as a readable label.
 
         Individual production coefficients are named
-        '<reaction>::<sum>::<amplitude>_re' or'<reaction>::<sum>::<amplitude>_im'. This
+        '<reaction>::<sum>::<amplitude>_re' or'<reaction>::<sum>::<amplitude>_im', or
+        by their reduced '<sum>::<amplitude>_<part>' / '<amplitude>_<part>' forms. This
         function will render the amplitude part in LaTeX via the results' parser and
-        label the Re/Im part. The sum labels are dropped, as it is assumed
-        the amplitude name carries the necessary information. The reaction label can be
-        optionally kept, in the case that amplitudes are not constrained across
-        reactions. Non-production coefficients are returned as-is.
+        label the Re/Im part. The sum and reaction labels can be optionally kept, in
+        the case that amplitudes are not constrained across them. Non-production
+        coefficients are returned as-is.
 
         Args:
             parameter (str): Raw fit-parameter name, as it appears in the 'parameter'
@@ -1148,12 +1142,11 @@ class BinPlotter(BasePWAPlotter):
             str: A readable label for the parameter, or original string if the name
                 does not match the expected '<amplitude>_<part>' format
         """
-        if "::" not in parameter:
-            return parameter
-
-        reaction, sum, amp_name = parameter.split("::")
-        reaction = "" if drop_reaction_label else f"{reaction}::"
-        sum = "" if drop_sum_label else f"{sum}::"
+        reaction_name, sum_name, amp_name = split_full_name(parameter)
+        reaction = (
+            "" if drop_reaction_label or reaction_name is None else f"{reaction_name}::"
+        )
+        sum = "" if drop_sum_label or sum_name is None else f"{sum_name}::"
 
         base, sep, part = amp_name.rpartition("_")
         if sep and part.lower() in _PARAMETER_PART_LABELS:
