@@ -5,7 +5,6 @@ from pathlib import Path
 from pwassist.parser import NamingScheme
 from pwassist.pipeline.pipeline import Pipeline, PipelineConfig
 
-
 _BIN_DIMENSIONS = {
     "t": "t",
     "e": "energy",
@@ -21,7 +20,7 @@ def _parse_bin(text: str) -> tuple[str, float, float]:
         dim, rng = text.split("=")
         low, high = map(float, rng.split(","))
         return _BIN_DIMENSIONS[dim.strip().lower()], low, high
-    except (ValueError, KeyError):
+    except ValueError, KeyError:
         raise argparse.ArgumentTypeError(
             f"invalid bin '{text}'; expected DIM=LOW,HIGH with DIM in t, e, m"
             " (e.g. t=0.075,0.100)"
