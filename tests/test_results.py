@@ -203,3 +203,30 @@ class TestAlignConjugation:
         path = tmp_path / "results.pkl"
         aligned.save(path)
         assert Results.load(path).conjugation_references == tuple(REFERENCES)
+
+
+class TestNormalizationGradients:
+
+    def test_matches_finite_differences(self, results):
+        bin_id = results.fit["bin_id"].iloc[0]
+        gradients = results.normalization_gradients(bin_id)
+        assert list(gradients.index) == results.coefficient_names
+        assert all(c.startswith("parScale_") for c in gradients.columns)
+        assert len(gradients.columns) > 0
+
+        row = results.fit["bin_id"] == bin_id
+        for column in gradients.columns:
+            # N is quadratic in the scales, so a central difference is exact
+            shifted = []
+            for step in (-1e-3, 1e-3):
+                fit = results.fit.copy()
+                fit[column] = fit[column].astype(np.float64)
+                fit.loc[row, column] += step
+                factors = dataclasses.replace(results, fit=fit).normalization_factors()
+                shifted.append(factors.loc[bin_id].to_numpy())
+            numeric = (shifted[1] - shifted[0]) / 2e-3
+            np.testing.assert_allclose(gradients[column].to_numpy(), numeric, rtol=1e-6)
+
+    def test_unknown_bin(self, results):
+        with pytest.raises(KeyError):
+            results.normalization_gradients("nope")

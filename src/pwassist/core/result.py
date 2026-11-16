@@ -19,6 +19,7 @@ from pwassist.core.parameters import (
     reaction_scale_columns,
     split_full_name,
 )
+from pwassist.core.sdm import SDMBlock, SpinDensityMatrix, element_jacobian
 from pwassist.io.binning import EnergyBin, KinematicBin, MassBin, TBin
 from pwassist.parser import AmplitudeParser, NamingScheme
 from pwassist.plotting.factory import FactoryPlotter
@@ -694,32 +695,48 @@ class Results:
             KeyError: If a coefficient has no normalization integral in a bin, or
                 reactions cannot be matched to their scale parameters.
         """
-        if self.norm_int is None:
-            raise ValueError(
-                "No normalization integrals are available in these results."
-            )
-        names = self.coefficient_names
         fit = self._select_rows(self.fit, kinematic_bins)
-
         rows = []
         for _, fit_row in fit.iterrows():
-            block = self._matrix_block(self.norm_int, fit_row["bin_id"], "amplitude")
-            diag = np.real(np.diag(block.to_numpy()))
-            position = {amp: i for i, amp in enumerate(block.index)}
-            groups = group_by_unique(block.index, names, strict=True)
-            scales = self._reaction_scales(fit_row, block.index)
-            rows.append(
-                {
-                    name: sum(
-                        scales[split_full_name(f)[0]] ** 2 * diag[position[f]]
-                        for f in fulls
-                    )
-                    for name, fulls in groups.items()
-                }
-            )
+            terms = self._normalization_terms(fit_row["bin_id"])
+            rows.append(terms @ self._scale_weights(fit_row, terms.columns))
         return pd.DataFrame(
             rows, index=pd.Index(fit["bin_id"], name="bin_id"), dtype=np.float64
         )
+
+    def normalization_gradients(self, bin_id: str | KinematicBin) -> pd.DataFrame:
+        """Derivatives of the normalization factors with respect to the scale parameters
+
+        The scale parameters 'parScale_<x>' are free in most fits, so the normalized
+        coefficients V_i sqrt(N_i) depend on them through
+        dN_i / d scale_r = 2 scale_r sum_s Re(NI^{r,s}_ii), summing over the
+        constrained copies of V_i in reaction r. Together with 'covariance_matrix', this
+        propagates the scale uncertainties (and their correlations with the
+        coefficients) to the normalized coefficients.
+
+        Args:
+            bin_id (str | KinematicBin): The bin.
+
+        Returns:
+            pd.DataFrame: float64 derivatives, indexed by unique coefficient name, one
+                column per scale parameter column (e.g. 'parScale_45'). Has no columns
+                if the reactions have no scale parameters.
+
+        Raises:
+            ValueError: If no normalization integrals are available.
+            KeyError: If the bin is not found, or reactions cannot be matched to their
+                scale parameters.
+        """
+        bin_id = bin_id.bin_id if isinstance(bin_id, KinematicBin) else bin_id
+        rows = self.fit[self.fit["bin_id"] == bin_id]
+        if rows.empty:
+            raise KeyError(f"No fit results found for bin '{bin_id}'.")
+        fit_row = rows.iloc[0]
+
+        # N_i = D_i0 + sum_c scale_c^2 D_ic  =>  dN_i / d scale_c = 2 scale_c D_ic
+        terms = self._normalization_terms(bin_id).drop(columns=[""])
+        scales = np.array([float(fit_row[c]) for c in terms.columns])
+        return terms * (2.0 * scales)
 
     @property
     def norm_int_type(self) -> NormIntType:
@@ -921,6 +938,225 @@ class Results:
             conjugation_references=self.conjugation_references
             + tuple((a1, a2, s) for a1, a2, s, _ in sectors),
         )
+
+    # ----------------------------------------------------------------------------------
+    # Spin-density matrices
+    # ----------------------------------------------------------------------------------
+    def sdm_blocks(self) -> dict[str, SDMBlock]:
+        """Default layout of the spin-density matrix: one rank-1 block per sector.
+
+        Each coherent sector (a reflectivity, plus the '<reaction>::<sum>' prefix of the
+        coefficients if they are not constrained) becomes a block whose waves are its
+        production coefficients. Coefficients without a reflectivity (e.g. an
+        'isotropic' background) add incoherently to every wave and are not part of
+        any block. For rank > 1, build the blocks explicitly with 'SDMBlock' and pass
+        them to 'spin_density_matrices'.
+
+        Returns:
+            dict[str, SDMBlock]: Blocks by name, e.g. {'n': ..., 'p': ...}.
+        """
+        sectors: dict[str, list[str]] = {}
+        for name in self.coefficient_names:
+            try:
+                prefix, reflectivity = self.coherent_sector(name)
+            except ValueError:
+                continue
+            label = f"{prefix}::{reflectivity}" if prefix else reflectivity
+            sectors.setdefault(label, []).append(name)
+        return {
+            label: SDMBlock.rank_one(label, names) for label, names in sectors.items()
+        }
+
+    def spin_density_matrices(
+        self,
+        kinematic_bins: list[KinematicBin] | None = None,
+        blocks: dict[str, SDMBlock] | Iterable[SDMBlock] | None = None,
+        frame: CoefficientFrame = "fit",
+        covariance: bool = True,
+        propagate_scales: bool = True,
+    ) -> dict[str, SpinDensityMatrix]:
+        """Spin-density matrices of the partial waves, with element covariances.
+
+        Per row of the coefficient frame and per block (see 'pwassist.core.sdm' for
+        the formalism and conventions):
+
+        1. normalize the production coefficients, T_i = V_i sqrt(N_i), with N_i from
+           the row's own scale parameters, so that |T_i|^2 is the intensity of wave i,
+        2. collect the amplitudes T^r_a of every rank r of the block,
+        3. rho_ac = sum_r T^r_a (T^r_c)^*.
+
+        For the 'fit' frame, the covariance of the real SDM elements is propagated
+        linearly from the fit covariance of the coefficients (and scale parameters),
+        C_rho = J C J^T. Bootstrap or randomized SDMs can be used to estimate the
+        uncertainties instead.
+
+        The conjugation ambiguity is NOT removed by the SDM (rho and rho^* describe
+        the data equally well): call 'align_conjugation' first.
+
+        Args:
+            kinematic_bins (list[KinematicBin] | None): Bins to select, in the order
+                returned. Defaults to all bins.
+            blocks (dict[str, SDMBlock] | Iterable[SDMBlock] | None): The layout.
+                Defaults to 'sdm_blocks()', rank 1 per coherent sector.
+            frame (Literal['fit', 'randomized', 'bootstrap']): Coefficients to use.
+                Defaults to 'fit'.
+            covariance (bool): Propagate the covariance (only for the 'fit' frame).
+                Defaults to True.
+            propagate_scales (bool): Include the uncertainties of the free scale
+                parameters, which are correlated with the coefficients, in the
+                covariance. Defaults to True.
+
+        Returns:
+            dict[str, SpinDensityMatrix]: One entry per block.
+
+        Raises:
+            ValueError: If normalization integrals (or, for the covariance, covariance
+                matrices) are missing, or a covariance is requested for a frame other
+                than 'fit'.
+        """
+        if self.norm_int is None:
+            raise ValueError(
+                "No normalization integrals are available in these results."
+            )
+        if covariance and frame != "fit":
+            raise ValueError(
+                "The covariance can only be propagated for the 'fit' frame. Use"
+                " covariance=False and the spread of the samples instead."
+            )
+        if covariance and self.covariance is None:
+            raise ValueError("No covariance matrices are available in these results.")
+        if blocks is None:
+            blocks = self.sdm_blocks()
+        elif not isinstance(blocks, dict):
+            blocks = {b.name: b for b in blocks}
+        if not self.conjugation_references and any(
+            b.n_waves > 1 for b in blocks.values()
+        ):
+            warnings.warn(
+                "The conjugation ambiguity has not been resolved ('align_conjugation'),"
+                " so the imaginary parts of the off-diagonal SDM elements may flip"
+                " sign from bin to bin.",
+                UserWarning,
+            )
+
+        df = self._select_rows(self._coefficient_frame(frame), kinematic_bins)
+        bin_ids = df["bin_id"].astype(str).to_numpy()
+        terms = {b: self._normalization_terms(b) for b in dict.fromkeys(bin_ids)}
+
+        results = {}
+        for name, block in blocks.items():
+            coefficients = list(block.coefficients)
+            unknown = [c for c in coefficients if c not in self.coefficient_names]
+            if unknown:
+                raise KeyError(f"Block '{name}' uses unknown coefficients {unknown}.")
+
+            # 1. normalized coefficients T = V sqrt(N), with N from each row's scales
+            values = df[[f"{c}_re" for c in coefficients]].to_numpy(np.float64) + 1j * (
+                df[[f"{c}_im" for c in coefficients]].to_numpy(np.float64)
+            )
+            norm = np.empty(values.shape)
+            for bin_id, rows in pd.Series(np.arange(len(df))).groupby(bin_ids):
+                d = terms[bin_id].loc[coefficients]
+                weights = self._scale_weights(df.iloc[rows.to_numpy()], d.columns)
+                norm[rows.to_numpy()] = weights @ d.to_numpy().T
+            normalized = values * np.sqrt(norm)
+
+            # 2. amplitudes T^r_a per rank (0 where a wave is absent from a rank)
+            amplitudes = self._rank_amplitudes(block, coefficients, normalized)
+
+            # 3. rho_ac = sum_r T^r_a (T^r_c)^*
+            matrices = np.einsum("xra,xrc->xac", amplitudes, np.conj(amplitudes))
+
+            element_covariance = None
+            if covariance:
+                element_covariance = np.stack(
+                    [
+                        self._sdm_covariance(
+                            bin_ids[k],
+                            block,
+                            coefficients,
+                            amplitudes[k],
+                            normalized[k],
+                            norm[k],
+                            terms[bin_ids[k]],
+                            propagate_scales,
+                        )
+                        for k in range(len(df))
+                    ]
+                )
+            results[name] = SpinDensityMatrix(
+                block=block,
+                bin_ids=tuple(bin_ids),
+                matrices=matrices,
+                covariance=element_covariance,
+            )
+        return results
+
+    @staticmethod
+    def _rank_amplitudes(
+        block: SDMBlock, coefficients: list[str], normalized: np.ndarray
+    ) -> np.ndarray:
+        """Arrange normalized coefficients (n_rows, n_coef) as T^r_a (n_rows, R, n)."""
+        column = {c: i for i, c in enumerate(coefficients)}
+        amplitudes = np.zeros(
+            (normalized.shape[0], block.rank, block.n_waves), dtype=np.complex128
+        )
+        for r, rank in enumerate(block.ranks):
+            for a, coefficient in enumerate(rank):
+                if coefficient is not None:
+                    amplitudes[:, r, a] = normalized[:, column[coefficient]]
+        return amplitudes
+
+    def _sdm_covariance(
+        self,
+        bin_id: str,
+        block: SDMBlock,
+        coefficients: list[str],
+        amplitudes: np.ndarray,
+        normalized: np.ndarray,
+        norm: np.ndarray,
+        terms: pd.DataFrame,
+        propagate_scales: bool,
+    ) -> np.ndarray:
+        """Covariance of one bin's SDM elements, C_rho = J C J^T.
+
+        The chain of derivatives is elements <- T^r_a <- (V_i, scales):
+
+            dT_i / d Re V_i = sqrt(N_i),   dT_i / d Im V_i = i sqrt(N_i),
+            dT_i / d scale_c = T_i / (2 N_i) dN_i / d scale_c = T_i scale_c D_ic / N_i,
+
+        and 'element_jacobian' for the elements. Fixed parameters (e.g. the imaginary
+        part of a wave fixed real in the PWA) have zero variance.
+        """
+        scales = [c for c in terms.columns if c] if propagate_scales else []
+        parameters = [f"{c}_{part}" for c in coefficients for part in ("re", "im")]
+        fit_covariance = self.covariance_matrix(
+            bin_id, parameters + scales, fill_fixed=True
+        ).to_numpy()
+
+        # dT_i / dp for the coefficients' own real and imaginary parts ...
+        n_coef = len(coefficients)
+        d_normalized = np.zeros((n_coef, len(parameters) + len(scales)), np.complex128)
+        root = np.sqrt(norm)
+        d_normalized[np.arange(n_coef), 2 * np.arange(n_coef)] = root
+        d_normalized[np.arange(n_coef), 2 * np.arange(n_coef) + 1] = 1j * root
+        # ... and for the scale parameters, through the normalization N_i
+        fit_row = self.fit[self.fit["bin_id"] == bin_id].iloc[0]
+        for j, column in enumerate(scales):
+            scale = float(fit_row[column])
+            d_terms = terms.loc[coefficients, column].to_numpy()
+            d_normalized[:, len(parameters) + j] = normalized * scale * d_terms / norm
+
+        # dT^r_a / dp follows the rank layout of the block
+        d_amplitudes = (
+            self._rank_amplitudes(block, coefficients, d_normalized.T)
+            .reshape(len(parameters) + len(scales), -1)
+            .T
+        )
+
+        d_re, d_im = element_jacobian(amplitudes)
+        jacobian = d_re @ np.real(d_amplitudes) + d_im @ np.imag(d_amplitudes)
+        return jacobian @ fit_covariance @ jacobian.T
 
     # ----------------------------------------------------------------------------------
     # Analysis
@@ -1216,6 +1452,70 @@ class Results:
         }
         scales[None] = 1.0
         return scales
+
+    def _normalization_terms(self, bin_id: str | KinematicBin) -> pd.DataFrame:
+        """Decompose each coefficient's normalization by scale parameter.
+
+        A coefficient V_i appears in several (reaction r, sum s) copies, each with the
+        diagonal integral Re(NI^{r,s}_ii) and the scale of its reaction, so
+
+            N_i = D_i0 + sum_c scale_c^2 D_ic,
+
+        where D_ic sums the integrals of the copies whose reaction is scaled by the
+        parameter column c, and D_i0 those of reactions without a scale parameter.
+
+        Args:
+            bin_id (str | KinematicBin): The bin.
+
+        Returns:
+            pd.DataFrame: D, indexed by unique coefficient name. Column '' holds D_i0,
+                the other columns are the scale parameter columns (e.g. 'parScale_45').
+
+        Raises:
+            ValueError: If no normalization integrals are available.
+            KeyError: If reactions cannot be matched to their scale parameters.
+        """
+        if self.norm_int is None:
+            raise ValueError(
+                "No normalization integrals are available in these results."
+            )
+        block = self._matrix_block(self.norm_int, bin_id, "amplitude")
+        diag = np.real(np.diag(block.to_numpy()))
+        position = {amp: i for i, amp in enumerate(block.index)}
+        reactions = {split_full_name(f)[0] for f in block.index} - {None}
+        columns = reaction_scale_columns(self.fit.columns, sorted(reactions))  # type: ignore
+        scale_columns = sorted({c for c in columns.values() if c is not None})
+
+        names = self.coefficient_names
+        terms = pd.DataFrame(0.0, index=pd.Index(names), columns=[""] + scale_columns)
+        for name, fulls in group_by_unique(block.index, names, strict=True).items():
+            for full in fulls:
+                column = columns.get(split_full_name(full)[0]) or ""  # type: ignore
+                terms.loc[name, column] += diag[position[full]]
+        return terms
+
+    @staticmethod
+    def _scale_weights(
+        row: pd.Series | pd.DataFrame, columns: Iterable[str]
+    ) -> np.ndarray:
+        """Weights [1, scale_c^2, ...] multiplying the columns of '_normalization_terms'.
+
+        Works on a single row (returns shape (n_columns,)) or a frame of rows (returns
+        shape (n_rows, n_columns)).
+        """
+        weights = [
+            (
+                (np.ones(len(row)) if isinstance(row, pd.DataFrame) else 1.0)
+                if c == ""
+                else np.asarray(row[c], dtype=np.float64) ** 2
+            )
+            for c in columns
+        ]
+        return (
+            np.stack(weights, axis=-1)
+            if isinstance(row, pd.DataFrame)
+            else np.array(weights)
+        )
 
     def _infer_norm_int_type(self, rtol: float = 1e-3) -> NormIntType:
         """Implementation of the 'norm_int_type' property."""
