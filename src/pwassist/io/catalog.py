@@ -1,12 +1,21 @@
 """Classes for identifying and cataloging PWA result files in a directory structure."""
 
+import csv
 import pathlib
 import warnings
 from dataclasses import dataclass
-from typing import ClassVar, Self
+from functools import lru_cache
+from typing import ClassVar, Iterable, Self
 
 import numpy as np
 import pandas as pd
+
+
+@lru_cache(maxsize=None)
+def _read_columns(path: pathlib.Path) -> tuple[str, ...]:
+    """Read only the header row of a CSV. Cached; cleared at the start of each scan."""
+    with open(path, newline="") as f:
+        return tuple(next(csv.reader(f), ()))
 
 
 @dataclass(slots=True)
@@ -25,15 +34,15 @@ class ResultsFile:
     required_columns: ClassVar[frozenset[str]] = frozenset()
 
     @classmethod
-    def matches(cls, columns: pd.Index) -> bool:
+    def matches(cls, columns: Iterable[str]) -> bool:
         """Check if the required columns are present."""
         return cls.required_columns.issubset(set(columns))
 
     @classmethod
     def identify(cls, path: pathlib.Path) -> bool:
         """Determine if this file is of this type. Override in subclasses."""
-        header = pd.read_csv(path, nrows=0)
-        return cls.matches(header.columns)
+        columns = _read_columns(path)
+        return cls.matches(columns)
 
     @classmethod
     def from_path(cls, path: pathlib.Path) -> Self:
@@ -70,12 +79,12 @@ class FitFile(ResultsFile):
 
     @classmethod
     def identify(cls, path: pathlib.Path) -> bool:
-        header = pd.read_csv(path, nrows=0)
+        columns = _read_columns(path)
 
         # distinguish from RandomizedFile and BootstrapFile by checking the file path
         if "rand" in str(path).lower() or "bootstrap" in str(path).lower():
             return False
-        return cls.matches(header.columns)
+        return cls.matches(columns)
 
 
 @dataclass(slots=True)
@@ -91,8 +100,8 @@ class DataFile(ResultsFile):
 
     @classmethod
     def identify(cls, path: pathlib.Path) -> bool:
-        header = pd.read_csv(path, nrows=0)
-        return cls.matches(header.columns)
+        columns = _read_columns(path)
+        return cls.matches(columns)
 
 
 @dataclass(slots=True)
@@ -108,8 +117,8 @@ class CorrelationFile(ResultsFile):
     @classmethod
     def identify(cls, path: pathlib.Path) -> bool:
         # first check that required columns are present
-        header = pd.read_csv(path, nrows=0)
-        if not cls.matches(header.columns):
+        columns = _read_columns(path)
+        if not cls.matches(columns):
             return False
 
         # then use small sample of data to check that diagonal elements are 1.0
@@ -139,8 +148,8 @@ class CovarianceFile(ResultsFile):
     @classmethod
     def identify(cls, path: pathlib.Path) -> bool:
         # first check that required columns are present
-        header = pd.read_csv(path, nrows=0)
-        if not cls.matches(header.columns):
+        columns = _read_columns(path)
+        if not cls.matches(columns):
             return False
 
         # then use small sample of data to check that numeric columns are not bounded in
@@ -183,8 +192,8 @@ class NormIntFile(ResultsFile):
 
     @classmethod
     def identify(cls, path: pathlib.Path) -> bool:
-        header = pd.read_csv(path, nrows=0)
-        return cls.matches(header.columns)
+        columns = _read_columns(path)
+        return cls.matches(columns)
 
     @classmethod
     def from_path(cls, path: pathlib.Path) -> Self:
@@ -238,8 +247,8 @@ class RandomizedFile(ResultsFile):
     @classmethod
     def identify(cls, path: pathlib.Path) -> bool:
         # first check that required columns are present
-        header = pd.read_csv(path, nrows=0)
-        if not cls.matches(header.columns):
+        columns = _read_columns(path)
+        if not cls.matches(columns):
             return False
 
         if "rand" not in str(path).lower():
@@ -269,8 +278,8 @@ class BootstrapFile(ResultsFile):
     @classmethod
     def identify(cls, path: pathlib.Path) -> bool:
         # first check that required columns are present
-        header = pd.read_csv(path, nrows=0)
-        if not cls.matches(header.columns):
+        columns = _read_columns(path)
+        if not cls.matches(columns):
             return False
 
         if "bootstrap" not in str(path).lower():
@@ -364,25 +373,25 @@ class Catalog:
                 types (FitFile and DataFile).
         """
 
+        _read_columns.cache_clear()  # files may have changed since a previous scan
         records = []
         all_csvs = list(self.input_dir.glob("**/*.csv"))
         data_csvs = [csv_file for csv_file in all_csvs if DataFile.identify(csv_file)]
         dir_to_kinematics_map = self._build_dir_to_kinematics_map(data_csvs)
 
+        # a csv is associated with a bin if any of its ancestor dirs holds a data file
+        kinematic_dirs = dir_to_kinematics_map.keys()
         orphan_csvs = [
-            csv
-            for csv in all_csvs
-            if not any(
-                csv.parent.is_relative_to(kinematic_dir)
-                for kinematic_dir in dir_to_kinematics_map.keys()
-            )
+            csv_file
+            for csv_file in all_csvs
+            if kinematic_dirs.isdisjoint((csv_file.parent, *csv_file.parent.parents))
         ]
         if orphan_csvs:
             warnings.warn(
                 f"Found {len(orphan_csvs)} CSV file(s) that could not be associated"
                 " with a kinematic bin, likely due to a missing data.csv file in the"
                 " directory. These files will be ignored. Orphan files: "
-                + ", ".join(str(csv) for csv in orphan_csvs),
+                + ", ".join(str(f) for f in orphan_csvs),
                 UserWarning,
             )
 
@@ -410,9 +419,9 @@ class Catalog:
                 if not self._ignore_files or f.name not in self._ignore_files
             ]
 
-            file_types_found = {
-                self.identify_file_type(csv_file) for csv_file in csv_files_in_bin
-            }
+            # identify each file exactly once
+            file_types = {f: self.identify_file_type(f) for f in csv_files_in_bin}
+            file_types_found = set(file_types.values())
 
             # confirm that required files are present and identifiable
             missing_required = [
@@ -431,7 +440,7 @@ class Catalog:
                 matching_files = [
                     csv_file
                     for csv_file in csv_files_in_bin
-                    if self.identify_file_type(csv_file) == ft
+                    if file_types[csv_file] is ft
                 ]
                 if len(matching_files) > 1:
                     raise ValueError(
