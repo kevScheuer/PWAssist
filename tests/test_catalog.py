@@ -121,6 +121,20 @@ class TestIdentifyFileType:
             f"{bin_missing_required_files / 'mass_1.2-1.3' / 'fit.csv'}"
         )
 
+    def test_ignore_bins(self, sample_bins, recwarn):
+        # ignoring the first t-bin drops all of its files without orphan warnings
+        manifest = Catalog(sample_bins, ignore_bins=[("t", 0.23, 0.35)]).scan()
+        assert set(manifest["bin_id"]) == {"T=0.35,1.0-E=8.2,8.8-M=1.1,1.2"}
+        assert len(recwarn) == 0
+
+    def test_ignore_bins_no_match(self, sample_bins):
+        manifest = Catalog(sample_bins, ignore_bins=[("t", 0.5, 0.6)]).scan()
+        assert len(manifest) == 9
+
+    def test_ignore_bins_unknown_dimension(self, sample_bins):
+        with pytest.raises(ValueError, match="Unknown kinematic dimension"):
+            Catalog(sample_bins, ignore_bins=[("x", 0.0, 1.0)])
+
     def test_scan(self, sample_bins):
         catalog = Catalog(sample_bins)
         manifest = catalog.scan()

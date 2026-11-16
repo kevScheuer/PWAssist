@@ -71,6 +71,9 @@ class PipelineConfig:
     coherent_sum_groups: Sequence[str] | None = None  # If none, plot all available
     save_path: Path | None = None
     ignore_csv_files: str | list[str] | None = None
+    # kinematic bins to skip, as (dimension, low, high); dimension is 'mass', 't' or
+    # 'energy', e.g. [("t", 0.075, 0.100)] drops that t-bin for all energies/masses
+    ignore_bins: Sequence[tuple[str, float, float]] | None = None
     verbose: bool = False
 
 
@@ -94,7 +97,9 @@ class Pipeline:
         with warnings.catch_warnings(record=True) as catalog_warnings:
             warnings.simplefilter("always")
             catalog = Catalog(
-                self.config.root_dir, ignore_files=self.config.ignore_csv_files
+                self.config.root_dir,
+                ignore_files=self.config.ignore_csv_files,
+                ignore_bins=self.config.ignore_bins,
             )
             catalog.scan()
         with warnings.catch_warnings(record=True) as binning_warnings:

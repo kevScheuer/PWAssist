@@ -277,10 +277,11 @@ class BinCollection:
         # create bin bundle for each kinematic bin
         for bin_id, group in manifest.groupby("bin_id"):
             kinematic_bin = KinematicBin.from_bin_id(str(bin_id))
-            paths = {}
-            for _, row in group.iterrows():
-                paths[row["file_type"]] = pathlib.Path(row["file_path"])
-                common_file_types.add(row["file_type"])
+            paths = {
+                file_type: pathlib.Path(file_path)
+                for file_type, file_path in zip(group["file_type"], group["file_path"])
+            }
+            common_file_types.update(paths)
             kinematic_bin_to_bundles[kinematic_bin] = BinBundle(
                 kinematic_bin=kinematic_bin, bin_id=str(bin_id), paths=paths
             )
