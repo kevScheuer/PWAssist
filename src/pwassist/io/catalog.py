@@ -5,10 +5,13 @@ import pathlib
 import warnings
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import ClassVar, Iterable, Self
+from typing import ClassVar, Iterable, Self, Sequence
 
 import numpy as np
 import pandas as pd
+
+KINEMATIC_DIMENSIONS = ("mass", "t", "energy")
+KinematicRange = tuple[str, float, float]  # (dimension, low, high)
 
 
 @lru_cache(maxsize=None)
@@ -322,6 +325,7 @@ class Catalog:
         input_dir: pathlib.Path | str,
         sig_kinematic_digits: int = 3,
         ignore_files: str | list[str] | None = None,
+        ignore_bins: Sequence[KinematicRange] | None = None,
     ):
         """
         Args:
@@ -333,6 +337,11 @@ class Catalog:
                 identification. Defaults to 3.
             ignore_files (str | None, optional): If provided, any CSV file whose name
                 matches this string will be ignored during the scan.
+            ignore_bins (Sequence[tuple[str, float, float]], optional): Kinematic bins
+                to skip entirely, each given as (dimension, low, high) with dimension
+                one of 'mass', 't', or 'energy'. Every bin whose range in that
+                dimension matches is ignored, along with all of its files, e.g.
+                ("t", 0.075, 0.100) drops that t-bin for all energies and masses.
         """
         self.input_dir = (
             pathlib.Path(input_dir) if isinstance(input_dir, str) else input_dir
@@ -347,6 +356,13 @@ class Catalog:
         self._manifest: pd.DataFrame | None = None
         self._sig_kinematic_digits = sig_kinematic_digits
         self._ignore_files: list[str] | None = None
+        self._ignore_bins = list(ignore_bins or [])
+        for dim, _, _ in self._ignore_bins:
+            if dim not in KINEMATIC_DIMENSIONS:
+                raise ValueError(
+                    f"Unknown kinematic dimension '{dim}' in ignore_bins; expected"
+                    f" one of {KINEMATIC_DIMENSIONS}."
+                )
 
         if isinstance(ignore_files, str):
             self._ignore_files = [ignore_files]
@@ -379,12 +395,21 @@ class Catalog:
         data_csvs = [csv_file for csv_file in all_csvs if DataFile.identify(csv_file)]
         dir_to_kinematics_map = self._build_dir_to_kinematics_map(data_csvs)
 
+        # drop user-ignored bins; their files are skipped, not reported as orphans
+        ignored_dirs = {
+            d for d, k in dir_to_kinematics_map.items() if self._is_ignored_bin(k)
+        }
+        dir_to_kinematics_map = {
+            d: k for d, k in dir_to_kinematics_map.items() if d not in ignored_dirs
+        }
+
         # a csv is associated with a bin if any of its ancestor dirs holds a data file
         kinematic_dirs = dir_to_kinematics_map.keys()
         orphan_csvs = [
             csv_file
             for csv_file in all_csvs
             if kinematic_dirs.isdisjoint((csv_file.parent, *csv_file.parent.parents))
+            and ignored_dirs.isdisjoint((csv_file.parent, *csv_file.parent.parents))
         ]
         if orphan_csvs:
             warnings.warn(
@@ -472,6 +497,13 @@ class Catalog:
         self._manifest = pd.DataFrame(records)
 
         return self._manifest
+
+    def _is_ignored_bin(self, kinematics: dict[str, tuple[float, float]]) -> bool:
+        """True if the bin's range matches any user-specified ignored bin."""
+        return any(
+            np.allclose(kinematics[dim], (low, high), rtol=0, atol=1e-6)
+            for dim, low, high in self._ignore_bins
+        )
 
     def identify_file_type(self, path: pathlib.Path) -> type[ResultsFile]:
         """Identify file type by using class' identify method."""

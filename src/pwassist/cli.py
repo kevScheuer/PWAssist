@@ -6,6 +6,28 @@ from pwassist.parser import NamingScheme
 from pwassist.pipeline.pipeline import Pipeline, PipelineConfig
 
 
+_BIN_DIMENSIONS = {
+    "t": "t",
+    "e": "energy",
+    "energy": "energy",
+    "m": "mass",
+    "mass": "mass",
+}
+
+
+def _parse_bin(text: str) -> tuple[str, float, float]:
+    """Parse 'DIM=LOW,HIGH' (DIM: t, e/energy, m/mass) into (dimension, low, high)."""
+    try:
+        dim, rng = text.split("=")
+        low, high = map(float, rng.split(","))
+        return _BIN_DIMENSIONS[dim.strip().lower()], low, high
+    except (ValueError, KeyError):
+        raise argparse.ArgumentTypeError(
+            f"invalid bin '{text}'; expected DIM=LOW,HIGH with DIM in t, e, m"
+            " (e.g. t=0.075,0.100)"
+        )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="pwassist",
@@ -58,6 +80,18 @@ def build_parser() -> argparse.ArgumentParser:
         "--ignore-csv", nargs="*", default=None, help="CSV file names to ignore."
     )
     parser.add_argument(
+        "--ignore-bin",
+        type=_parse_bin,
+        action="append",
+        default=None,
+        metavar="DIM=LOW,HIGH",
+        help=(
+            "Kinematic bin to ignore, with all its files (repeatable). DIM is t, e,"
+            " or m; e.g. --ignore-bin t=0.075,0.100 drops that t-bin for all"
+            " energies and masses."
+        ),
+    )
+    parser.add_argument(
         "--plot-dir",
         type=Path,
         default=None,
@@ -87,6 +121,7 @@ def main(argv: list[str] | None = None) -> int:
         coherent_sum_groups=args.coherent_sums,
         save_path=args.save,
         ignore_csv_files=args.ignore_csv,
+        ignore_bins=args.ignore_bin,
         verbose=args.verbose,
     )
 
