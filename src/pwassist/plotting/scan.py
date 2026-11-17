@@ -768,6 +768,13 @@ class ScanPlotter(BasePWAPlotter):
             for row in range(1, n_waves):
                 axs[row, row].tick_params(labelleft=False)
 
+            # the last column carries the right-hand tick labels: phases (degrees) in
+            # the off-diagonal cells, and the intensity scale for the bottom-right
+            # diagonal cell, mirroring the upper-left one
+            if n_waves > 1:
+                for row in range(n_waves):
+                    axs[row, -1].tick_params(right=True, labelright=True)
+
             fig.supxlabel(x_label)
             fig.legend(
                 handles=[
