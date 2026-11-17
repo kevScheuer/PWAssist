@@ -768,6 +768,10 @@ class ScanPlotter(BasePWAPlotter):
             for row in range(1, n_waves):
                 axs[row, row].tick_params(labelleft=False)
 
+            if n_waves > 1:
+                for row in range(n_waves):
+                    axs[row, -1].tick_params(right=True, labelright=True)
+
             fig.supxlabel(x_label)
             fig.legend(
                 handles=[
