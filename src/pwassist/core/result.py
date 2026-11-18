@@ -751,33 +751,27 @@ class Results:
             KeyError: If any of the requested bins are not found in the results, or if
                 the requested bins are invalid (e.g. low >= high).
         """
-        formatted_t_bins: list[TBin] = []
-        if isinstance(t_bins, tuple):
-            formatted_t_bins = [TBin.from_tuple(t_bins)]
-        elif isinstance(t_bins, list) and all(isinstance(tb, tuple) for tb in t_bins):
-            formatted_t_bins = [TBin.from_tuple(tb) for tb in t_bins]  # type: ignore
-        elif isinstance(t_bins, TBin):
-            formatted_t_bins = [t_bins]
+        def _normalize(bins, bin_cls) -> list:
+            """Convert a bin, tuple, or list of either into a list of bin_cls."""
+            if bins is None:
+                return []
+            items = bins if isinstance(bins, list) else [bins]
+            normalized = []
+            for item in items:
+                if isinstance(item, bin_cls):
+                    normalized.append(item)
+                elif isinstance(item, tuple):
+                    normalized.append(bin_cls.from_tuple(item))
+                else:
+                    raise TypeError(
+                        f"Cannot interpret {item!r} as a {bin_cls.__name__}; expected"
+                        f" a {bin_cls.__name__} or a (low, high) tuple."
+                    )
+            return normalized
 
-        formatted_energy_bins: list[EnergyBin] = []
-        if isinstance(energy_bins, tuple):
-            formatted_energy_bins = [EnergyBin.from_tuple(energy_bins)]
-        elif isinstance(energy_bins, list) and all(
-            isinstance(eb, tuple) for eb in energy_bins
-        ):
-            formatted_energy_bins = [EnergyBin.from_tuple(eb) for eb in energy_bins]  # type: ignore
-        elif isinstance(energy_bins, EnergyBin):
-            formatted_energy_bins = [energy_bins]
-
-        formatted_mass_bins: list[MassBin] = []
-        if isinstance(mass_bins, tuple):
-            formatted_mass_bins = [MassBin.from_tuple(mass_bins)]
-        elif isinstance(mass_bins, list) and all(
-            isinstance(mb, tuple) for mb in mass_bins
-        ):
-            formatted_mass_bins = [MassBin.from_tuple(mb) for mb in mass_bins]  # type: ignore
-        elif isinstance(mass_bins, MassBin):
-            formatted_mass_bins = [mass_bins]
+        formatted_t_bins: list[TBin] = _normalize(t_bins, TBin)
+        formatted_energy_bins: list[EnergyBin] = _normalize(energy_bins, EnergyBin)
+        formatted_mass_bins: list[MassBin] = _normalize(mass_bins, MassBin)
 
         if t_bins is not None and any(
             t not in self.unique_t_bins for t in formatted_t_bins
