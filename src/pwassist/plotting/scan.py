@@ -523,14 +523,13 @@ class ScanPlotter(BasePWAPlotter):
                             default_kwargs[refl].update(
                                 kwargs.get(refl, {}) if kwargs else {}
                             )
-                        kwargs = default_kwargs
 
                         ax.errorbar(
                             x=data_df["x_center"],
                             xerr=data_df["x_err"],
                             y=y,
                             yerr=yerr,
-                            **kwargs[refl_kind],
+                            **default_kwargs[refl_kind],
                         )
 
                     ax.set_ylim(bottom=0)
