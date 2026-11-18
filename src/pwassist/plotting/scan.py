@@ -424,9 +424,6 @@ class ScanPlotter(BasePWAPlotter):
                 "color": "tab:blue",
             },
         }
-        for refl in ("positive", "negative"):
-            default_kwargs[refl].update(kwargs.get(refl, {}) if kwargs else {})
-        kwargs = default_kwargs
 
         if fractional:
             y_label = (
@@ -519,12 +516,20 @@ class ScanPlotter(BasePWAPlotter):
 
                         max_value = max(max_value, y.max() + y.max() * 0.1)
 
+                        default_kwargs[refl_kind][
+                            "label"
+                        ] = rf"${self.results.parser.to_latex(amp)}$"
+                        for refl in ("positive", "negative"):
+                            default_kwargs[refl].update(
+                                kwargs.get(refl, {}) if kwargs else {}
+                            )
+                        kwargs = default_kwargs
+
                         ax.errorbar(
                             x=data_df["x_center"],
                             xerr=data_df["x_err"],
                             y=y,
                             yerr=yerr,
-                            label=rf"${self.results.parser.to_latex(amp)}$",
                             **kwargs[refl_kind],
                         )
 
